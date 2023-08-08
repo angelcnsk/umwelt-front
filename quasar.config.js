@@ -11,8 +11,10 @@
 
 const { configure } = require('quasar/wrappers');
 const path = require('path');
+const { loadEnv } = require('vite');
 
 module.exports = configure(function (/* ctx */) {
+  const env = loadEnv('', process.cwd())
   return {
 
 
@@ -38,7 +40,7 @@ module.exports = configure(function (/* ctx */) {
     extras: [
       // 'ionicons-v4',
       // 'mdi-v5',
-      'fontawesome-v6',
+      // 'fontawesome-v6',
       // 'eva-icons',
       // 'themify',
       // 'line-awesome',
@@ -57,7 +59,7 @@ module.exports = configure(function (/* ctx */) {
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
       publicPath: '/',
-      distDir: 'public',
+      distDir: 'dist',
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,

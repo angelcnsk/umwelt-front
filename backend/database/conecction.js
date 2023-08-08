@@ -7,7 +7,8 @@ const knex = require('knex')({
       password : 'apeironws#%)',
       database : 'umwelt'
   },
-  pool: {min:0, max:10}
+  pool: {min:0, max:10},
+  debug: true
 });
 
 module.exports = knex;

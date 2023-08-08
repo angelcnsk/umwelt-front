@@ -125,6 +125,7 @@
             const responseUser = await createUser(newUser.value)
       
             if (responseUser.msg === 'success') {
+                await fetchUsers()
                 $q.notify({
                     position:'top',
                     type: 'positive',

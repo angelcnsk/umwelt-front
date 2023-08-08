@@ -64,6 +64,7 @@
 <script>
 import {defineComponent} from 'vue'
 import {ref} from 'vue'
+import env from 'process';
 
 import { useQuasar } from "quasar";
 import { useUsers } from '../composables/useUsers.js'
@@ -112,6 +113,8 @@ export default defineComponent({
       }
 
     };
+
+    // console.log('ingresa a login', process.env)
 
     return {
       user,

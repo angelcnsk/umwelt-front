@@ -2,20 +2,30 @@ const knex = require('../conecction');
 
 class User {
   static async create(data) {
-    return knex('users').insert(data);
+    return await knex('users').insert(data);
   }
 
   static async read() {
-    return knex('users').select('*');
+    return await knex('users').select('*');
   }
 
   static async update(id, data) {
-    return knex('users').where('id', id).update(data);
+    return await knex('users').where('id', id).update(data);
   }
 
   static async delete(id) {
-    return knex('users').where('id', id).del();
+    return await knex('users').where('id', id).del();
   }
+
+  static async findOne(data) {
+    return await knex('users').where('email', data.email).first();
+  }
+
+  static async userMainData(data){
+    const user = await this.findOne({email:data})
+    console.log('construyendo objeto de usuario', JSON.parse(JSON.stringify(user)))
+  }
+
 }
 
 module.exports = User;

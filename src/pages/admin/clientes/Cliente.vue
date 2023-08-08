@@ -59,12 +59,12 @@
                             label="RFC"
                         />
                     </div>
-                    <div class="col-xs-11 col-sm-4 q-pa-sm">
+                    <!-- <div class="col-xs-11 col-sm-4 q-pa-sm">
                         <q-input 
                             v-model="dataClient.business_description"
                             label="Descripción giro comercial"
                         />
-                    </div>
+                    </div> -->
                     <div class="col-xs-11 col-sm-4 q-pa-sm">
                         <q-toggle color="primary" v-model="statusClient" :val="statusClient" label="Estatus cliente" />
                     </div>
@@ -142,7 +142,19 @@
                     </span>
                 <q-separator class="q-mb-sm q-ml-sm q-mr-sm separador" />
                     <div class="row q-mb-lg">
-                        <div class="col-md-4 q-pa-sm">
+                        <div class="col-xs-12 col-sm-4 q-pa-sm">
+                            <q-select 
+                                :options="dataClient.plantas" 
+                                option-label="alias"
+                                v-model="contact.planta" 
+                                label="Planta" 
+                                emit-value
+                                :rules="[
+                                    val => !!val || '* Campo obligatorio',
+                                ]"
+                            />
+                        </div>
+                        <div class="col-xs-12 col-md-4 q-pa-sm">
                             <q-input 
                                 v-model="contact.contact_name" 
                                 label="Nombre contacto"
@@ -151,7 +163,7 @@
                                 ]"
                             />
                         </div>
-                        <div class="col-md-4 q-pa-sm">
+                        <div class="col-xs-12 col-md-4 q-pa-sm">
                             <q-input 
                                 v-model="contact.contact_position" 
                                 label="Cargo contacto" 
@@ -160,7 +172,7 @@
                                 ]"
                             />
                         </div>
-                        <div class="col-md-4 q-pa-sm">
+                        <div class="col-xs-12 col-md-4 q-pa-sm">
                             <q-input 
                                 v-model="contact.contact_phone" 
                                 label="Teléfono contacto"
@@ -170,21 +182,22 @@
                                 ]"
                             />
                         </div>
-                    </div>
-                    <div class="row q-mb-lg">
-                        <div class="col-md-4 q-pa-sm">
+                        <div class="col-xs-12 col-md-4 q-pa-sm">
                             <q-input v-model="contact.contact_ext" label="Extensión" />
                         </div>
-                        <div class="col-md-4 q-pa-sm">
+                        <div class="col-xs-12 col-md-4 q-pa-sm">
                             <q-input v-model="contact.contact_movil" mask="##-##-##-##-##" label="Movil" />
                         </div>
-                        <div class="col-md-4 q-pa-sm">
+                        <div class="col-xs-12 col-md-4 q-pa-sm">
                             <q-input 
                                 v-model="contact.contact_mail" 
                                 label="E-mail" 
                                 type="email"
                             />
                         </div>
+                    </div>
+                    <div class="row q-mb-lg">
+                        
                     </div>
                         
                     
@@ -309,6 +322,12 @@
                             </template>
                         </q-select>
                     </div>
+                    <div class="col-xs-11 col-sm-4 q-pa-sm">
+                        <q-input 
+                            v-model="address.business_description"
+                            label="Descripción giro comercial"
+                        />
+                    </div>
                     </div>
                 </q-card-section>
             <!-- buttons example -->
@@ -385,6 +404,7 @@ export default defineComponent({
         const contactColumns = [
             {name: 'id', label: 'Id',field: 'contact_id', align:'center'},
             {name: 'name', label: 'Nombre', field: 'contact_name', align:'center', sortable:true, sortOrder:'ad'},
+            {name: 'location', label: 'Planta', field: 'planta', align:'center'},
             {name: 'position', label: 'Cargo', field: 'contact_position', align:'center'},
             {name: 'phone', label: 'Teléfono', field: 'contact_phone', align:'center'},
             {name: 'extension', label: 'Extensión', field: 'contact_ext', align:'center'},

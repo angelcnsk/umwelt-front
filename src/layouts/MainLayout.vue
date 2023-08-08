@@ -1,6 +1,6 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated class="bg-dark text-dark">
+  <q-layout view="hHr LpR lFr">
+    <q-header elevated class="bg-white text-dark">
       <q-toolbar>
         <q-btn
           flat
@@ -9,13 +9,13 @@
           @click="toggleLeftDrawer"
           icon="menu"
           aria-label="Menu"
-          color="white"
+          color="orange"
         />
         <q-toolbar-title class="text-primary">
-          greenLab
-          <q-avatar>
+          <span class="text-bold">Umwelt</span>
+          <!-- <q-avatar>
             <img src="~/assets/icon_greenlab.png">
-          </q-avatar>
+          </q-avatar> -->
         </q-toolbar-title>
         <q-space/>
         <div class="q-gutter-sm row items-center no-wrap">
@@ -23,8 +23,7 @@
                  @click="$q.fullscreen.toggle()"
                  v-if="$q.screen.gt.sm">
           </q-btn> -->
-          <q-btn round dense flat color="white" :icon="icon" @click="setDarkMode" />
-          <span class="text-caption text-white">{{ AppActiveUser.role }}</span>
+          <!-- <q-btn round dense flat color="grey" :icon="icon" @click="setDarkMode" /> -->
           <!-- <q-btn round dense flat color="white" icon="notifications">
             <q-badge color="red" text-color="white" floating>
               5
@@ -40,19 +39,7 @@
               </q-list>
             </q-menu>
           </q-btn> -->
-          <q-btn round flat>
-            <q-avatar size="56px">
-              <!-- <img src="https://cdn.quasar.dev/img/boy-avatar.png"> -->
-              <img :src="AppActiveUser.avatar" v-if="AppActiveUser.avatar != null">
-              <img v-else src="~/assets/avatar-s-11.png" >
-            </q-avatar>
-            <q-menu class="text-green text-center"
-            >
-              <q-list style="min-width: 180px" class="text-center">
-                <items-profile />
-              </q-list>
-            </q-menu>
-          </q-btn>
+          
         </div>
       </q-toolbar>
     </q-header>
@@ -61,10 +48,33 @@
       v-model="leftDrawerOpen"
       show-if-above
       elevated
-      class="bg-dark text-white"
+      color="primary"
+      class=" text-grey-8"
     >
-      <q-list>
-        <q-expansion-item v-for="(menu,index) in menus" :key="index" :icon="menu.icon" :label="menu.title" class="q-pa-sm">
+
+      <div class="row justify-center q-mt-md">
+        <q-btn round flat>
+            <q-avatar size="56px">
+              <!-- <img src="https://cdn.quasar.dev/img/boy-avatar.png"> -->
+              <img :src="AppActiveUser.avatar" v-if="AppActiveUser.avatar != null">
+              <img v-else src="~/assets/avatar-s-11.png" >
+            </q-avatar>
+            <q-menu class="text-green text-center"
+            >
+              <!-- <q-list style="min-width: 180px" class="text-center">
+                <items-profile />
+              </q-list> -->
+            </q-menu>
+          </q-btn>
+      </div>
+      <div class="row justify-center q-mt-sm">
+        <p>{{ AppActiveUser.email }}</p>
+      </div>
+      <div class="row justify-center">
+        <p class="text-caption text-primary">{{ AppActiveUser.role }}</p>
+      </div>
+      <q-list >
+        <q-expansion-item v-for="(menu,index) in menus" :key="index" :icon="menu.icon" :label="menu.title" class="q-pa-sm" >
           <q-list v-for="(item, i) in menu.children" :key="i"  class="q-pl-lg">
             <q-item :to="item.route" active-class="q-item-no-link-highlighting">
             <q-item-section avatar>
@@ -76,6 +86,14 @@
           </q-item>
           </q-list>
         </q-expansion-item>
+        <q-item to="/logout" active-class="q-item-no-link-highlighting" class="q-pa-sm">
+            <q-item-section avatar class="q-pa-md">
+              <q-icon name="logout" :class="{'text-primary': darkMode, 'text-dark':!darkMode}" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Cerrar sesión</q-item-label>
+            </q-item-section>
+          </q-item>
       </q-list>
     </q-drawer>
 

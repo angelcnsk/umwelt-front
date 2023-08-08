@@ -16,7 +16,7 @@
                     <span class="text-subtitle1 q-ml-sm block"> Producto: {{servicio.producto}}</span>
                 </div>
                 <div class="row q-mt-md q-mb-md q-ma-sm">
-                    <div class="col-md-4 col-xs-12">
+                    <!-- <div class="col-md-4 col-xs-12">
                         <span class="block label q-mb-sm">Orden de trabajo:</span>
                         <div class="row">
                         <q-badge transparent 
@@ -42,7 +42,7 @@
                             </q-btn>
                         </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="col-lg-4 col-md-4 col-sm-12">
                         <span class="label block q-mb-sm">Estatus:</span>
                         <q-badge 
@@ -52,15 +52,7 @@
                             :label="servicio.status"
                         />
                     </div>
-                    <div class="col col-lg-4 col-md-4 col-sm-12">
-                        <span class="label block q-mb-sm">Reconocimiento:</span>
-                        <q-badge 
-                            outline
-                            :label="servicio.recognition ? 'aceptado' : 'no aceptado'"
-                            :color="servicio.recognition ? 'primary' : 'negative'"
-                            class="uppercase" 
-                        />
-                    </div>
+                    
                 </div>
                 <div class="row q-mt-md q-mb-lg q-ma-sm">
                     <div class="col-md-4 col-sm-12">
@@ -86,7 +78,7 @@
                 </div>
 
                 <div class="row q-mt-md q-mb-md ">
-                    <div class="col-md-4 col-xs-12 q-mt-sm">
+                    <!-- <div class="col-md-4 col-xs-12 q-mt-sm">
                         <span class="label q-ml-sm">Inicio reconocimiento:</span>
                         <q-input 
                             class="q-mt-sm q-ml-sm"
@@ -108,7 +100,7 @@
                                 </q-icon>
                             </template>
                         </q-input>
-                    </div>
+                    </div> -->
                     <div class="col-md-4 col-xs-12 q-mt-sm">
                         <span class="label q-mr-sm">Inicio ejecución:</span>
                         <q-input class="q-mt-sm" filled v-model="fecha2" mask="date" :rules="['date']" style="max-width: 180px;">
@@ -142,13 +134,13 @@
                         </q-input>
                     </div>
                 </div>
-                <div class="row q-mr-md justify-end q-mt-sm">
+                <!-- <div class="row q-mr-md justify-end q-mt-sm">
                     <q-btn v-if="cambiar_fechas_servicio" color="primary" @click="update" label="Guardar" />
-                </div>
+                </div> -->
             </q-card-section>
     </q-card>
 </div>
-<logistica :servicio="servicio" :id="$route.params.id" />
+<!-- <logistica :servicio="servicio" :id="$route.params.id" /> -->
 <gestion :servicio_id="$route.params.id" :signatory="servicio.signatory" />
 
 </q-page>
@@ -215,11 +207,11 @@ export default defineComponent({
         })
 
         const setTime = async () => {
-            fecha_reconocimiento.value = servicio.value.recognition_date.split('-')
+            // fecha_reconocimiento.value = servicio.value.recognition_date.split('-')
             fecha_inicio.value = servicio.value.start_date.split('-')
             fecha_fin.value = servicio.value.end_date.split('-')
 
-            fecha1.value = date.formatDate(new Date(fecha_reconocimiento.value[0], fecha_reconocimiento.value[1]-1, fecha_reconocimiento.value[2]), 'YYYY/MM/DD')
+            // fecha1.value = date.formatDate(new Date(fecha_reconocimiento.value[0], fecha_reconocimiento.value[1]-1, fecha_reconocimiento.value[2]), 'YYYY/MM/DD')
             fecha2.value = date.formatDate(new Date(fecha_inicio.value[0], fecha_inicio.value[1]-1, fecha_inicio.value[2]), 'YYYY/MM/DD')
             fecha3.value = date.formatDate(new Date(fecha_fin.value[0], fecha_fin.value[1]-1, fecha_fin.value[2]), 'YYYY/MM/DD')
         }

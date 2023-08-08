@@ -1,7 +1,7 @@
 <template>
 <div class="q-ma-md" style="margin-top: 50px;">
     <q-card>
-        <q-card-section>
+        <!-- <q-card-section>
             <div class="text-h6 text-grey-8">Gestión</div>
             <q-separator spaced />
             <div class="text-subtitle text-grey-8">Signatarios y destinatarios</div>
@@ -39,7 +39,7 @@
                     <q-btn label="guardar" color="primary" class="q-mt-lg q-ml-md" @click="addSignatory"/>
                 </div>
             </div>
-        </q-card-section>
+        </q-card-section> -->
         
         <q-card-section>
             <q-separator spaced />
@@ -47,7 +47,7 @@
             <q-separator spaced />
             <archivos :servicio_id="props.servicio_id" />
         </q-card-section>
-        <q-card-section style="margin-bottom: 100px;">
+        <!-- <q-card-section style="margin-bottom: 100px;">
             <q-separator spaced />
             <div class="text-subtitle text-grey-8">Reporte y control</div>
             <q-separator spaced />
@@ -96,7 +96,7 @@
                 </q-btn>
             </div>
 
-        </q-card-section>
+        </q-card-section> -->
     </q-card>
 </div>
 </template>

@@ -120,7 +120,7 @@ export const useUsersStore = defineStore('users', {
           headers:{'Authorization': `Bearer ${token.accessToken}`},
           params:{id: userId},
         }
-        api.get('spa/getUsuario', options).then((response) => {
+        api.get('spa/getUser', options).then((response) => {
           const infoUser = response.data.userData
           
           if (userId === undefined || userId === null) {

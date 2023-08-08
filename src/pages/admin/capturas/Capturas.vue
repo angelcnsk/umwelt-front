@@ -17,11 +17,11 @@
         </q-card-section>
         <q-card-section>
             <div class="row q-gutter-sm">
-                <q-btn label="verificar luxómetro" :disable="device==null" outline color="primary" @click="checkLuxo = !checkLuxo"> 
+                <!-- <q-btn label="verificar luxómetro" :disable="device==null" outline color="primary" @click="checkLuxo = !checkLuxo"> 
                     <q-tooltip>Abre ventana para ingresar valores de verificación de luxometro</q-tooltip>
-                </q-btn>
+                </q-btn> -->
                 
-                <q-btn label="guardar capturas" outline color="primary" @click="guardarLocal">
+                <!-- <q-btn label="guardar capturas" outline color="primary" @click="guardarLocal">
                     <q-tooltip>Guarda los valores capturados en tu dispositivo</q-tooltip>
                 </q-btn>
                 
@@ -36,51 +36,51 @@
                         Guarda los valores capturados en el servidor<br>
                         Se debe guardar cada área
                     </q-tooltip>
-                </q-btn>
+                </q-btn> -->
             </div>
         </q-card-section>
     </q-card>
-
-    <div class="row q-pa-md bg-warning q-mt-md justify-center rounded" v-if="device != null && device.end_value == undefined ">
-        <span class="text-subtitle2 text-center" 
-            v-if="device.end_value == undefined"
+    
+    <div class="q-mt-md">
+        <q-tabs
+            v-model="tab"
+            inline-label
+            outside-arrows
+            mobile-arrows
+            class="bg-primary text-white shadow-2"
         >
-            Falta ingresar el valor final de la verificación de luxómetro, favor de ingresarlo previo a cerrar capturas
-        </span>
-            
+            <q-tab name="documentacion" label="Documentación" />
+            <q-tab name="inspeccion" label="Inspección" />
+        </q-tabs>
+        
+        <q-tab-panels
+          v-model="tab"
+          animated
+          swipeable
+          vertical
+          transition-prev="jump-up"
+          transition-next="jump-up"
+        >
+          <q-tab-panel name="documentacion">
+            <documentacion :secciones="secciones" :service="currentService" />
+          </q-tab-panel>
+
+          <q-tab-panel name="inspeccion">
+            <guia-conceptos :categorias="guiaconceptos" :service="currentService" />
+          </q-tab-panel>
+
+          <q-tab-panel name="movies">
+            <div class="text-h4 q-mb-md">Movies</div>
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
+          </q-tab-panel>
+        </q-tab-panels>
+      
     </div>
 
-    <div class="q-mt-md" v-show="puntos_captura.length > 0 && !bloquea ">
-        <capture-illumination 
-            ref="displayPoints"
-            :show="showPoints" 
-            :puntos="puntos_captura" 
-            :area="areaSelected"
-            v-if="typeProduct === 1" 
-        />
-    </div>
-    <q-dialog v-model="checkLuxo" transition-show="flip-down" transition-hide="flip-up" persistent>
-        <q-card class="q-dialog-plugin">
-            <q-card-section>
-                <q-input v-model="device.identificador" label="Luxómetro" :disable="true" />
-            </q-card-section>
-            <q-card-section>
-                <div class="row justify-between">
-                    <div class="col-md-5" style="">
-                        <q-input type="number" label="Valor inicial" v-model="device.start_value" style="width:95%" min="0" step=".1" />
-                    </div>
-                    <div class="col-md-5">
-                        <q-input type="number" label="Valor final" v-model="device.end_value" style="width:95%" min="0" step=".1" />
-                    </div>
-                </div>
-            </q-card-section>
-            <!-- buttons example -->
-            <q-card-actions align="right">
-                <q-btn color="dark" label="Cancelar" v-close-popup />
-                <q-btn color="primary" label="Guardar" @click="saveLuxometro" />
-            </q-card-actions>
-        </q-card>
-    </q-dialog>
+    
+    
 </div>
 </q-page>
 </template>
@@ -93,13 +93,15 @@ import { useQuasar, date } from "quasar";
 import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
 
-import captureIllumination from 'src/components/admin/capturas/PuntosIluminacion.vue'
+import documentacion from 'src/components/admin/capturas/Documentacion.vue'
+import guiaConceptos from 'src/components/admin/capturas/GuiaConceptos.vue'
 import { utils, writeFileXLSX } from 'xlsx';
 
 export default defineComponent({
 name: 'Capturas',
 components:{
-    captureIllumination
+    documentacion,
+    guiaConceptos
 },
 setup () {
     const storeUsers = useUsers();
@@ -107,8 +109,8 @@ setup () {
     const $q = useQuasar();
 
     const { AppActiveUser } = storeUsers
-    const { getServiceList, servicesList, a_points, captureActive,
-        currentService, getAreas, areas, fo_aml_01_4, luxometro
+    const { getServiceList, servicesList,
+        currentService, saveSectionFile
     } = storeCapturas
 
     const notify = (msg, type) => {
@@ -124,87 +126,17 @@ setup () {
     })
     
     const serviceSelected = ref(null)
-    const departmentSelected = ref(null)
-    const areaSelected = ref(null)
     
-    const departments = ref([])
-    const typeProduct = ref(0)
-    
-    const puntos_captura = ref([])
-    
-    const checkLuxo = ref(false)
-    const showPoints = ref(false)
-    const displayPoints = ref()
     // const offline = computed(() => store.state.app.offline)
     
     const dataOffline = ref([])
-    
-    const bloquea = ref(true)
-    const device = ref(null)
     const disableSync = ref(false)
+    const secciones = ref([])
+    const guiaconceptos = ref([])
+    
+    const tab = ref('documentacion')
 
     const inst = getCurrentInstance()
-
-    const config_puntos = () => {
-        if(a_points.value.length>0){
-            const user_id = a_points.value[0].user_id
-            const localPoints = JSON.parse(localStorage.getItem(`capturePoints_${user_id}`))
-            
-            if (localPoints !== undefined && localPoints !== null) {
-                puntos_captura.value = localPoints
-                bloquea.value = false
-                verificarLuxometroDia()
-                return false
-            }
-        }
-
-        const req = a_points.value
-        
-        if (req.length > 0) {
-            localStorage.setItem(`capturePoints_${req[0].user_id}`, JSON.stringify(req))
-            const resp = JSON.parse(localStorage.getItem(`capturePoints_${req[0].user_id}`))
-                localStorage.removeItem(`capturePoints_${req[0].user_id}`)
-
-            resp.forEach((item) => {
-                if (item.fo_aml_01_4_id > 0) {
-                    item.fo_aml_01_4_id = fo_aml_01_4.value.filter(element => element.id === item.fo_aml_01_4_id)[0]
-                }
-            })
-
-            puntos_captura.value = resp
-        } else {
-            puntos_captura.value = []
-        }
-        verificarLuxometroDia()
-    }
-
-    const verificarLuxometroDia = () => {
-        const today = formDate(new Date())
-        const storeluxometro = JSON.parse(localStorage.getItem('luxometro'))
-
-        if (storeluxometro !== null) {
-            device.value = storeluxometro
-            if (device.value.date < today) {
-                localStorage.removeItem(`luxometro`)
-                notify('Es necesario que verifques el luxometro','negative')
-                
-                device.value = luxometro.value
-                return false
-            }
-        } else {
-            notify('Es necesario que verifques el luxometro','negative')
-            console.log(luxometro.value)
-            device.value = luxometro.value
-        }
-        bloquea.value = false
-    }
-
-    watch(checkLuxo, (val) => {
-        if(val){
-            const storeluxometro = JSON.parse(localStorage.getItem('luxometro'))
-            device.value = storeluxometro != null ? storeluxometro : luxometro.value
-        }
-    })
 
     const formDate =  (date) => {
         const year = date.getFullYear().toString()
@@ -212,47 +144,6 @@ setup () {
         const day = (date.getDate() + 100).toString().substring(1)
         return `${year  }-${  month  }-${  day}`
     }
-
-    const saveLuxometro = () => {
-        if (device.value.start_value === undefined && device.value.end_value === undefined) {
-            notify('Por favor ingresa un valor válido','negative')
-        }
-
-        if (device.value.start_value !== undefined && device.value.start_value !== '' && device.value.end_value === undefined) {
-            device.value.date = formDate(new Date())
-            localStorage.setItem('luxometro', JSON.stringify(device.value))
-            notify('No olvides ingresar el valor final, al terminar tus capturas', 'warning')
-            bloquea.value = false
-            setTimeout(() => { checkLuxo.value = false }, 500)
-        }
-
-        if (device.value.end_value !== undefined && device.value.end_value !== '') {
-            localStorage.setItem('luxometro', JSON.stringify(device.value))
-            
-            puntos_captura.value.map(punto => punto.capture_date == device.value.date ? punto.lux_end = device.value.end_value : punto.lux_end)
-            localStorage.setItem(`capturePoints_${puntos_captura.value[0].user_id}`, JSON.stringify(puntos_captura.value))
-            setTimeout(() => { checkLuxo.value = false }, 500)
-        }
-        console.log('bloquea', bloquea.value)
-    }
-
-// const setDataOffline = (data, node) => {
-//     const offlineData = JSON.parse(localStorage.getItem(`service_data${serviceSelect.value.id}`)) != null ? JSON.parse(localStorage.getItem(`service_data${serviceSelect.value.id}`)) : {}
-    
-//     if(offlineData === null && store.state.app.offline){
-//     Swal.fire('No hay información','Para continuar es necesario tener internet','warning')
-//     }
-
-//     if(Object.keys(offlineData).length == 0) {
-//     if (node == 'areas'){
-//         offlineData.areas = data  
-//     } else if( node === 'departments') {
-//         offlineData.deparments = data
-//     }
-//     localStorage.setItem(`service_data${serviceSelect.value.id}`, JSON.stringify(offlineData))  
-//     }
-    
-// }
 
     const cleanData = () => {
         
@@ -329,67 +220,49 @@ setup () {
 
     watch(serviceSelected, async (item) => {
         console.log(item)
-        departments.value = []
-        departmentSelected.value = ''
-        typeProduct.value = 0
-        luxometro.value = {
-            identificador:item.identificador,
-            id:item.device_id,
-            lux_start:null,
-            lux_end:null
-        }        
-        // console.log('selecciona servicio y la conexión es:', store.state.app.offline)
-        // si no hay conexión a internet
-        // if(store.state.app.offline){
-        // console.log(store.state.app.offline)
-        // // setDataOffline()
-        // } else {
+        
         if (serviceSelected.value !== null) {
-            showPoints.value = true
-            typeProduct.value = serviceSelected.value.product_id
             await getServiceList(serviceSelected.value.id)
-            config_puntos()
+            setDataService()
             // setDataOffline(departments.value, 'departments')
         }
         // }
     })
 
-
-    watch(departmentSelected, async () => {
-        areaSelected.value = ''
-        if (departmentSelected.value !== null && departmentSelected.value !== '') {
-            // if (!store.state.app.offline){
-                await getAreas({department_id:departmentSelected.value.id})
-            // } else{
-            //     localStorage.setItem(`service_data${serviceSelect.value.id}`, JSON.stringify({areas:departments.value}))
-            //     areas.value = JSON.parse(localStorage.getItem(`service_data${serviceSelect.value.id}`))
-            // }   
+    const setDataService = () => {
+        secciones.value = currentService.value.secciones
+        if(currentService.value.docs_guardados.length > 0){
+            currentService.value.docs_guardados.forEach((docSave)=>{
+                currentService.value.secciones.forEach((element)=>{
+                    element.documents.forEach((doc)=>{
+                        if(doc.id === docSave.doc_id){
+                            doc.filled_i = docSave.value
+                        }
+                    })
+                })
+            })
         }
-    })
 
-    watch(areaSelected, (value) => {
-        if (areaSelected.value !== null && areaSelected.value !== '') {
-            config_puntos()
-            verificarLuxometroDia()
-        }
-    })
+        currentService.value.categorias.forEach((categoria) => {
+            categoria.conceptos.forEach((concepto) => {
+                concepto.valor = []
+            })
+        })
+
+        guiaconceptos.value = currentService.value.categorias
+    }
 
     const guardarLocal = () => {
         if(displayPoints.value != undefined){
             displayPoints.value.localDot()
         }
     }
-
-    const sincronizar = () => {
-        if(displayPoints.value != undefined && captureActive){
-            displayPoints.value.async()
-        }
-    }
+    
 
     onMounted( async () => {  
         if (window.navigator.onLine) {
             await getServiceList()
-            verificarLuxometroDia()  
+            // verificarLuxometroDia()  
         } else {
             // store.commit('app/SET_OFFLINE_MOD', true)
         }
@@ -397,25 +270,12 @@ setup () {
 
     return {
         serviceSelected,
-        captureActive,
-        departmentSelected,
-        areaSelected,
         servicesList,
-        departments,
-        areas,
-        typeProduct,
-        puntos_captura,
-        checkLuxo,
-        device,
-        showPoints,
-        bloquea,
-        captureActive,
-        displayPoints,
-        saveLuxometro,
-        cleanData,
-        exportCapture,
-        sincronizar,
-        guardarLocal
+        currentService,
+        guiaconceptos,
+        secciones,
+        tab,
+        
     }
 }
 })    

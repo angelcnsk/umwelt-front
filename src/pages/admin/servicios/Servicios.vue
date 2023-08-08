@@ -102,12 +102,12 @@
                                     </template>
                                 </q-select>
                             </div>
-                            <div class="col-md-3 q-pa-sm">
+                            <!-- <div class="col-md-3 q-pa-sm">
                                 <q-toggle label="Acepta reconocimiento" v-model="service.recognition" />
-                            </div>
+                            </div> -->
                         </div>
                         <div class="row">
-                            <div class="col-md-4 col-xs-12 q-pa-sm">
+                            <!-- <div class="col-md-4 col-xs-12 q-pa-sm">
                                 <q-input 
                                     filled 
                                     v-model="service.date_recognition" 
@@ -127,7 +127,7 @@
                                         </q-icon>
                                     </template>
                                 </q-input>
-                            </div>
+                            </div> -->
                             <div class="col-md-4 col-xs-12 q-pa-sm">
                                 <q-input filled v-model="service.date_start" mask="date" :rules="['date']" label="Inicio de ejecución">
                                     <template v-slot:append>
@@ -264,11 +264,11 @@
           sortable:false,
           align:'center'
         },
-        {
-          label: 'OT',
-          field: 'ot',
-          align:'center'
-        },
+        // {
+        //   label: 'OT',
+        //   field: 'ot',
+        //   align:'center'
+        // },
         {
           label: 'Estatus',
           field: 'status',
@@ -301,17 +301,17 @@
           field: 'create_date',
           align:'center'
         },
-        {
-          label: 'Reconocimiento',
-          field: 'recognition',
-          html:   true,
-          align:'center'
-        },
-        {
-          label: 'Fecha reconocimiento',
-          field: 'end_date',
-          align:'center'
-        },
+        // {
+        //   label: 'Reconocimiento',
+        //   field: 'recognition',
+        //   html:   true,
+        //   align:'center'
+        // },
+        // {
+        //   label: 'Fecha reconocimiento',
+        //   field: 'end_date',
+        //   align:'center'
+        // },
         {
           label: 'Fecha inicial',
           field: 'start_date',
@@ -409,9 +409,9 @@
                     persistent: true
                  }).onOk(async data => {
                 
-                    service.value.recognition_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
-                    service.value.start_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
-                    service.value.end_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
+                    // service.value.recognition_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
+                    service.value.start_date = date.formatDate(service.value.date_start, 'YYYY-MM-DD')
+                    service.value.end_date = date.formatDate(service.value.date_end, 'YYYY-MM-DD')
 
                     service.value.producto_id = service.value.producto.id
                     service.value.client_id = service.value.client.id
@@ -420,8 +420,7 @@
                     const initService = await newService(service.value)
                     if(initService.status == 200){
                         notify('Se creó un nuevo servicio','positive')
-                        service.value = { recognition:false,
-                            date_recognition:formattedString,
+                        service.value = { 
                             date_start:formattedString,
                             date_end:formattedString
                         }

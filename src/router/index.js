@@ -83,7 +83,6 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
   const routesName = ['completar-reconocimiento', 'servicio','cliente']
 
   Router.beforeEach(async (to, from, next) => {
-    
     getActiveUser().then(async (user) => {
       
       if ((to.path === '/login' && from.path == '/login' || from.path == '/' && to.path === '/') && user === null) {
@@ -122,7 +121,7 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
           // console.log('pasa por redirect')
           // return next()
           return next('/admin/dashboard')
-        }
+        } 
       } else if (to.name === 'recovery-pass') {
         return next()
       } else {
@@ -132,6 +131,7 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
       }
       return next()
     })
+    
   })
 
   return Router

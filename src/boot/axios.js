@@ -1,7 +1,7 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
-let domain = 'http://localhost:3000/api'
+let domain = 'https://umwelt-admin.test/api/'
 
 // if(window.location.hostname == 'localhost'){
 //     domain = 'https://admin.test/api'

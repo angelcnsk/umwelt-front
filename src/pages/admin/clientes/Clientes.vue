@@ -71,12 +71,12 @@
                                 label="RFC"
                             />
                         </div>
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                        <!-- <div class="col-xs-11 col-sm-4 q-pa-sm">
                             <q-input 
                                 v-model="newClient.business_description"
                                 label="Descripción giro comercial"
                             />
-                        </div>
+                        </div> -->
                     </div>
                 </q-card-section>
             <!-- buttons example -->
