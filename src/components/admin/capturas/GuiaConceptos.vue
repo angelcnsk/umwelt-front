@@ -13,8 +13,7 @@
                     <q-separator />
                         <div class="q-pa-md" v-for="(concepto,i) in categoria.conceptos" :key="i">
                             <div class="row wrap q-pa-sm">
-                                
-                                <span class="text-justify"><span class="text-caption">{{ `${i+1})`  }}</span> {{concepto.texto  }}</span>
+                                <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
                             </div>
                             <div class="row q-pa-sm">
                                 <q-checkbox v-model="concepto.valor" val="si" label="Si" color="orange" />
@@ -29,9 +28,9 @@
                             </div>                                
                             <div v-for="(posicion,index) in posicionObservaciones" :key="index" class="row">
                                 <div class="col-md-12">
-                                    
+                                    <!-- {{ `${posicion}, ${i}` }} -->
                                     <q-input
-                                        v-if="posicion == i" 
+                                        v-if="posicion == concepto.global-1"
                                         v-model="concepto.observaciones"
                                         filled
                                         clearable
@@ -130,16 +129,15 @@ export default defineComponent({
         const categorias = toRef(props,'categorias')
         const service = toRef(props,'service')
         const posicionObservaciones = service.value.posicion_observaciones
-        
-        
-        
+        const observaciones = ref([])
+
         const dialog = ref(false)
         const loading = ref(false)
 
         const autoSave = async () => {            
             dialog.value = true
-            
-            const saveData = await saveCaptures({service_id: service.value.id, secciones:service.value.secciones})
+
+            const saveData = await saveCaptures({service_id: service.value.id, categorias:service.value.categorias, type:"conceptos"})
             if(saveData.status == 200){
                 setTimeout(() => {
                     dialog.value = false
@@ -170,10 +168,10 @@ export default defineComponent({
         // }
 
         onMounted( async () => {  
-            console.log(service)
+            // console.log(conceptos.value,'nada?')
             setInterval(() => {
                 if(categorias.value.length>0)autoSave()
-            }, 50000);
+            }, 500000);
         })
 
         return {

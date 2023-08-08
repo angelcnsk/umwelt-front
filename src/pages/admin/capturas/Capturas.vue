@@ -51,6 +51,7 @@
         >
             <q-tab name="documentacion" label="Documentación" />
             <q-tab name="inspeccion" label="Inspección" />
+            <q-tab name="archivos" label="Archivos" />
         </q-tabs>
         
         <q-tab-panels
@@ -69,8 +70,8 @@
             <guia-conceptos :categorias="guiaconceptos" :service="currentService" />
           </q-tab-panel>
 
-          <q-tab-panel name="movies">
-            <div class="text-h4 q-mb-md">Movies</div>
+          <q-tab-panel name="archivos">
+            <div class="text-h4 q-mb-md">Archivos</div>
             <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
             <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
             <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
@@ -243,13 +244,21 @@ setup () {
             })
         }
 
-        currentService.value.categorias.forEach((categoria) => {
-            categoria.conceptos.forEach((concepto) => {
-                concepto.valor = []
-            })
-        })
-
+        
         guiaconceptos.value = currentService.value.categorias
+        if(currentService.value.conceptos_guardados.length > 0){
+            currentService.value.conceptos_guardados.forEach((concept) => {
+                currentService.value.categorias.forEach((categoria) => {
+                    categoria.conceptos.forEach((concepto) => {
+                        if(concept.concepto_id == concepto.id){
+                            concepto.valor = concept.value != null ? concept.value : []
+                            concepto.observaciones = concept.observaciones
+                        }
+                    })
+                })
+            
+            })
+        }
     }
 
     const guardarLocal = () => {

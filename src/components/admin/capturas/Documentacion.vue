@@ -13,7 +13,8 @@
                     <q-separator />
                         <div class="q-pa-md" v-for="(document,i) in seccion.documents" :key="i">
                             <div class="row wrap q-pa-sm">
-                                <span>{{document.texto  }}</span>
+                                <!-- <span>{{document.texto  }}</span> -->
+                                <span class="text-justify"><span class="text-caption">{{ `${document.global})`  }}</span> {{document.texto  }}</span>
                             </div>
                             <div class="row q-pa-sm">
                                 <q-radio v-model="document.filled_i" val="anexo" label="Se anexa" />
@@ -135,7 +136,7 @@ export default defineComponent({
         const autoSave = async () => {            
             dialog.value = true
             
-            const saveData = await saveCaptures({service_id: service.value.id, secciones:service.value.secciones})
+            const saveData = await saveCaptures({service_id: service.value.id, secciones:service.value.secciones, type:'documentos'})
             if(saveData.status == 200){
                 setTimeout(() => {
                     dialog.value = false
@@ -169,7 +170,7 @@ export default defineComponent({
             console.log(service)
             setInterval(() => {
                 if(secciones.value.length>0)autoSave()
-            }, 50000);
+            }, 500000);
         })
 
         return {
