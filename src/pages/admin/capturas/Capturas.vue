@@ -251,12 +251,13 @@ setup () {
                 currentService.value.categorias.forEach((categoria) => {
                     categoria.conceptos.forEach((concepto) => {
                         if(concept.concepto_id == concepto.id){
-                            concepto.valor = concept.value != null ? concept.value : []
-                            concepto.observaciones = concept.observaciones
+                            concepto.value_visita1 = concept.value_visita1 != null ? concept.value_visita1 : []
+                            concepto.value_visita2 = concept.value_visita2 != null ? concept.value_visita2 : []
+                            concepto.observaciones = concept.observaciones != '' && concept.observaciones != null ? concept.observaciones : ''
+                            concepto.observaciones2 = concept.observaciones2 != '' && concept.observaciones2 != null ? concept.observaciones2 : ''
                         }
                     })
                 })
-            
             })
         }
     }

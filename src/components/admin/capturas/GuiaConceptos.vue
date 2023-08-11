@@ -1,6 +1,11 @@
 <template>
     <q-card class="q-pa-sm">
             <q-card-section>
+                <div class="row q-pa-md d-inline-block">
+                    <q-radio v-model="visita" val="1" label="visita 1" />
+                    <q-radio v-model="visita" val="2" label="visita 2" />
+                    <q-btn class="q-ml-md" color="primary" icon="save" label="guardar" @click="autoSave('manual')" /> 
+                </div>
                 <q-list bordered class="rounded-borders" v-if="categorias.length>0">
                     <q-expansion-item
                         group="somegroup"
@@ -16,12 +21,18 @@
                                 <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
                             </div>
                             <div class="row q-pa-sm">
-                                <q-checkbox v-model="concepto.valor" val="si" label="Si" color="orange" />
-                                <q-checkbox v-model="concepto.valor" val="no" label="No" color="orange" />
-                                <q-checkbox v-model="concepto.valor" val="cumple" label="Cumple" color="orange" />
-                                <q-checkbox v-model="concepto.valor" val="no_cumple" label="No cumple" color="orange" />
-                                <q-checkbox v-model="concepto.valor" val="na" label="N.A." color="orange" />
-                                <q-checkbox v-model="concepto.valor" val="et" label="E.T." color="orange" />
+                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="si" label="Si" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" val="si" label="Si" color="orange" />
+                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="no" label="No" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" val="no" label="No" color="orange" />
+                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="cumple" label="Cumple" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" val="cumple" label="Cumple" color="orange" />
+                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="no_cumple" label="No cumple" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" val="no_cumple" label="No cumple" color="orange" />
+                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="na" label="N.A." color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" val="na" label="N.A." color="orange" />
+                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="et" label="E.T." color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" val="et" label="E.T." color="orange" />
 
                                 
 
@@ -29,7 +40,7 @@
                             <div v-for="(posicion,index) in posicionObservaciones" :key="index" class="row">
                                 <div class="col-md-12">
                                     <!-- {{ `${posicion}, ${i}` }} -->
-                                    <q-input
+                                    <!-- <q-input
                                         v-if="posicion == concepto.global-1"
                                         v-model="concepto.observaciones"
                                         filled
@@ -37,7 +48,26 @@
                                         type="textarea"
                                         color="red-12"
                                         label="Observaciones"                                        
+                                    /> -->
+                                    <q-editor
+                                        v-model="concepto.observaciones"
+                                        v-if="visita==1 && posicion == concepto.global-1"
+                                        :dense="$q.screen.lt.md"
+                                        :toolbar="toolbar"
+                                        :fonts="fonts"
+                                        filled
+                                        clearable
+                                        color="red-12"
                                     />
+                                    <q-editor
+                                        v-model="concepto.observaciones2"
+                                        v-if="visita==2 && posicion == concepto.global-1"
+                                        :dense="$q.screen.lt.md"
+                                        :toolbar="toolbar"
+                                        :fonts="fonts"
+                                    >
+
+                                    </q-editor>
                                 </div>
                             </div>
                             
@@ -98,7 +128,7 @@
 
             <q-card-section class="row items-center no-wrap">
             <div>
-                <div class="text-weight-bold">Auto guardado</div>
+                <div class="text-weight-bold">{{tipo}}</div>
             </div>
 
             <q-space />
@@ -121,6 +151,7 @@ export default defineComponent({
     props:['categorias','service'],
     // emits: ['savePoints','async'],
     setup(props, ctx) {
+        const $q = useQuasar();
         const storeCapturas = useCapturas();
         const { getServiceList, servicesList,
             currentService, saveCaptures, saveSectionFile
@@ -133,10 +164,94 @@ export default defineComponent({
 
         const dialog = ref(false)
         const loading = ref(false)
+        const visita = ref("1")
+        const tipo = ref('')
 
-        const autoSave = async () => {            
+        const toolbar = ref([
+            [
+                {
+                    label: $q.lang.editor.align,
+                    icon: $q.iconSet.editor.align,
+                    fixedLabel: true,
+                    list: 'only-icons',
+                    options: ['left', 'center', 'right', 'justify']
+                },
+                
+            ],
+            ['bold', 'italic', 'strike', 'underline', 'subscript', 'superscript'],
+            ['token', 'hr', 'custom_btn'],
+            
+            [
+                {
+                    label: $q.lang.editor.formatting,
+                    icon: $q.iconSet.editor.formatting,
+                    list: 'no-icons',
+                    options: [
+                    'p',
+                    'h1',
+                    'h2',
+                    'h3',
+                    'h4',
+                    'h5',
+                    'h6',
+                    'code'
+                    ]
+                },
+                {
+                    label: $q.lang.editor.fontSize,
+                    icon: $q.iconSet.editor.fontSize,
+                    fixedLabel: true,
+                    fixedIcon: true,
+                    list: 'no-icons',
+                    options: [
+                    'size-1',
+                    'size-2',
+                    'size-3',
+                    'size-4',
+                    'size-5',
+                    'size-6',
+                    'size-7'
+                    ]
+                },
+                {
+                    label: $q.lang.editor.defaultFont,
+                    icon: $q.iconSet.editor.font,
+                    fixedIcon: true,
+                    list: 'no-icons',
+                    options: [
+                    'default_font',
+                    'arial',
+                    'arial_black',
+                    'comic_sans',
+                    'courier_new',
+                    'impact',
+                    'lucida_grande',
+                    'times_new_roman',
+                    'verdana'
+                    ]
+                },
+                'removeFormat'
+            ],
+            ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
+
+            ['undo', 'redo'],
+            ['viewsource']
+        ])
+        const fonts = ref({
+            arial: 'Arial',
+            arial_black: 'Arial Black',
+            comic_sans: 'Comic Sans MS',
+            courier_new: 'Courier New',
+            impact: 'Impact',
+            lucida_grande: 'Lucida Grande',
+            times_new_roman: 'Times New Roman',
+            verdana: 'Verdana'
+        })    
+                                                    
+
+        const autoSave = async (type) => {            
             dialog.value = true
-
+            tipo.value = type == 'manual' ? 'Guardando...' : 'Auto guardado'
             const saveData = await saveCaptures({service_id: service.value.id, categorias:service.value.categorias, type:"conceptos"})
             if(saveData.status == 200){
                 setTimeout(() => {
@@ -171,7 +286,7 @@ export default defineComponent({
             // console.log(conceptos.value,'nada?')
             setInterval(() => {
                 if(categorias.value.length>0)autoSave()
-            }, 500000);
+            }, 300000);
         })
 
         return {
@@ -179,6 +294,11 @@ export default defineComponent({
             loading,
             dialog,
             posicionObservaciones,
+            visita,
+            tipo,
+            toolbar,
+            fonts,
+            autoSave
         }
     }
 })

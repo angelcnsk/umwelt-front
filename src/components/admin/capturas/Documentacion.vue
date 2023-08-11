@@ -170,7 +170,7 @@ export default defineComponent({
             console.log(service)
             setInterval(() => {
                 if(secciones.value.length>0)autoSave()
-            }, 500000);
+            }, 300000);
         })
 
         return {
