@@ -2,9 +2,30 @@
     <q-card class="q-pa-sm">
             <q-card-section>
                 <div class="row q-pa-md d-inline-block">
-                    <q-radio v-model="visita" val="1" label="visita 1" />
-                    <q-radio v-model="visita" val="2" label="visita 2" />
-                    <q-btn class="q-ml-md" color="primary" icon="save" label="guardar" @click="autoSave('manual')" /> 
+                    <div class="col-xs-12 col-md-2">
+                        <q-radio v-model="visita" val="1" label="visita 1" />
+                    </div>
+                    <div class="col-xs-12 col-md-2">
+                        <q-radio v-model="visita" val="2" label="visita 2" />
+                    </div>
+                    <div class="col-xs-12 col-md-2">
+                        <q-btn icon="event" outline class="cursor-pointer" size="md" color="primary" label="Fecha Visita">
+                            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                                <q-date v-model="fechas_visita" range>
+                                    <div class="row items-center justify-end">
+                                        <q-btn v-close-popup label="Close" color="primary" flat />
+                                    </div>
+                                </q-date>
+                            </q-popup-proxy>
+                        </q-btn>
+                    </div>
+                    <div class="col-xs-12 col-md-6 d-inline-block q-mt-sm">
+                        <span class="text-body2">Fecha inicial: {{ fechas_visita.from }}</span>
+                        <span class="text-body2 q-ml-sm">Fecha final {{ fechas_visita.to }}</span>
+                    </div>
+                </div>
+                <div class="row q-pa-md items-center justify-start ">
+                    <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="autoSave('manual')" /> 
                 </div>
                 <q-list bordered class="rounded-borders" v-if="categorias.length>0">
                     <q-expansion-item
@@ -166,6 +187,74 @@ export default defineComponent({
         const loading = ref(false)
         const visita = ref("1")
         const tipo = ref('')
+        const timeStamp = Date.now()
+        const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
+
+        const fechas_visita = ref({
+            from: formattedString,
+            to: formattedString
+        })
+
+        watch(fechas_visita,(newVal) => {
+            
+            if(newVal != undefined && service.value.id != undefined){
+                fechas_visita.value = newVal
+                // console.log('cambia valor', fechas_visita.value)    
+                
+                if(service.value.fechas == undefined){
+                    service.value.fechas = []
+                    // console.log('agregó array', service.value.fechas)
+                } 
+                console.log(visita.value)    
+                if(visita.value == "1"){
+                    service.value.fechas[0] = newVal
+                    // console.log('set fecha1', service.value.fechas)
+                }
+                else {
+                    service.value.fechas[1] = newVal
+                    // console.log('set fecha2', service.value.fechas)
+                }
+
+            } else {
+                fechas_visita.value.from = formattedString
+                fechas_visita.value.to = formattedString
+            }
+        })
+
+        watch(visita, (newVal, oldValue) => {
+            
+            if(service.value.id == undefined){
+                fechas_visita.value.from = formattedString
+                fechas_visita.value.to = formattedString
+            }
+            setFechas(newVal)
+            
+        })
+
+        watch(service, (newVal) => {
+            setFechas()
+        })
+
+        const setFechas = (value) => {
+            const valor = value != undefined ? value : visita.value
+            fechas_visita.value = {}
+            if(service.value.fechas != undefined && valor == "1"){
+                // console.log('trae fechas 1', service.value.fechas)
+                fechas_visita.value.from = service.value.fechas[0].fecha_inicio != undefined ? service.value.fechas[0].fecha_inicio : service.value.fechas[0].from
+                fechas_visita.value.to = service.value.fechas[0].fecha_fin != undefined ? service.value.fechas[0].fecha_fin : service.value.fechas[0].to
+            }
+
+            if(service.value.fechas != undefined && valor == "2"){
+                // console.log('trae fechas 2', service.value.fechas)
+                fechas_visita.value.from = service.value.fechas[1].fecha_inicio != undefined ? service.value.fechas[1].fecha_inicio : service.value.fechas[1].from
+                fechas_visita.value.to = service.value.fechas[1].fecha_fin != undefined ? service.value.fechas[1].fecha_fin : service.value.fechas[1].to
+            } 
+
+            if(service.value.fechas == undefined){
+                fechas_visita.value.from = formattedString
+                fechas_visita.value.to = formattedString
+            }
+        }
 
         const toolbar = ref([
             [
@@ -252,7 +341,11 @@ export default defineComponent({
         const autoSave = async (type) => {            
             dialog.value = true
             tipo.value = type == 'manual' ? 'Guardando...' : 'Auto guardado'
-            const saveData = await saveCaptures({service_id: service.value.id, categorias:service.value.categorias, type:"conceptos"})
+            
+            const saveData = await saveCaptures({
+                service_id: service.value.id, categorias:service.value.categorias, type:"conceptos",
+                fechas:service.value.fechas
+            })
             if(saveData.status == 200){
                 setTimeout(() => {
                     dialog.value = false
@@ -284,6 +377,7 @@ export default defineComponent({
 
         onMounted( async () => {  
             // console.log(conceptos.value,'nada?')
+            setFechas()
             setInterval(() => {
                 if(categorias.value.length>0)autoSave()
             }, 300000);
@@ -298,6 +392,7 @@ export default defineComponent({
             tipo,
             toolbar,
             fonts,
+            fechas_visita,
             autoSave
         }
     }

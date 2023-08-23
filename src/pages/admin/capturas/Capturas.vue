@@ -71,10 +71,7 @@
           </q-tab-panel>
 
           <q-tab-panel name="archivos">
-            <div class="text-h4 q-mb-md">Archivos</div>
-            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
-            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
-            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</p>
+            <archivos :service="currentService" />
           </q-tab-panel>
         </q-tab-panels>
       
@@ -96,13 +93,15 @@ import { useCapturas } from 'src/composables/useCapturas.js'
 
 import documentacion from 'src/components/admin/capturas/Documentacion.vue'
 import guiaConceptos from 'src/components/admin/capturas/GuiaConceptos.vue'
+import archivos from 'src/components/admin/capturas/ArchivosMasivos.vue'
 import { utils, writeFileXLSX } from 'xlsx';
 
 export default defineComponent({
 name: 'Capturas',
 components:{
     documentacion,
-    guiaConceptos
+    guiaConceptos,
+    archivos
 },
 setup () {
     const storeUsers = useUsers();

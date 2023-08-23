@@ -12,9 +12,12 @@
                     >
                     <q-separator />
                         <div class="q-pa-md" v-for="(document,i) in seccion.documents" :key="i">
-                            <div class="row wrap q-pa-sm">
+                            <div class="row d-inline-block">
                                 <!-- <span>{{document.texto  }}</span> -->
-                                <span class="text-justify"><span class="text-caption">{{ `${document.global})`  }}</span> {{document.texto  }}</span>
+                                <span class="text-justify text-caption"> {{ document.global }})
+                                    <span class="text-body2" v-html="document.texto" />
+                                </span>
+                                
                             </div>
                             <div class="row q-pa-sm">
                                 <q-radio v-model="document.filled_i" val="anexo" label="Se anexa" />

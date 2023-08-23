@@ -213,13 +213,12 @@ export const useServiciosStore = defineStore('servicios', {
             })
         },
         async saveSectionFile (payload) {
-            
+            console.log(payload)
             try {
-              const url = 'spa/saveReportFile'
+              const url = 'spa/saveFiles'
               
               const formData = new FormData()
               formData.append('service_id', payload.service_id)
-              formData.append('report_part_id', payload.seccion_id)
               formData.append('archivos', payload.files)
               
               const options = {

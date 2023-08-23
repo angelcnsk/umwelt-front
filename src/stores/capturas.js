@@ -58,13 +58,12 @@ export const useCapturasStore = defineStore('capturas', {
             })
         },
         async saveSectionFile (payload) {
-            
+          
           try {
-            const url = 'spa/saveReportFile'
+            const url = 'spa/saveFile'
             
             const formData = new FormData()
             formData.append('service_id', payload.service_id)
-            formData.append('document', JSON.stringify(payload.document))
             formData.append('archivos', payload.files)
             
             const options = {
