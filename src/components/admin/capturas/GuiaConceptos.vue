@@ -43,22 +43,22 @@
                             </div>
                             <div class="row q-pa-sm">
                                 <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="si" label="Si" color="orange" />
-                                <q-checkbox v-else v-model="concepto.value_visita2" val="si" label="Si" color="orange" />
-                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="no" label="No" color="orange" />
-                                <q-checkbox v-else v-model="concepto.value_visita2" val="no" label="No" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="si" label="Si" color="orange" />
+                                <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" :disable="bloquearVisita" val="no" label="No" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="no" label="No" color="orange" />
                                 <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="cumple" label="Cumple" color="orange" />
-                                <q-checkbox v-else v-model="concepto.value_visita2" val="cumple" label="Cumple" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="cumple" label="Cumple" color="orange" />
                                 <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="no_cumple" label="No cumple" color="orange" />
-                                <q-checkbox v-else v-model="concepto.value_visita2" val="no_cumple" label="No cumple" color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="no_cumple" label="No cumple" color="orange" />
                                 <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="na" label="N.A." color="orange" />
-                                <q-checkbox v-else v-model="concepto.value_visita2" val="na" label="N.A." color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="na" label="N.A." color="orange" />
                                 <q-checkbox v-if="visita == 1" v-model="concepto.value_visita1" val="et" label="E.T." color="orange" />
-                                <q-checkbox v-else v-model="concepto.value_visita2" val="et" label="E.T." color="orange" />
+                                <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="et" label="E.T." color="orange" />
 
                                 
 
                             </div>                                
-                            <div v-for="(posicion,index) in posicionObservaciones" :key="index" class="row">
+                            <!-- <div v-for="(posicion,index) in posicionObservaciones" :key="index" class="row"> -->
                                 <div class="col-md-12">
                                     <!-- {{ `${posicion}, ${i}` }} -->
                                     <!-- <q-input
@@ -70,9 +70,11 @@
                                         color="red-12"
                                         label="Observaciones"                                        
                                     /> -->
+                                    
                                     <q-editor
+                                        class="q-editor-mb"
                                         v-model="concepto.observaciones"
-                                        v-if="visita==1 && posicion == concepto.global-1"
+                                        v-if="visita==1 && categoria.conceptos.length -1 == i"
                                         :dense="$q.screen.lt.md"
                                         :toolbar="toolbar"
                                         :fonts="fonts"
@@ -81,16 +83,18 @@
                                         color="red-12"
                                     />
                                     <q-editor
+                                        class="q-editor-mb"
                                         v-model="concepto.observaciones2"
                                         v-if="visita==2 && posicion == concepto.global-1"
                                         :dense="$q.screen.lt.md"
                                         :toolbar="toolbar"
                                         :fonts="fonts"
+                                        :disable="bloquearVisita"
                                     >
 
                                     </q-editor>
                                 </div>
-                            </div>
+                            <!-- </div> -->
                             
                         </div>
                     </q-expansion-item>
@@ -353,6 +357,13 @@ export default defineComponent({
             }
         }
 
+        const bloquearVisita = computed(() => {
+            // console.log(fechas_visita.value)
+            const splitDate = fechas_visita.value.to.split('-')
+            const fecha_final = date.buildDate({year:splitDate[0], month:splitDate[1], date:splitDate[2]})
+            return new Date() < fecha_final
+        })
+
         // const upLoadFile = async (docSection, index) => {
             
         //     let input = document.getElementById("fileInput")
@@ -393,9 +404,25 @@ export default defineComponent({
             toolbar,
             fonts,
             fechas_visita,
+            bloquearVisita,
             autoSave
         }
     }
 })
 
 </script>
+
+<style>
+@media (max-width: 390px) {
+    .q-editor-mb{
+        max-width: 240px;
+    }
+}
+
+@media (max-width: 900px) {
+    .q-editor-mb{
+        max-width: 650px;
+    }
+}
+
+</style>

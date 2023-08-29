@@ -52,6 +52,7 @@
             <q-tab name="documentacion" label="Documentación" />
             <q-tab name="inspeccion" label="Inspección" />
             <q-tab name="archivos" label="Archivos" />
+            <q-tab name="gestion" label="Gestión" />
         </q-tabs>
         
         <q-tab-panels
@@ -72,6 +73,9 @@
 
           <q-tab-panel name="archivos">
             <archivos :service="currentService" />
+          </q-tab-panel>
+          <q-tab-panel name="gestion">
+            <gestion :service="currentService" />
           </q-tab-panel>
         </q-tab-panels>
       
@@ -94,6 +98,7 @@ import { useCapturas } from 'src/composables/useCapturas.js'
 import documentacion from 'src/components/admin/capturas/Documentacion.vue'
 import guiaConceptos from 'src/components/admin/capturas/GuiaConceptos.vue'
 import archivos from 'src/components/admin/capturas/ArchivosMasivos.vue'
+import gestion from 'src/components/admin/capturas/GestionServicio.vue'
 import { utils, writeFileXLSX } from 'xlsx';
 
 export default defineComponent({
@@ -101,7 +106,8 @@ name: 'Capturas',
 components:{
     documentacion,
     guiaConceptos,
-    archivos
+    archivos,
+    gestion
 },
 setup () {
     const storeUsers = useUsers();

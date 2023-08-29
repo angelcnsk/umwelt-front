@@ -78,8 +78,7 @@
                 </span>
                 <q-separator class="q-mb-lg q-mr-sm q-ml-sm separador" />
                 <div class="row q-mb-lg q-pa-sm">
-                    <q-btn color="primary" class="q-mr-sm" outline @click="addPlanta = true" label="Agregar planta" />
-                    <q-btn color="primary" class="q-ml-sm" outline @click="addAddress = true" label="Agregar dirección" />
+                    <q-btn color="primary" class="q-mr-sm" outline @click="infoPlanta('nuevo')" label="Agregar planta" />
                 </div>
                 
                 <div class="q-pa-sm q-mb-lg">
@@ -119,22 +118,274 @@
                 </div>
             </q-card-section>
         </q-card>
+        
         <q-dialog v-model="addPlanta" ref="planta" transition-show="flip-down" transition-hide="flip-up" persistent>
-            <q-card class="q-dialog-plugin">
+            <q-card class="q-dialog-plugin" style="max-width: 1600px; width:1600px;height:150px;min-height: 550px;">
+            <q-card-section>
+                <q-tabs
+                    v-model="tab"
+                    dense
+                    no-caps
+                    inline-label
+                    class="bg-primary text-white shadow-2"
+                >
+                    <q-tab name="planta" icon="factory" label="Planta" />
+                    <q-tab name="admin" icon="folder_open" label="Administración" />
+                    <!-- <q-tab name="movies" icon="movie" label="Movies" /> -->
+                </q-tabs>
+            </q-card-section>
+            <q-form @submit="addressAdd">
+                <q-tab-panels v-model="tab" animated>
+                    <q-tab-panel name="planta">
+                    
                 <q-card-section>
-                    <q-input v-model="plantaName" label="Planta" />
+                    <div class="row q-pa-sm">
+                        <div class="col-xs-11 col-sm-12 col-md-3">
+                            <q-input v-model="address.alias" label="Planta" :rules="[
+                                    val => !!val || '* Campo obligatorio',
+                                ]"
+                            />
+                        </div>
+                    </div>
+                    <div class="row q-pa-sm">
+                        <span class="text-title">Domicilio</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-input 
+                                v-model="address.street"
+                                label="Calle"
+                                :rules="[
+                                    val => !!val || '* Campo obligatorio',
+                                ]"
+                            />
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-input
+                                v-model="address.number"
+                                label="Número"
+                            />
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-input 
+                                v-model="address.apartment_number"
+                                label="Número interior"
+                            />
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-input 
+                                maxlength="5"
+                                v-model="address.zipcode"
+                                label="Código postal"
+                                :rules="[
+                                    val => !!val || '* Campo obligatorio',
+                                ]"
+                            />
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-input 
+                                v-model="address.neighborhood"
+                                label="Colonia"
+                                :rules="[
+                                    val => !!val || '* Campo obligatorio',
+                                ]"
+                            />
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-select
+                                :model-value="stateSelected"
+                                v-model="stateSelected"
+                                use-input
+                                hide-selected
+                                fill-input
+                                input-debounce="0"
+                                label="Estado"
+                                :options="estados"
+                                option-label="estado"
+                                option-value="id"
+                                @filter="filterState"
+                                :rules="[
+                                    val => !!val || '* Campo obligatorio',
+                                ]"
+                            >
+                                <template v-slot:no-option>
+                                <q-item>
+                                    <q-item-section class="text-grey">
+                                    No results
+                                    </q-item-section>
+                                </q-item>
+                                </template>
+                            </q-select>
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-select
+                                :model-value="citySelected"
+                                v-model="citySelected"
+                                use-input
+                                hide-selected
+                                fill-input
+                                input-debounce="0"
+                                label="Ciudad"
+                                :options="ciudades"
+                                option-label="ciudad"
+                                option-value="id"
+                                @filter="filterCity"
+                                :rules="[
+                                    val => !!val || '* Campo obligatorio',
+                                ]"
+                            >
+                                <template v-slot:no-option>
+                                <q-item>
+                                    <q-item-section class="text-grey">
+                                        Sin resultados
+                                    </q-item-section>
+                                </q-item>
+                                </template>
+                            </q-select>
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-input 
+                                v-model="address.business_description"
+                                label="Descripción giro comercial"
+                            />
+                        </div>
+                        <div class="col-xs-11 col-sm-4 q-pa-sm">
+                            <q-input v-model="address.phone" label="Teléfono con lada y extensión" />
+                        </div>
+                    </div>
                 </q-card-section>
-            <!-- buttons example -->
-            <q-card-actions align="right">
+            
+                </q-tab-panel>
+                <q-tab-panel name="admin">
+                    <q-card-section>
+                        
+                        <div class="row">Coordenadas</div>
+                        <div class="row">
+                            <div class="col-xs-12 col-md-2">
+                                <q-input bottom-slots class="q-mr-md" label="Latitud norte" v-model="address.latitude_n">
+                                    <template v-slot:hint>
+                                        (GRADOS, MINUTOS Y SEGUNDOS)
+                                    </template>
+                                </q-input> 
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input bottom-slots class="q-mr-sm q-mb-md" label="Longitud oeste" v-model="address.length_w">
+                                    <template v-slot:hint>
+                                        (GRADOS, MINUTOS Y SEGUNDOS)
+                                    </template>
+                                </q-input> 
+                            </div>
+                            
+                            <div class="col-xs-12 col-md-6 offset-md-2">
+                                <div class="row">
+                                    <q-input class="q-mr-sm" label="Colindancia Norte" v-model="address.adj_n" />
+                                    <q-input class="q-mr-sm" label="Colindancia Sur" v-model="address.adj_s" />
+                                    <q-input class="q-mr-sm" label="Colindancia Oeste" v-model="address.adj_w" />
+                                    <q-input class="q-mr-sm" label="Colindancia Este" v-model="address.adj_e" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row q-mt-md">
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.representante" label="Representante legal" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.date_activity" type="date" label="Fecha inicio actividades" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.area_m2" label="Superficie m2" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.construccion_m2" label="Construcción m2" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" type="text" v-model="areaPlanta" label="Áreas de empresa" @keydown.enter.prevent v-on:keyup.enter="addArea"  />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-select 
+                                    class="q-mr-md" 
+                                    style="width: 200px;" 
+                                    :options="address.areas"
+                                    v-model="deletedArea"
+                                    label="Áreas"
+                                >
+                                    <template v-slot:append>
+                                        <q-icon name="delete" color="orange" @click="deleteArea" />
+                                    </template>
+                                </q-select>
+                            </div>
+
+                        </div>
+                        <div class="row q-mt-md">
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.total_empleados" label="Total empleados" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.turnos" label="Turnos de trabajo" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.horarios" label="Horarios" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.empleados_turno" label="Empleados por turno" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.desc_proc" label="Descripción del proceso" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.diagrama" label="Diagrama de flujo" />
+                            </div>
+                        </div>
+                        <div class="row q-mt-md">
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" v-model="address.medidas" label="Medidas de seguridad equipo auditor" />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-input class="q-mr-md" type="text" v-model="equipoSeguridad" label="Equipo seguridad" @keydown.enter.prevent v-on:keyup.enter="addEquipo"  />
+                            </div>
+                            <div class="col-xs-12 col-md-2">
+                                <q-select 
+                                    class="q-mr-md" 
+                                    style="width: 200px;" 
+                                    :options="address.equipoSeguridad"
+                                    v-model="deletedEquipo"
+                                    label="Lista equipo"
+                                >
+                                    <template v-slot:append>
+                                        <q-icon name="delete" color="orange" @click="deleteEquipo" />
+                                    </template>
+                                </q-select>
+                            </div>
+                        </div>
+                        <div class="row q-mt-lg">
+                            <q-toggle class="q-mr-sm" color="primary" v-model="address.acta" label="Acta constitutiva" />
+                            <q-toggle class="q-mr-sm" color="primary" v-model="address.notarial" label="Poder notarial" />
+                        </div>
+                        <div class="row q-mt-md">Copias INE:</div>
+                        <div class="row">
+                            
+                            <q-toggle class="q-mr-sm" color="primary" v-model="address.copias.representate" label="Representante legal" />
+                            <q-toggle class="q-mr-sm" color="primary" v-model="address.copias.persona" label="Personal atiende visita" />
+                            <q-toggle class="q-mr-sm" color="primary" v-model="address.copias.testigo1" label="Testigo 1" />
+                            <q-toggle class="q-mr-sm" color="primary" v-model="address.copias.testigo2" label="Testigo 2" />
+                        </div>
+                    </q-card-section>
+                </q-tab-panel>
+            </q-tab-panels>
+            
+
+            <q-card-actions align="right" class="q-pa-md">
                 <q-btn color="primary" label="Cancelar" v-close-popup />
-                <q-btn color="primary" label="Guardar" @click="plantaAdd" />
+                <q-btn color="primary" label="Guardar" type="submit" />
             </q-card-actions>
+            </q-form>
             </q-card>
         </q-dialog>
 
         <q-dialog v-model="addContact" ref="contacto" transition-show="flip-down" transition-hide="flip-up" persistent>
             <q-card class="q-dialog-plugin" style="max-width: 1500px;width:1000px;height:150px;min-height: 370px;">
-            <q-form @submit="saveContact">
+            <q-form @submit.prevent="saveContact">
                 <q-card-section>
                     <q-separator class="q-ml-sm q-mr-sm separador" />
                     <span class="text-h6 q-ml-sm">
@@ -196,11 +447,6 @@
                             />
                         </div>
                     </div>
-                    <div class="row q-mb-lg">
-                        
-                    </div>
-                        
-                    
                 </q-card-section>
             
                 <q-card-actions class="q-pa-lg justify-end">
@@ -208,136 +454,10 @@
                     <q-btn color="primary" label="Guardar" type="submit" />
                 </q-card-actions>
             </q-form>
-            </q-card>
-            
+            </q-card>    
         </q-dialog>
 
-        <q-dialog v-model="addAddress" ref="domicilio" persistent>
-            <q-card class="q-dialog-plugin">
-                <q-form @submit="addressAdd">
-                <q-card-section>
-                    <div class="q-mb-lg">
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
-                            <q-select 
-                                :options="dataClient.plantas" 
-                                option-label="alias"
-                                v-model="factory" 
-                                label="Planta" 
-                                emit-value
-                                :disable="disableFactory"
-                                :rules="[
-                                    val => !!val || '* Campo obligatorio',
-                                ]"
-                            />
-                        </div>
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
-                            <q-input 
-                                v-model="address.street"
-                                label="Calle"
-                                :rules="[
-                                    val => !!val || '* Campo obligatorio',
-                                ]"
-                            />
-                        </div>
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
-                            <q-input
-                                v-model="address.number"
-                                label="Número"
-                            />
-                        </div>
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
-                            <q-input 
-                                v-model="address.apartment_number"
-                                label="Número interior"
-                            />
-                        </div>
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
-                            <q-input 
-                                maxlength="5"
-                                v-model="address.zipcode"
-                                label="Código postal"
-                                :rules="[
-                                    val => !!val || '* Campo obligatorio',
-                                ]"
-                            />
-                        </div>
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
-                            <q-input 
-                                v-model="address.neighborhood"
-                                label="Colonia"
-                                :rules="[
-                                    val => !!val || '* Campo obligatorio',
-                                ]"
-                            />
-                        </div>
-                        <div class="col-xs-11 col-sm-4 q-pa-sm">
-                        <q-select
-                            :model-value="stateSelected"
-                            v-model="stateSelected"
-                            use-input
-                            hide-selected
-                            fill-input
-                            input-debounce="0"
-                            label="Estado"
-                            :options="estados"
-                            option-label="estado"
-                            option-value="id"
-                            @filter="filterState"
-                            :rules="[
-                                val => !!val || '* Campo obligatorio',
-                            ]"
-                        >
-                            <template v-slot:no-option>
-                            <q-item>
-                                <q-item-section class="text-grey">
-                                No results
-                                </q-item-section>
-                            </q-item>
-                            </template>
-                        </q-select>
-                    </div>
-                    <div class="col-xs-11 col-sm-4 q-pa-sm">
-                        <q-select
-                            :model-value="citySelected"
-                            v-model="citySelected"
-                            use-input
-                            hide-selected
-                            fill-input
-                            input-debounce="0"
-                            label="Ciudad"
-                            :options="ciudades"
-                            option-label="ciudad"
-                            option-value="id"
-                            @filter="filterCity"
-                            :rules="[
-                                val => !!val || '* Campo obligatorio',
-                            ]"
-                        >
-                            <template v-slot:no-option>
-                            <q-item>
-                                <q-item-section class="text-grey">
-                                    Sin resultados
-                                </q-item-section>
-                            </q-item>
-                            </template>
-                        </q-select>
-                    </div>
-                    <div class="col-xs-11 col-sm-4 q-pa-sm">
-                        <q-input 
-                            v-model="address.business_description"
-                            label="Descripción giro comercial"
-                        />
-                    </div>
-                    </div>
-                </q-card-section>
-            <!-- buttons example -->
-            <q-card-actions align="right">
-                <q-btn color="primary" label="Cancelar" v-close-popup />
-                <q-btn color="primary" label="Guardar" type="submit" />
-            </q-card-actions>
-            </q-form>    
-            </q-card>
-        </q-dialog>
+        
     </q-page>
 </template>
 
@@ -384,15 +504,20 @@ export default defineComponent({
         const stateSelected = ref(null)
         const citySelected = ref(null)
         const addPlanta = ref(false)
-        const addAddress = ref(false)
+        
         const plantaName = ref('')
-        const address = ref({})
-        const factory = ref(null)
+        const address = ref({areas:[], equipoSeguridad:[], acta:false, notarial:false, copias:{representate:false, persona:false, testigo1:false, testigo2:false} })
+        
         const addContact = ref(false)
         const disableFactory = ref(false)
         const dataClient = ref({plantas:[]})
         const contact = ref({})
         const statusClient = ref(false)
+        const tab = ref('planta')
+        const areaPlanta = ref('')
+        const deletedArea = ref('')
+        const equipoSeguridad = ref('')
+        const deletedEquipo = ref('')
 
         const addressColumn = [
             {name: 'id', label: 'Id',field: 'id', align:'center'},
@@ -480,27 +605,14 @@ export default defineComponent({
         }
 
         
-        
-        const plantaAdd = async () => {
-            if(plantaName.value != ''){
-                const agregaPlanta = await addFactory({alias:plantaName.value, client_id: dataClient.value.id})
-                if(agregaPlanta.status == 200){
-                    plantaName.value = ''
-
-                    $q.notify({
-                        position:'top',
-                        type: 'positive',
-                        message: `Se agregó una nueva planta`
-                    })
-                    await getData()
-                }
-                
-            }
-        }
-
         const getData = async () => {
             await fetchClient($router.params.id)
             dataClient.value = editClient.value
+
+            if(editClient.value.payload != null){
+                address.value = JSON.parse(editClient.value.payload)
+            }
+
             isMain.value = editClient.value.client_id == null
             
             statusClient.value = dataClient.value.status == 1? true :false
@@ -509,7 +621,7 @@ export default defineComponent({
         const addressAdd = () => {
 
             $q.dialog({
-                title: disableFactory.value ? '¿Deseas modificar esta dirección?' : 'Agregar dirección',
+                title: disableFactory.value ? '¿Deseas modificar esta información?' : 'Agregar planta',
                 message: 'Se guardarán los datos ingresados',
                 // prompt: {
                 //   model: password,
@@ -527,63 +639,81 @@ export default defineComponent({
                 },
                 persistent: true
             }).onOk(async data => {
-                
-                address.value.client_id = factory.value.id
+                // address.value.client_id = factory.value.id
                 address.value.city_id = citySelected.value.id
+                address.value.client_id = $router.params.id
                 
                 const guardar = await newAddress(address.value)
 
                 if (guardar.status == 200){
-                await getData()
-                $q.notify({
-                    position:'top',
-                    type: 'positive',
-                    message: disableFactory.value? `Se modificó la dirección` :  `Se agregó una nueva dirección`
-                })
+                    disableFactory.value = false
+                    
+                    await getData()
+                    $q.notify({
+                        position:'top',
+                        type: 'positive',
+                        message: 'Se guardó la información correctamente'
+                    })
                 
                 } else {
                     $q.notify({
                         position:'top',
                         type: 'negative',
-                        message:`Hubo un error al guardar la dirección`
+                        message:`Hubo un error al guardar la información`
                     })
                 }
-
-                disableFactory.value = false
-                address.value = {}
-                citySelected.value = {}
-                stateSelected.value = {}
-                factory.value = null
-                addAddress.value = false
-
+                // address.value = {}
+                // citySelected.value = {}
+                // stateSelected.value = {}
+                // factory.value = null
             }).onCancel(() => {
                 // console.log('>>>> Cancel')
             }).onDismiss(() => {
                 // console.log('I am triggered on both OK and Cancel')
             })
         }
+
+        const infoPlanta = (type) => {
+            if(type == 'nuevo'){
+                address.value = {areas:[], equipoSeguridad:[], acta:false, notarial:false, copias:{representate:false, persona:false, testigo1:false, testigo2:false} }
+                citySelected.value = null
+                stateSelected.value = null
+            } else {
+                console.log('info_edita', address.value)
+            }
+
+            addPlanta.value = true
+        }
         
         
 
         const editAddress = (row) => {
-            factory.value = row.alias
-            addAddress.value = true
-            disableFactory.value = true
+            //asigno información del row al objeto para editar
             address.value = row
+            infoPlanta('editar')
+            addPlanta.value = true
+            disableFactory.value = true
+            
+
+            if(address.value.payload == null){
+                address.value.areas=[] 
+                address.value.equipoSeguridad=[]
+                address.value.acta=false, 
+                address.value.notarial=false, 
+                address.value.copias={representate:false, persona:false, testigo1:false, testigo2:false}
+            } else {
+                let data = JSON.parse(address.value.payload)
+                let ids = {client_id: address.value.client_id, id:address.value.id, address_id: address.value.address_id}
+                address.value = data
+                address.value.client_id = ids.client_id
+                address.value.id = ids.id
+                address.value.address_id = ids.address_id
+            }
+            
+
             citySelected.value = {id:row.cityid, ciudad:row.citydsc, city_id:row.cityid}
             stateSelected.value = {id:row.stateid, estado: row.statedsc}
         }
-
-        watch(addAddress, (newVal) => {
-            if(!addAddress.value){
-                disableFactory.value = false
-                address.value = {}
-                citySelected.value = null
-                stateSelected.value = null
-                factory.value = null
-                addAddress.value = false
-            }
-        })
 
         const updateRFC = async () => {
             $q.dialog({
@@ -685,6 +815,25 @@ export default defineComponent({
             
         }
 
+        const addArea = () => {
+            address.value.areas.push(areaPlanta.value)
+            areaPlanta.value = ''
+        }
+
+        const deleteArea = () => {
+            address.value.areas = address.value.areas.filter(item => item !== deletedArea.value)
+        }
+
+        const addEquipo = () => {
+            console.log(address.value, equipoSeguridad.value)
+            address.value.equipoSeguridad.push(equipoSeguridad.value)
+            equipoSeguridad.value = ''
+        }
+
+        const deleteEquipo = () => {
+            address.value.equipoSeguridad = address.value.equipoSeguridad.filter(item => item !== deletedEquipo.value)
+        }
+
         onMounted(async () => {
             await getCities()
             await getStates()
@@ -705,26 +854,33 @@ export default defineComponent({
             estados,
             addPlanta,
             plantaName,
-            addAddress,
             address,
-            factory,
             addressColumn,
             disableFactory,
             addContact,
             contact,
             contactColumns,
             statusClient,
+            tab,
+            areaPlanta,
+            deletedArea,
+            equipoSeguridad,
+            deletedEquipo,
             setModel,
             searchClient,
             filterFn,
             filterState,
             filterCity,
-            plantaAdd,
             addressAdd,
             editAddress,
             updateRFC,
             saveContact,
-            editContact
+            editContact,
+            addArea,
+            deleteArea,
+            addEquipo,
+            deleteEquipo,
+            infoPlanta
         }
     }
 })
