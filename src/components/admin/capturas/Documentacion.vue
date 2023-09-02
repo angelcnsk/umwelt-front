@@ -24,7 +24,7 @@
                                 <q-radio v-model="document.filled_i" val="no_anexo" label="No anexa" />
                                 <q-radio v-model="document.filled_i" val="no_cuenta" label="No se cuenta" />
                             </div>                                
-                            <div class="row">
+                            <!-- <div class="row">
                                 <div class="col-md-5">
                                     <q-file
                                         id="fileInput"
@@ -42,7 +42,7 @@
                                     </q-file>
                                     <q-spinner-dots v-if="loading" class="q-ml-lg" color="primary" size="lg" />
                                 </div>
-                            </div>
+                            </div> -->
                             
                         </div>
                     </q-expansion-item>

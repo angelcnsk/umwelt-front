@@ -251,20 +251,7 @@ setup () {
 
         
         guiaconceptos.value = currentService.value.categorias
-        if(currentService.value.conceptos_guardados.length > 0){
-            currentService.value.conceptos_guardados.forEach((concept) => {
-                currentService.value.categorias.forEach((categoria) => {
-                    categoria.conceptos.forEach((concepto) => {
-                        if(concept.concepto_id == concepto.id){
-                            concepto.value_visita1 = concept.value_visita1 != null ? concept.value_visita1 : []
-                            concepto.value_visita2 = concept.value_visita2 != null ? concept.value_visita2 : []
-                            concepto.observaciones = concept.observaciones != '' && concept.observaciones != null ? concept.observaciones : ''
-                            concepto.observaciones2 = concept.observaciones2 != '' && concept.observaciones2 != null ? concept.observaciones2 : ''
-                        }
-                    })
-                })
-            })
-        }
+        
     }
 
     const guardarLocal = () => {
@@ -277,7 +264,6 @@ setup () {
     onMounted( async () => {  
         if (window.navigator.onLine) {
             await getServiceList()
-            // verificarLuxometroDia()  
         } else {
             // store.commit('app/SET_OFFLINE_MOD', true)
         }

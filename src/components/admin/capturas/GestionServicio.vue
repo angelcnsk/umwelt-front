@@ -47,7 +47,7 @@ export default defineComponent({
                 break;
         
                 case 'acta':
-                    url = `${url}getActa/?service_id=${service.value.id}`
+                    url = `${url}getActaEvaluacion/?service_id=${service.value.id}`
                 break;
 
                 default:
