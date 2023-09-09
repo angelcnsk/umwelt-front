@@ -68,7 +68,7 @@
           </q-tab-panel>
 
           <q-tab-panel name="inspeccion">
-            <guia-conceptos :categorias="guiaconceptos" :service="currentService" />
+            <guia-conceptos :service="currentService" />
           </q-tab-panel>
 
           <q-tab-panel name="archivos">

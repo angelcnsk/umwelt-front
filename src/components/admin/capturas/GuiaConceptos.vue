@@ -38,9 +38,18 @@
                 </div>
             </div>
             <div class="row q-pa-md items-center justify-start ">
-                <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="autoSave('manual')" /> 
+                <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="autoSave('manual')">
+                    <q-tooltip>
+                        Guarda información en tu equipo
+                    </q-tooltip>
+                </q-btn>
+                <q-btn class="q-mb-md q-ml-md" color="primary" icon="check_circle_outline" label="finalizar" @click="closeVisit('manual')">
+                    <q-tooltip>
+                        Guarda información en el servidor
+                    </q-tooltip>
+                </q-btn> 
             </div>
-            <q-list bordered class="rounded-borders" v-if="categorias.length>0">
+            <q-list bordered class="rounded-borders" v-if="service.id != undefined && categorias.length > 0">
                 <q-expansion-item
                     group="somegroup"
                     expand-separator
@@ -57,17 +66,11 @@
                         </div>
                         <div class="row q-pa-sm">
                             <q-checkbox v-model="concepto.value" val="si" label="Si" color="orange" />
-                            <!-- <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="si" label="Si" color="orange" /> -->
                             <q-checkbox v-model="concepto.value" :disable="bloquearVisita" val="no" label="No" color="orange" />
-                            <!-- <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="no" label="No" color="orange" /> -->
                             <q-checkbox v-model="concepto.value" val="cumple" label="Cumple" color="orange" />
-                            <!-- <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="cumple" label="Cumple" color="orange" /> -->
                             <q-checkbox v-model="concepto.value" val="no_cumple" label="No cumple" color="orange" />
-                            <!-- <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="no_cumple" label="No cumple" color="orange" /> -->
                             <q-checkbox v-model="concepto.value" val="na" label="N.A." color="orange" />
-                            <!-- <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="na" label="N.A." color="orange" /> -->
                             <q-checkbox v-model="concepto.value" val="et" label="E.T." color="orange" />
-                            <!-- <q-checkbox v-else v-model="concepto.value_visita2" :disable="bloquearVisita" val="et" label="E.T." color="orange" /> -->
                         </div>                                                            
                     </div>
                 </div>
@@ -170,23 +173,22 @@ import { useCapturas } from 'src/composables/useCapturas.js'
 
 export default defineComponent({
     name: "guiaconceptos",
-    props:['categorias','service'],
+    props:['service'],
     // emits: ['savePoints','async'],
     setup(props, ctx) {
         const $q = useQuasar();
         const storeCapturas = useCapturas();
         const { getServiceList, servicesList,
-            currentService, saveCaptures, saveSectionFile
+            currentService, saveCaptures, saveSectionFile,
+            getCategories, newVisit,categories
         } = storeCapturas
 
-        const categorias = toRef(props,'categorias')
+        const categorias = ref([])
         const service = toRef(props,'service')
-        const posicionObservaciones = service.value.posicion_observaciones
-        const observacionText = ref('')
-
+        
         const dialog = ref(false)
         const loading = ref(false)
-        const visitas = ref([{valor:1, texto:'Visita 1'}])
+        const visitas = ref([])
         const tipo = ref('')
         const timeStamp = Date.now()
         const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
@@ -198,7 +200,6 @@ export default defineComponent({
         })
 
         watch(fechas_visita,(newVal) => {
-            
             if(newVal != undefined && service.value.id != undefined){
                 // fechas_visita.value = newVal
                 // console.log('cambia valor', fechas_visita.value)    
@@ -223,16 +224,6 @@ export default defineComponent({
             }
         })
 
-        // watch(visita, (newVal, oldValue) => {
-            
-        //     if(service.value.id == undefined){
-        //         fechas_visita.value.from = formattedString
-        //         fechas_visita.value.to = formattedString
-        //     }
-        //     setFechas(newVal)
-            
-        // })
-        
         const setNoCumple = () => {
             categorias.value.forEach(categoria => {
                 categoria.conceptos.forEach(concepto => {
@@ -241,15 +232,54 @@ export default defineComponent({
             });
         }
 
+        const setService = (type) => {
+            if(service.value.id != undefined){
+                visitas.value = []
+                let visita = 0
+                const fechas = service.value.fechas.length == 0 ? 1 : service.value.fechas.length
+                
+                for (let index = 0; index < fechas; index++) {
+                    visitas.value.push({valor:visita+1, texto:`Visita ${visita+1}`})
+                    visita++
+                }
+                visitSelected.value = visitas.value[0]
+            }
+
+            setLocal(type)
+            setFechas()
+        }
+
         watch(service, (newVal) => {
+            setService('load')
             setFechas()
         })
 
+        watch(visitSelected, async (fecha) => {
+            if(service.value.id != undefined){
+                categorias.value = []
+                setFechas()
+                const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
+                if(getCategorias.status == 200){
+                    categorias.value = categories.value.categorias
+                }
+            }
+        })
+
         const setFechas = (value) => {
-            if(service.value.fechas.length == 0){
-                fechas_visita.value.from = formattedString
-                fechas_visita.value.to = formattedString
-                visitSelected.value = visitas.value[0]
+            if(service.value.fechas != undefined){
+                if(service.value.fechas.length == 0){
+                    fechas_visita.value.from = formattedString
+                    fechas_visita.value.to = formattedString
+                    visitSelected.value = visitas.value[0]
+                } else {
+                    const indice = visitas.value.indexOf(visitSelected.value)
+                    // console.log(indice, visitSelected.value)
+                    // console.log('fecha visita', service.value.fechas[indice].fecha_inicio)
+                    fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
+                    fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
+                }
+                
+                
             }
             // const valor = value != undefined ? value : visita.value
             // fechas_visita.value = {}
@@ -269,7 +299,6 @@ export default defineComponent({
         const toolbar = ref([
             [
                 {
-                    // label: $q.lang.editor.align,
                     icon: $q.iconSet.editor.align,
                     fixedLabel: true,
                     list: 'only-icons',
@@ -277,64 +306,9 @@ export default defineComponent({
                 },
                 
             ],
-            // ['bold', 'italic', 'strike', 'underline', 'subscript', 'superscript'],
-            // ['token', 'hr', 'custom_btn'],
-            
-            // [
-            //     // {
-            //     //     label: $q.lang.editor.formatting,
-            //     //     icon: $q.iconSet.editor.formatting,
-            //     //     list: 'no-icons',
-            //     //     options: [
-            //     //     'p',
-            //     //     'h1',
-            //     //     'h2',
-            //     //     'h3',
-            //     //     'h4',
-            //     //     'h5',
-            //     //     'h6',
-            //     //     'code'
-            //     //     ]
-            //     // },
-            //     // {
-            //     //     label: $q.lang.editor.fontSize,
-            //     //     icon: $q.iconSet.editor.fontSize,
-            //     //     fixedLabel: true,
-            //     //     fixedIcon: true,
-            //     //     list: 'no-icons',
-            //     //     options: [
-            //     //     'size-1',
-            //     //     'size-2',
-            //     //     'size-3',
-            //     //     'size-4',
-            //     //     'size-5',
-            //     //     'size-6',
-            //     //     'size-7'
-            //     //     ]
-            //     // },
-            //     // {
-            //     //     label: $q.lang.editor.defaultFont,
-            //     //     icon: $q.iconSet.editor.font,
-            //     //     fixedIcon: true,
-            //     //     list: 'no-icons',
-            //     //     options: [
-            //     //     'default_font',
-            //     //     'arial',
-            //     //     'arial_black',
-            //     //     'comic_sans',
-            //     //     'courier_new',
-            //     //     'impact',
-            //     //     'lucida_grande',
-            //     //     'times_new_roman',
-            //     //     'verdana'
-            //     //     ]
-            //     // },
-            //     // 'removeFormat'
-            // ],
+            ['removeFormat'],
             ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
-
             ['undo', 'redo'],
-            // ['viewsource']
         ])
         const fonts = ref({
             arial: 'Arial',
@@ -348,66 +322,137 @@ export default defineComponent({
         })    
                                                     
 
-        const autoSave = async (type) => {     
+        const autoSave = async (type) => {
+            if(!serviceSelected()) return false     
             setNoCumple()
-            console.log(service.value.categorias)
+            setLocal('update')
             // dialog.value = true
             // tipo.value = type == 'manual' ? 'Guardando...' : 'Auto guardado'
-            
-            // const saveData = await saveCaptures({
-            //     service_id: service.value.id, categorias:service.value.categorias, type:"conceptos",
-            //     fechas:service.value.fechas
-            // })
-            // if(saveData.status == 200){
-            //     setTimeout(() => {
-            //         dialog.value = false
-            //     }, 2000);
-            // }
         }
 
         const bloquearVisita = computed(() => {
-            // console.log(fechas_visita.value)
             const splitDate = fechas_visita.value.to.split('-')
             const fecha_final = date.buildDate({year:splitDate[0], month:splitDate[1], date:splitDate[2]})
             return new Date() < fecha_final
         })
+        
         const addVisit = () => {
-            visitas.value.push({valor:visitas.value.length+1, texto:`Visita ${visitas.value.length+1}` })
-        }
-        // const upLoadFile = async (docSection, index) => {
-            
-        //     let input = document.getElementById("fileInput")
-            
-        //     const file = docSection.inputFile
-            
-        //     const guardar = await saveSectionFile({
-        //         files:file,
-        //         service_id: currentService.value.id,
-        //         document: docSection 
-        //     })
-        //     inputFile.value = ref()
-        //     if(guardar.status == 200){
-        //         notify('Archivo cargado con éxito','positive')
-        //         docSection.
-        //         loading.value = false
-        //         // await getSectionFile({service_id:props.servicio_id, type:'get'})
-        //     } else {
-        //         notify('Error al cargar archivo','negative')   
-        //     }
-        // }
-        const setLocal = () => {
-            const data = JSON.parse(localStorage.getItem('service'))
+            if(!serviceSelected()) return false
+            $q.dialog({
+                title: '¿Deseas agregar otra visita?',
+                message: 'Asegúrate de haber cerrado la visita anterior, la información guardada en este equipo se borrará',
+                ok: {
+                push: true,
+                label:'Continuar'
+                },
+                cancel: {
+                push: true,
+                color: 'dark',
+                label:'Cancelar'
+                },
+                persistent: true
+            }).onOk(async data => {
+                
+                // visitas.value.push({valor:visitas.value.length+1, texto:`Visita ${visitas.value.length+1}` })
+                const addVisit = await newVisit({service_id:service.value.id})
+                
+                if(addVisit.status == 200){
+                    if(addVisit.data.msg){
+                        $q.notify({
+                            position:'top',
+                            type:'warning',
+                            message:'No es necesario agregar una visita, todos los puntos cumplen'
+                        })
+                    } else {
+                        localStorage.removeItem('categorias')
+                        service.value.fechas = addVisit.data.fechas
+                        setService()                    
+                        $q.notify({
+                            position:'top',
+                            type:'positive',
+                            message:'Se agregó una nueva visita'
+                        })
+                    }
+                }
 
-            if(data != null){
-                service.value = data
-            } else {
-                localStorage.setItem('service', JSON.stringify(service.value))
+            })        
+        }
+        
+        const setLocal = (type) => {
+            
+            if(type == 'load'){
+                const data = JSON.parse(localStorage.getItem('categorias'))
+
+                if(data != null){
+                    categorias.value = data.categorias
+                    visitSelected.value = visitas.value[0]
+                    fechas_visita.value.from = data.fechas.from
+                    fechas_visita.value.to = data.fechas.to
+                } 
+                else categorias.value = service.value.categorias
+            }
+
+            if(type == 'update'){
+                localStorage.setItem('categorias', JSON.stringify({
+                    service_id:service.value.id,
+                    categorias:categorias.value,
+                    fechas:fechas_visita.value,
+                    visita:visitSelected.value.valor
+                }))
             }
         }
 
+        const closeVisit = () => {
+            if(!serviceSelected()) return false
+            $q.dialog({
+                title: '¿Deseas finalizar la visita?',
+                message: 'Se guardarán los datos ingresados y no podrán ser modificados',
+                ok: {
+                push: true,
+                label:'Continuar'
+                },
+                cancel: {
+                push: true,
+                color: 'dark',
+                label:'Cancelar'
+                },
+                persistent: true
+            }).onOk(async data => {
+                
+                const info = JSON.parse(localStorage.getItem('categorias'))
+                const saveData = await saveCaptures({
+                    service_id: info.service_id, 
+                    categorias:info.categorias, 
+                    type:"conceptos",
+                    fechas:info.fechas,
+                    visita: visitSelected.value.valor
+                })
+                
+                if(saveData.status == 200){
+                    $q.notify({
+                        position:'top',
+                        type:'positive',
+                        message:'Visita finalizada'
+                    })
+                }
+
+            })
+        }
+
+        const serviceSelected = () => {
+            if(service.value.id == undefined){
+                $q.notify({
+                    position:'top',
+                    type:'negative',
+                    message:'Para continuar selecciona un servicio'
+                })
+                return false
+            }
+            return true
+        }
+
         onMounted( async () => {
-            setLocal()
-            setFechas()
+            setService('load')
             setInterval(() => {
                 if(categorias.value.length>0) autoSave()
             }, 300000);
@@ -417,17 +462,16 @@ export default defineComponent({
             categorias,
             loading,
             dialog,
-            posicionObservaciones,
             visitas,
             tipo,
             toolbar,
             fonts,
             fechas_visita,
             bloquearVisita,
-            observacionText,
             visitSelected,
             addVisit,
             autoSave,
+            closeVisit
         }
     }
 })

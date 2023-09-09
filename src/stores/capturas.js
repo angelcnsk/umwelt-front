@@ -6,6 +6,7 @@ export const useCapturasStore = defineStore('capturas', {
         return { 
             servicesList:[],
             currentService:{},
+            categories:[]
         }
     },
     actions:{
@@ -82,5 +83,31 @@ export const useCapturasStore = defineStore('capturas', {
               
           
         },
+        async getCategories (payload){
+          const url = 'spa/getCategories'
+            
+          const options = {
+            params:payload
+          }
+          return new Promise((resolve, reject) => {
+            api.get(url, options).then((response) => {
+              this.categories = response.data
+              resolve(response)
+            }).catch((error) => { reject(error) })
+          })
+        },
+        async newVisit (payload){
+          const url = 'spa/addVisit'
+            
+          const options = {
+            params:{}
+          }
+          
+          return new Promise((resolve, reject) => {
+            api.post(url,payload).then((response) => {
+                resolve(response)
+            }).catch((error) => { reject(error) })
+          })
+        }
     }
 })
