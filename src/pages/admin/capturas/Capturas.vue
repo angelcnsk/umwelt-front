@@ -99,7 +99,7 @@ import documentacion from 'src/components/admin/capturas/Documentacion.vue'
 import guiaConceptos from 'src/components/admin/capturas/GuiaConceptos.vue'
 import archivos from 'src/components/admin/capturas/ArchivosMasivos.vue'
 import gestion from 'src/components/admin/capturas/GestionServicio.vue'
-import { utils, writeFileXLSX } from 'xlsx';
+// import { utils, writeFileXLSX } from 'xlsx';
 
 export default defineComponent({
 name: 'Capturas',
@@ -192,37 +192,37 @@ setup () {
             
     }
 
-    const exportCapture = () => {
-        const listaStores = Object.keys(localStorage)
-        const puntos = []
-        listaStores.find(store => {
-            if(store.substring(0,14) == 'capturePoints_'){
-                const dataCapture = JSON.parse(localStorage.getItem(`${store}`))
-                dataCapture.forEach(item => {
-                    delete item.producto, 
-                    delete item.norma, 
-                    delete item.categoria_norma, 
-                    delete item.department_id, 
-                    delete item.department, 
-                    delete item.status, 
-                    delete item.created_at, 
-                    delete item.updated_at,
-                    delete item.deleted_at,
-                    delete item.service_name, 
-                    delete item.selected
-                    item.fo_aml_01_4_id = item.fo_aml_01_4_id != null ? item.fo_aml_01_4_id.fo_aml_01_4 : null
-                    puntos.push(item)
-                })
-            }
-        })
+    // const exportCapture = () => {
+    //     const listaStores = Object.keys(localStorage)
+    //     const puntos = []
+    //     listaStores.find(store => {
+    //         if(store.substring(0,14) == 'capturePoints_'){
+    //             const dataCapture = JSON.parse(localStorage.getItem(`${store}`))
+    //             dataCapture.forEach(item => {
+    //                 delete item.producto, 
+    //                 delete item.norma, 
+    //                 delete item.categoria_norma, 
+    //                 delete item.department_id, 
+    //                 delete item.department, 
+    //                 delete item.status, 
+    //                 delete item.created_at, 
+    //                 delete item.updated_at,
+    //                 delete item.deleted_at,
+    //                 delete item.service_name, 
+    //                 delete item.selected
+    //                 item.fo_aml_01_4_id = item.fo_aml_01_4_id != null ? item.fo_aml_01_4_id.fo_aml_01_4 : null
+    //                 puntos.push(item)
+    //             })
+    //         }
+    //     })
         
-        if(puntos.length>0){
-            const ws = utils.json_to_sheet(puntos)
-            const wb = utils.book_new();
-            utils.book_append_sheet(wb, ws, "capturas_puntos_medicion");
-            writeFileXLSX(wb, "capturas.xlsx");
-        } else notify('No hay información para exportar', 'negative')
-    }
+    //     if(puntos.length>0){
+    //         const ws = utils.json_to_sheet(puntos)
+    //         const wb = utils.book_new();
+    //         utils.book_append_sheet(wb, ws, "capturas_puntos_medicion");
+    //         writeFileXLSX(wb, "capturas.xlsx");
+    //     } else notify('No hay información para exportar', 'negative')
+    // }
 
     watch(serviceSelected, async (item) => {
         console.log(item)

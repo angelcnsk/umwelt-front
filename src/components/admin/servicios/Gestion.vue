@@ -109,7 +109,7 @@ import { useServicios } from 'src/composables/useServicios.js'
 import { useUsers } from 'src/composables/useUsers.js'
 
 import archivos from 'components/admin/servicios/Archivos.vue'
-import { utils, writeFileXLSX } from 'xlsx';
+// import { utils, writeFileXLSX } from 'xlsx';
 
 export default defineComponent({
   name: "Gestion",
@@ -148,38 +148,38 @@ export default defineComponent({
         }
     })
 
-    const downloadFieldSheets = async () => {
-      const results = await getFieldSheets(props.servicio_id)
+    // const downloadFieldSheets = async () => {
+    //   const results = await getFieldSheets(props.servicio_id)
       
-      if (results.data.capturas.points.length >= 1) {
-        const ws = utils.json_to_sheet(results.data.capturas.points)
-        const wb = utils.book_new();
-        utils.book_append_sheet(wb, ws, "capturas_puntos_medicion");
-        writeFileXLSX(wb,`Capturas_servicio_${props.servicio_id}.xlsx` );
+    //   if (results.data.capturas.points.length >= 1) {
+    //     const ws = utils.json_to_sheet(results.data.capturas.points)
+    //     const wb = utils.book_new();
+    //     utils.book_append_sheet(wb, ws, "capturas_puntos_medicion");
+    //     writeFileXLSX(wb,`Capturas_servicio_${props.servicio_id}.xlsx` );
         
-      } else {
+    //   } else {
         
-        notify('No hay información de capturas para descargar','warning') 
-      }
+    //     notify('No hay información de capturas para descargar','warning') 
+    //   }
 
-    }
+    // }
 
-    const downloadPdfFieldSheets = async () => {
-      const hojas = await getPdfFieldSheets(props.servicio_id)
+    // const downloadPdfFieldSheets = async () => {
+    //   const hojas = await getPdfFieldSheets(props.servicio_id)
       
-      if(hojas.data){
-        const linkSource = `data:application/pdf;base64,${hojas.data.hojas_campo}`;
-        const downloadLink = document.createElement("a");
-        const fileName = `${props.servicio_id}_hojas_campo.pdf`;
-        downloadLink.href = linkSource;
-        downloadLink.download = fileName;
-        downloadLink.click();
-        return true
-      } 
+    //   if(hojas.data){
+    //     const linkSource = `data:application/pdf;base64,${hojas.data.hojas_campo}`;
+    //     const downloadLink = document.createElement("a");
+    //     const fileName = `${props.servicio_id}_hojas_campo.pdf`;
+    //     downloadLink.href = linkSource;
+    //     downloadLink.download = fileName;
+    //     downloadLink.click();
+    //     return true
+    //   } 
 
-      notify('No hay información de capturas para descargar', 'negative') 
+    //   notify('No hay información de capturas para descargar', 'negative') 
       
-    }
+    // }
 
     const addSignatory = async () => {
         if(signatario.value.elabora == '' || signatario.value.revisa == ''){
@@ -255,8 +255,6 @@ export default defineComponent({
         signatario,
         serviceItem,
         addSignatory,
-        downloadFieldSheets,
-        downloadPdfFieldSheets,
         generarReporte,
     }
   }
