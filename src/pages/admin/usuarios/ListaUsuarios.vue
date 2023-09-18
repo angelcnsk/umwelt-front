@@ -123,7 +123,7 @@
 
         const addNewUser =  async() => {
             const responseUser = await createUser(newUser.value)
-      
+            console.log(responseUser)
             if (responseUser.msg === 'success') {
                 await fetchUsers()
                 $q.notify({

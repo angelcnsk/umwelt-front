@@ -18,10 +18,7 @@
                 </div>
               </q-card-section>
               <q-card-section>
-              <q-form
-                @submit="onSubmit"
-                class="q-gutter-md"
-              >
+              
                 <q-input
                   filled
                   v-model="user.email"
@@ -40,6 +37,7 @@
                   v-model="user.password"
                   label="Password"
                   lazy-rules
+                  @keyup.enter="onSubmit"
                   :rules="[val => !!val || 'Campo requerido']"
                 >
                   <template v-slot:append>
@@ -48,10 +46,10 @@
                 </q-input>
 
                 <div class="row">
-                  <q-btn label="Iniciar sesión" type="submit" color="primary"/>
+                  <q-btn label="Iniciar sesión" color="primary" @click="onSubmit"/>
                   <q-spinner-dots v-if="loading" class="q-ml-lg" color="primary" size="lg" />
                 </div>
-              </q-form>
+              
               </q-card-section>
             </q-card>
           </div>
@@ -68,10 +66,12 @@ import env from 'process';
 
 import { useQuasar } from "quasar";
 import { useUsers } from '../composables/useUsers.js'
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   setup() {
     const $q = useQuasar();
+    const $router = useRouter();
     const $store = useUsers();
     const {login} = $store
     const user = ref({})
@@ -94,9 +94,20 @@ export default defineComponent({
 
     const onSubmit = async () => {
       loading.value = true
+      console.log(user.value)
+      if(user.value.email == '' || user.value.email == undefined || user.value.password == '' || user.value.password == undefined){
+        $q.notify({
+            position:'top',
+            type: 'negative',
+            message: 'Usuario o contraseña incorrectos'
+        })
+        loading.value = false
+        return false
+      }
+      
       const req = await login(user.value)
-        
-      if(req.status != 200){
+      console.log('cuando falla',req)
+      if(req.data.error){
         $q.notify({
             position:'top',
             type: 'negative',
@@ -106,9 +117,9 @@ export default defineComponent({
       } else {
         // $router.push({name:'index-admin'})
         setTimeout(() => {
-          console.log('después de un segundo')
+          console.log('después de 2 segundos')
           window.location.replace('/admin/dashboard')
-        //   $router.push({name:'index-admin'})
+          // $router.push({name:'index-admin'})
         }, 2000);
       }
 

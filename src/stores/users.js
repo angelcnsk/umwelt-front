@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia'
 import { api } from 'boot/axios'
+import { auth, storage } from "boot/firebase";
+import {EmailAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, updateProfile } from "firebase/auth"
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 export const useUsersStore = defineStore('users', {
   state: () => {
@@ -16,47 +19,57 @@ export const useUsersStore = defineStore('users', {
     }
   },
   actions: {
-    updateUsername (payload) {
-      console.log('update user name', payload)
-      payload.user.updateProfile({
-        displayName: payload.displayName
-      }).then(() => {
-  
-        // If username update is success
-        // update in localstorage
-        const newUserData = Object.assign({}, payload.user.providerData[0])
-        newUserData.displayName = payload.displayName
-        // commit('UPDATE_USER_INFO', newUserData, {root: true}) // así indica que la mutación está en el archivo global
-        dispatch('usersManagement/actionEditUserInfo', newUserData, {root:true})
-  
-        // If reload is required to get fresh data after update
-        // Reload current page
-        if (payload.isReloadRequired) {
-          router.push(router.currentRoute.query.to || '/')
+    profileUpdate (payload) {
+      const user = auth.currentUser
+      return new Promise(async (resolve, reject) => {
+        
+        if(payload.type == 'name'){
+          await updateProfile(user,{
+            displayName:payload.name
+          })
+        } 
+        
+        if(payload.type == 'email'){
+          await updateEmail(user,payload.email)
         }
-      }).catch((err) => {
-        return err
+  
+        if (payload.type == 'password') {
+          await updatePassword(user,payload.password).catch((e) => {
+            if(e.error || e.code) resolve({data:{error:true}})
+          })
+        }
+        const url = 'spa/updateUser'
+        const token = JSON.parse(localStorage.getItem('backendToken'))
+        const options = {
+          headers:{'Authorization': `Bearer ${token.accessToken}`}
+        }
+        // return new Promise((resolve, reject) => {
+        const response = await api.post(url, payload, options)
+        resolve(response)
       })
     },
-    async login (req) {
-      return new Promise((resolve, reject) => {
-        try {
-          api.post('/login', req).then((response) => {
-            console.log(response)
-            if (response.data.error) {
-              resolve('Error')
-            } else {
-              const token = JSON.stringify(response.data)
-              localStorage.setItem('backendToken', token)
+    login (payload) {
+      return new Promise(async (resolve, reject) => {
+        const response = await api.post('/login', payload)
+          if(response.data.error){
+            resolve(response)
+          } else {
+            const token = JSON.stringify(response.data)
+            localStorage.setItem('backendToken', token)   
+            await this.fetchUser()
+            // resolve(response)
+            signInWithEmailAndPassword(auth, payload.email, payload.password).then((user) => {
+              if(!user.emailVerified){
+                sendEmailVerification(user)
+              }
+            }).catch(async (e) => {
+              if(e.code === 'auth/invalid-login-credentials'){
+                const newUser = await createUserWithEmailAndPassword(auth, payload.email, payload.password);
+              }
               
-              this.fetchUser().then((user) => {
-                resolve(response)
-              })
-            }
-          }).catch((e) => { console.log(e); reject(e) })
-        } catch (error) {
-          return error
-        }
+            });
+            resolve(response)
+          }
       })
     },
     async recovery (email) {
@@ -83,17 +96,15 @@ export const useUsersStore = defineStore('users', {
       })
     },
     createUser (payload) {
-      const url = 'spa/createUser'
-      
-      const options = {
-        // headers:{'Authorization': `Bearer ${token.accessToken}`}
-      }
-      return new Promise((resolve, reject) => {
-        api.post(url, payload, options)
-          .then((response) => {
-            resolve(response.data)
-          })
-          .catch((error) => { reject(error) })
+      //crea el usuario en mysql
+      payload.password = '12345678'
+      return new Promise(async(resolve, reject) => {
+        const url = 'spa/createUser'
+        const options = {
+          // headers:{'Authorization': `Bearer ${token.accessToken}`}
+        }
+        const responseBack = await api.post(url, payload, options)
+        resolve(responseBack.data)
       })
     },
     fetchUsers (req) {
@@ -160,16 +171,6 @@ export const useUsersStore = defineStore('users', {
           })
       })
     },
-    async updateInfoUser (payload) {
-      const url = 'spa/updateUser'
-      const token = JSON.parse(localStorage.getItem('backendToken'))
-      const options = {
-        headers:{'Authorization': `Bearer ${token.accessToken}`}
-      }
-      // return new Promise((resolve, reject) => {
-      const setUserLaravel = await api.post(url, payload, options)
-      console.log(setUserLaravel)
-    },
     //activa/inactiva el usuario
     setStatusUser (payload) {
       const url = 'spa/updateUser'
@@ -200,25 +201,52 @@ export const useUsersStore = defineStore('users', {
           .catch((error) => { reject(error) })
       })
     },
-    updateImgProfile (formData) {
+    async updateImgProfile (formData) {
+      const file = formData.get('file')
+      // Get a reference to the storage service, which is used to create references in your storage bucket
+      const storage = getStorage();
+
+      //se sustituye @ y se crea el path de la imagen
+      
+      let avatar_path = `user_profile/user_${formData.get('user_id')}/${formData.get('user_id')}_${formData.get('email')}.${file.type.substr(6)}`
+      
+      // Create a storage reference from our storage service
+      const storageRef = ref(storage,`${avatar_path}`);
+
+      let error = false
+      uploadBytes(storageRef, file).catch((e) => {
+        if(e.error || e.code) error = true
+      })
+      
+      if (error) return {data:{error:true}}
+
       const url = 'spa/updateImgProfile'
       const options = {
-      //   params:payload
+        //   params:payload
       }
-      return new Promise((resolve, reject) => {
-        api.post(url, formData, options).then((response) => {
-          const avatar_url = response.data.url
-          //modifico la avatar_url en el localstorage
-          const getUserInfo = JSON.parse(localStorage.getItem('userInfo'))
-          getUserInfo.avatar = avatar_url
-          localStorage.setItem('userInfo', JSON.stringify(getUserInfo))
-    
-          this.AppActiveUser.avatar = avatar_url
-          this.user_edit.avatar = avatar_url
-          resolve(response)
-        })
-          .catch((error) => { reject(error) })
-      })
+
+      avatar_path = avatar_path.replace(/@/g, '%40')
+      
+      const avatar = `${import.meta.env.VITE_bucket}${avatar_path}`
+      const objProfile = {
+        user_id:formData.get('user_id'),
+        url:avatar
+      }
+
+      const response = await api.post(url, objProfile, options)
+      if(response.status == 200){
+        //modifico la avatar_url en el localstorage
+        const getUserInfo = JSON.parse(localStorage.getItem('userInfo'))
+        getUserInfo.avatar = avatar
+        localStorage.setItem('userInfo', JSON.stringify(getUserInfo))
+        this.AppActiveUser.avatar = avatar
+        this.user_edit.avatar = avatar
+        return response
+      } else {
+        return {data:{error:true}}
+      }
+      
+      
     },
     async cloneSession (user) {
       const url = 'cloneSession'

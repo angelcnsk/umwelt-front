@@ -29,6 +29,7 @@ module.exports = configure(function (/* ctx */) {
       'i18n',
       'axios',
       'signature',
+      'firebase'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

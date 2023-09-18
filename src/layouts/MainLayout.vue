@@ -54,7 +54,7 @@
 
       <div class="row justify-center q-mt-md">
         <q-btn round flat>
-            <q-avatar size="56px">
+            <q-avatar size="56px" @click="$router.push('/admin/profile')">
               <!-- <img src="https://cdn.quasar.dev/img/boy-avatar.png"> -->
               <img :src="AppActiveUser.avatar" v-if="AppActiveUser.avatar != null">
               <img v-else src="~/assets/avatar-s-11.png" >

@@ -66,7 +66,7 @@
                         </div>
                         <div class="row q-pa-sm">
                             <q-checkbox v-model="concepto.value" val="si" label="Si" color="orange" />
-                            <q-checkbox v-model="concepto.value" :disable="bloquearVisita" val="no" label="No" color="orange" />
+                            <q-checkbox v-model="concepto.value" val="no" label="No" color="orange" />
                             <q-checkbox v-model="concepto.value" val="cumple" label="Cumple" color="orange" />
                             <q-checkbox v-model="concepto.value" val="no_cumple" label="No cumple" color="orange" />
                             <q-checkbox v-model="concepto.value" val="na" label="N.A." color="orange" />
@@ -85,17 +85,6 @@
                                     clearable
                                     color="red-12"
                                 />
-                                <!-- <q-editor
-                                    class="q-editor-mb"
-                                    v-model="concepto.observaciones2"
-                                    v-if="visita==2 && posicion == concepto.global-1"
-                                    :dense="$q.screen.lt.md"
-                                    :toolbar="toolbar"
-                                    :fonts="fonts"
-                                    :disable="bloquearVisita"
-                                >
-
-                                </q-editor> -->
                             </div>
                 </q-expansion-item>
             </q-list>
@@ -379,7 +368,6 @@ export default defineComponent({
         }
         
         const setLocal = (type) => {
-            
             if(type == 'load'){
                 const data = JSON.parse(localStorage.getItem('categorias'))
 
@@ -393,17 +381,23 @@ export default defineComponent({
             }
 
             if(type == 'update'){
+                const indice = visitas.value.indexOf(visitSelected.value)
+
+
                 localStorage.setItem('categorias', JSON.stringify({
                     service_id:service.value.id,
                     categorias:categorias.value,
                     fechas:fechas_visita.value,
-                    visita:visitSelected.value.valor
+                    visita:visitSelected.value.valor,
+                    finalizado: service.value.fechas[indice].finalizado
                 }))
             }
         }
 
         const closeVisit = () => {
             if(!serviceSelected()) return false
+
+            
             $q.dialog({
                 title: '¿Deseas finalizar la visita?',
                 message: 'Se guardarán los datos ingresados y no podrán ser modificados',
@@ -420,12 +414,23 @@ export default defineComponent({
             }).onOk(async data => {
                 
                 const info = JSON.parse(localStorage.getItem('categorias'))
+
+                if(info.finalizado == 1){
+                    $q.notify({
+                        position:'top',
+                        type:'negative',
+                        message:'La visita está finalizada, no es posible continuar'
+                    })
+                    return false
+                }
+
                 const saveData = await saveCaptures({
                     service_id: info.service_id, 
                     categorias:info.categorias, 
                     type:"conceptos",
                     fechas:info.fechas,
-                    visita: visitSelected.value.valor
+                    visita: visitSelected.value.valor,
+                    finalizado:1
                 })
                 
                 if(saveData.status == 200){

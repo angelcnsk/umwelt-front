@@ -1,11 +1,10 @@
 import { route } from 'quasar/wrappers'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
-import { createPinia } from 'pinia';
-import { useUsers } from '../composables/useUsers';
-import { createApp } from 'vue'
-import App from '../App.vue'
 import routes from './routes'
-import { api } from "boot/axios";
+
+import { signOut } from "firebase/auth";
+import { auth } from "boot/firebase";
+
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -99,6 +98,7 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
       }
       
       if (to.path === '/logout') {
+        const logout = await signOut(auth)
         const close = await clearSession()
         if (close) window.location.replace(`/`)
       }

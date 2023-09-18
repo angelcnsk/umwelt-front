@@ -18,11 +18,12 @@
                     </div>
                     <div class="col-xs-12 col-sm-7 col-md-3 text-grey-7 ficha-datos">
                         <div class="q-mt-md">
-                            <q-input v-model="userData.name" label="Nombre" />
+                            <q-input v-model="userData.name" label="Nombre" @change="changeProfile('name')" />
                         </div>
                         <div class="q-mt-md">
                             <q-input 
-                                v-model="userData.email" 
+                                v-model="userData.email"
+                                disable
                                 type="email" 
                                 :rules="[
                                     val => !!val || '* Campo obligatorio',
@@ -37,6 +38,7 @@
                             <q-input 
                                 bottom-slots
                                 :type="typeInput"
+                                @change="changeProfile('password')"
                                 v-model="userData.password" 
                                 lazy-rules 
                                 label="Password" 
@@ -60,14 +62,14 @@
                     </div>
                     <q-separator spaced />
                     <div v-if="userData.signature === null">
-                        <signature-pad 
+                        <mi-pad 
                             :width="600"
                             :height="300"
                             :customStyle="{ border: 'black 1px solid',display:'block',margin:'0 auto' }"
                             ref="signaturePad"
                             :options="{onBegin: () => {$refs.signaturePad.resizeCanvas()}}"
                         >
-                        </signature-pad>
+                        </mi-pad>
                             <div class="row q-mt-md justify-center">
                                 <div class="col  text-center">
                                 <q-btn class="q-mr-sm" color="primary" @click="save">Guardar</q-btn>
@@ -85,168 +87,184 @@
     </q-page>
 </template>
 
-<script>
-  import {defineComponent, onMounted, ref, computed, watch} from 'vue'
-  import { useUsers } from 'src/composables/useUsers';
-  import SignaturePad from "vue3-signature-pad";
-  import { Notify, useQuasar } from "quasar";
+<script setup>
+import {onMounted, ref, computed, watch} from 'vue'
+import { useUsers } from 'src/composables/useUsers';
+import SignaturePad from "vue3-signature-pad";
+import { Notify, useQuasar } from "quasar";
+  
+const miPad = SignaturePad
+const $q = useQuasar()
+const {AppActiveUser, updateImgProfile, saveSignature, fetchUser, profileUpdate} = useUsers()
+
+const userData = computed(() => {
+    return AppActiveUser.value
+})
 
 
-  export default defineComponent({
-    components: {
-        SignaturePad,
-    },
-    name: "EditProfile",
-    setup() {
-        const $q = useQuasar()
-        const {AppActiveUser, updateImgProfile, saveSignature, fetchUser} = useUsers()
-        
-        const userData = computed(() => {
-            return AppActiveUser.value
+const visivility = ref(false)
+const iconVisivility = ref('')
+const typeInput = ref('')
+iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
+typeInput.value = visivility.value ? 'text' : 'password'
+
+const showPass = () => {
+    visivility.value = !visivility.value
+    iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
+    typeInput.value = visivility.value ? 'text' : 'password'
+}
+
+const update_avatar = async () => {
+    const imgProfile = document.getElementById('input_img').files
+    const foto = new FormData
+    foto.append('file', imgProfile[0])
+    foto.append('user_id', AppActiveUser.value.id)
+    foto.append('email', AppActiveUser.value.email)
+    const upload = await updateImgProfile(foto)
+    
+    if(upload.data.error != undefined){
+        $q.notify({
+            position:'top',
+            type: 'negative',
+            message: `Error contacta al administrador`
         })
+        
+    } else {
+        $q.notify({
+            position:'top',
+            type: 'positive',
+            message: `La foto de perfil se actualizó con éxito`
+        })
+    }
+}
 
-        const visivility = ref(false)
-        const iconVisivility = ref('')
-        const typeInput = ref('')
-        iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
-        typeInput.value = visivility.value ? 'text' : 'password'
+const signaturePad = ref(null);
+const srcSignature = ref('')
 
-        const showPass = () => {
-            visivility.value = !visivility.value
-            iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
-            typeInput.value = visivility.value ? 'text' : 'password'
-        }
+const save = () => {
+    $q.dialog({
+        title: 'Guardar firma',
+        message: 'Se guardará la firma y no será posible modificarla',
+        // prompt: {
+        //   model: password,
+        //   isValid: val => val.length > 5,
+        //   type: 'password' // optional
+        // },
+        ok: {
+        push: true,
+        label:'Guardar'
+        },
+        cancel: {
+        push: true,
+        color: 'dark',
+        label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
+        const sign = getSignature()
+    
+        // const firma = new FormData
+        // firma.append('file', sign)
+        const guardar = await saveSignature({file:JSON.stringify(sign.data)})
 
-        const update_avatar = () => {
-            const imgProfile = document.getElementById('input_img').files
-            const foto = new FormData
-            foto.append('file', imgProfile[0])
-            const upload = updateImgProfile(foto)
-
-            if(upload.status == 200){
-                $q.notify({
-                    position:'top',
-                    type: 'positive',
-                    message: `La foto de perfil se actualizó con éxito`
-                })
-            } else {
-                $q.notify({
-                    position:'top',
-                    type: 'negative',
-                    message: `Error contacta al administrador`
-                })
-            }
-        }
-
-        const signaturePad = ref(null);
-        const srcSignature = ref('')
-
-        const save = () => {
-            $q.dialog({
-                title: 'Guardar firma',
-                message: 'Se guardará la firma y no será posible modificarla',
-                // prompt: {
-                //   model: password,
-                //   isValid: val => val.length > 5,
-                //   type: 'password' // optional
-                // },
-                ok: {
-                push: true,
-                label:'Guardar'
-                },
-                cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-                },
-                persistent: true
-            }).onOk(async data => {
-                const sign = getSignature()
-            
-                // const firma = new FormData
-                // firma.append('file', sign)
-                const guardar = await saveSignature({file:JSON.stringify(sign.data)})
-
-                if (guardar.data.msg === 'success'){
-                await fetchUser(userData.value.id)
-                $q.notify({
-                    position:'top',
-                    type: 'positive',
-                    message: `La firma se guardó con éxito`
-                })
-                console.log(userData.value, AppActiveUser.value)
-                } else {
-                    $q.notify({
-                        position:'top',
-                        type: 'negative',
-                        message: `Hubo un error al guardar la firma`
-                    })
-                }
-
-            }).onCancel(() => {
-                // console.log('>>>> Cancel')
-            }).onDismiss(() => {
-                // console.log('I am triggered on both OK and Cancel')
+        if (guardar.data.msg === 'success'){
+        await fetchUser(userData.value.id)
+        $q.notify({
+            position:'top',
+            type: 'positive',
+            message: `La firma se guardó con éxito`
+        })
+        console.log(userData.value, AppActiveUser.value)
+        } else {
+            $q.notify({
+                position:'top',
+                type: 'negative',
+                message: `Hubo un error al guardar la firma`
             })
         }
-    
-        const savePng = () => {
-            const { saveSignature } = getSignaturePad()
-            const sign = saveSignature()
 
-            if (!sign.isEmpty) {
-                var dataURL = sign.data
-                    
-                const downloadLink = document.createElement("a");
-                const fileName = 'firma.png';
-                downloadLink.href = dataURL;
-                downloadLink.download = fileName;
-                downloadLink.click();
-            //   download(dataURL, "signature.png");
-            } 
-        }
+    }).onCancel(() => {
+        // console.log('>>>> Cancel')
+    }).onDismiss(() => {
+        // console.log('I am triggered on both OK and Cancel')
+    })
+}
 
-        const getSignaturePad = () => {
-            if (!signaturePad.value) {
-                throw new Error("No signature pad ref could be found");
-            }
-            return signaturePad.value;
-        };
+const savePng = () => {
+    const { saveSignature } = getSignaturePad()
+    const sign = saveSignature()
 
-        const clearSignature = () => {
-            getSignaturePad().clearSignature();
-        };
+    if (!sign.isEmpty) {
+        var dataURL = sign.data
+            
+        const downloadLink = document.createElement("a");
+        const fileName = 'firma.png';
+        downloadLink.href = dataURL;
+        downloadLink.download = fileName;
+        downloadLink.click();
+    //   download(dataURL, "signature.png");
+    } 
+}
 
-        const getSignature = () => {
-            const signature = getSignaturePad().saveSignature();
-            return signature;
-        };
-
-        watch(userData, (data) => {
-            console.log('SE ACTUALIZÓ',data)
-            if(data.signature != null) srcSignature.value = data.signature.split(',')[1]; 
-        })
-
-        onMounted(() => {
-            if(userData.value.signature != null) srcSignature.value = userData.value.signature.split(',')[1]; 
-        })
-
-        
-      return {
-        userData,
-        showPass,
-        update_avatar,
-        iconVisivility,
-        typeInput,
-        signaturePad,
-        srcSignature,
-        save,
-        savePng,
-        clearSignature
-      }
+const getSignaturePad = () => {
+    if (!signaturePad.value) {
+        throw new Error("No signature pad ref could be found");
     }
-  })
-  </script>
+    return signaturePad.value;
+};
+
+const clearSignature = () => {
+    getSignaturePad().clearSignature();
+};
+
+const getSignature = () => {
+    const signature = getSignaturePad().saveSignature();
+    return signature;
+};
+
+const changeProfile = async (data) => {
+    let newData = {}
+    newData.id = AppActiveUser.value.id
+    newData.current_mail = AppActiveUser.value.email
+
+    if(data == 'name'){
+        newData.name = userData.value.name
+        newData.type = 'name'
+    } 
+    if(data == 'email'){
+        newData.email = userData.value.email
+        newData.type = 'email'
+    }
+    if (data == 'password') {
+        newData.password = userData.value.password
+        newData.type = 'password'
+    }
+    const response = await profileUpdate(newData)
+
+    if(response.data.error){
+        $q.notify({
+            position:'top',
+            type: 'negative',
+            message: `Error al actualizar, contacta al administrador`
+        })
+    } else {
+        $q.notify({
+            position:'top',
+            type: 'positive',
+            message: `Información actualizada`
+        })
+    }
+}
+
+watch(userData, (data) => {
+    if(data.signature != null) srcSignature.value = data.signature.split(',')[1]; 
+})
+
+onMounted(() => {
+    if(userData.value.signature != null) srcSignature.value = userData.value.signature.split(',')[1]; 
+})
+        
+</script>
 
 <style>
 .square-box{
