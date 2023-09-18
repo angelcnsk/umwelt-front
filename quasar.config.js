@@ -26,7 +26,6 @@ module.exports = configure(function (/* ctx */) {
     // https://v2.quasar.dev/quasar-cli/boot-files
     boot: [
       'pinia',
-      'i18n',
       'axios',
       'signature',
       'firebase'
@@ -55,7 +54,7 @@ module.exports = configure(function (/* ctx */) {
     build: {
       target: {
         browser: [ 'es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1' ],
-        node: 'node16'
+        node: 'node18'
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
@@ -80,13 +79,13 @@ module.exports = configure(function (/* ctx */) {
       // viteVuePluginOptions: {},
 
       vitePlugins: [
-        ['@intlify/vite-plugin-vue-i18n', {
-          // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
-          // compositionOnly: false,
+        // ['@intlify/vite-plugin-vue-i18n', {
+        //   // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
+        //   // compositionOnly: false,
 
-          // you need to set i18n resource including paths !
-          include: path.resolve(__dirname, './src/i18n/**')
-        }]
+        //   // you need to set i18n resource including paths !
+        //   include: path.resolve(__dirname, './src/i18n/**')
+        // }]
       ]
     },
     server: {
