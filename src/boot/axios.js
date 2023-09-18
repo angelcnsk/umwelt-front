@@ -1,7 +1,7 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
-let domain = 'https://umwelt-admin.test/api/'
+let domain = import.meta.env.VITE_api_host
 
 // if(window.location.hostname == 'localhost'){
 //     domain = 'https://admin.test/api'
