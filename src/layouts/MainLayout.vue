@@ -24,21 +24,28 @@
                  v-if="$q.screen.gt.sm">
           </q-btn> -->
           <!-- <q-btn round dense flat color="grey" :icon="icon" @click="setDarkMode" /> -->
-          <!-- <q-btn round dense flat color="white" icon="notifications">
+          <q-btn round dense flat color="primary" icon="notifications">
             <q-badge color="red" text-color="white" floating>
-              5
+              {{notifications.length}}
             </q-badge>
             <q-menu
             >
               <q-list style="min-width: 100px">
-                <messages></messages>
+                <q-item clickable 
+                  v-ripple 
+                  v-for="(notify, i) in notifications" 
+                  :key="i"
+                  @click="viewNotify(notify)"
+                >
+                  <q-item-section v-if="!notify.view">{{notify.notify}}</q-item-section>
+                </q-item>
                 <q-card class="text-center no-shadow no-border">
                   <q-btn label="View All" style="max-width: 120px !important;" flat dense
                          class="text-indigo-8"></q-btn>
                 </q-card>
               </q-list>
             </q-menu>
-          </q-btn> -->
+          </q-btn>
           
         </div>
       </q-toolbar>
@@ -103,28 +110,21 @@
   </q-layout>
 </template>
 
-<script>
+<script setup>
 // import EssentialLink from 'components/EssentialLink.vue'
 import itemsProfile from 'components/Profile/ItemProfile.vue'
 import { useQuasar } from 'quasar'
 
 import { defineComponent, ref, onMounted } from 'vue'
 import { useUsers } from 'src/composables/useUsers.js'
+import { useNotificaciones } from 'src/composables/useNotificaciones.js'
 
-
-export default defineComponent({
-  name: 'MainLayout',
-
-  components: {
-    // EssentialLink,
-    itemsProfile
-  },
-
-  setup () {
-    const leftDrawerOpen = ref(false)
+const leftDrawerOpen = ref(false)
     const $q = useQuasar()
     const $store = useUsers();
+    const $notificaciones = useNotificaciones()
     const {fetchUser, menus, AppActiveUser} = $store
+    const {notifications, getNotify, setNotifyView} = $notificaciones
 
     const icon = ref('')
     const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
@@ -146,21 +146,16 @@ export default defineComponent({
       $q.dark.set(darkMode.value)
     }
 
+    const toggleLeftDrawer = () => {
+      leftDrawerOpen.value = !leftDrawerOpen.value
+    }
+
+    const viewNotify = async (item) => {
+      setNotifyView(item)
+    }
+
     onMounted(async() => {
       await fetchUser(user.id)
+      await getNotify()
     })
-    
-    return {
-      leftDrawerOpen,
-      darkMode,
-      icon,
-      menus,
-      AppActiveUser,
-      setDarkMode,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      }
-    }
-  }
-})
 </script>

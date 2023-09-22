@@ -85,7 +85,7 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
     getActiveUser().then(async (user) => {
       
       if ((to.path === '/login' && from.path == '/login' || from.path == '/' && to.path === '/') && user === null) {
-        console.log('hace redirect en login', from, to)
+        // console.log('hace redirect en login', from, to)
         return next()
       } 
 

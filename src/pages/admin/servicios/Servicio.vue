@@ -77,8 +77,8 @@
                     </div>        
                 </div>
 
-                <div class="row q-mt-md q-mb-md ">
-                    <!-- <div class="col-md-4 col-xs-12 q-mt-sm">
+                <!-- <div class="row q-mt-md q-mb-md ">
+                    <div class="col-md-4 col-xs-12 q-mt-sm">
                         <span class="label q-ml-sm">Inicio reconocimiento:</span>
                         <q-input 
                             class="q-mt-sm q-ml-sm"
@@ -100,7 +100,7 @@
                                 </q-icon>
                             </template>
                         </q-input>
-                    </div> -->
+                    </div>
                     <div class="col-md-4 col-xs-12 q-mt-sm">
                         <span class="label q-mr-sm">Inicio ejecución:</span>
                         <q-input class="q-mt-sm" filled v-model="fecha2" mask="date" :rules="['date']" style="max-width: 180px;">
@@ -133,7 +133,7 @@
                             </template>
                         </q-input>
                     </div>
-                </div>
+                </div> -->
                 <!-- <div class="row q-mr-md justify-end q-mt-sm">
                     <q-btn v-if="cambiar_fechas_servicio" color="primary" @click="update" label="Guardar" />
                 </div> -->
@@ -141,21 +141,21 @@
     </q-card>
 </div>
 <!-- <logistica :servicio="servicio" :id="$route.params.id" /> -->
-<gestion :servicio_id="$route.params.id" :signatory="servicio.signatory" />
+<gestion :servicio_id="$route.params.id" />
 
 </q-page>
 </template>
 
 
-<script>
-import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref, onBeforeMount} from 'vue'
+<script setup>
+import {computed, onMounted, watch, ref} from 'vue'
 import { useQuasar, date } from "quasar";
 import { useRoute } from "vue-router";
 
 import { useUsers } from 'src/composables/useUsers.js'
 import { useServicios } from 'src/composables/useServicios.js'
 
-import logistica from 'src/components/admin/servicios/Logistica.vue'
+// import logistica from 'src/components/admin/servicios/Logistica.vue'
 import gestion from 'src/components/admin/servicios/Gestion.vue'
 import { route } from 'quasar/wrappers';
 
@@ -164,177 +164,129 @@ import { route } from 'quasar/wrappers';
 // import modalAreas from '../custom-components/ModalAreas.vue'
 // import modalDptos from '../custom-components/ModalDptos.vue'
 
-export default defineComponent({
-    name: 'servicioPage',
-    components:{
-        logistica,
-        gestion
-    },
-    setup () {
-        const storeUsers = useUsers();
-        const storeServicios = useServicios();
-        const $q = useQuasar();
-        const $router = useRoute()
+const storeUsers = useUsers();
+const storeServicios = useServicios();
+const $q = useQuasar();
+const $router = useRoute()
 
-        const { AppActiveUser } = storeUsers
-        const { getService, serviceItem, generarOT, getStaff, getTableA1, saveCaratulaPayload } = storeServicios
-        
-        const generar_ot = ref(false)
-        
-        const cambiar_fechas_servicio = ref(false)
-        const agregar_signatarios = ref(false)
-        const logistica = ref(false)
-        const llenar_rec = ref(false)
+const { AppActiveUser } = storeUsers
+const { getService, serviceItem, generarOT, getStaff, getTableA1, saveCaratulaPayload } = storeServicios
 
-        const notify = (msg, type) => {
-            $q.notify({
-                position:'top',
-                type,
-                message:msg
-            })
-        }
+const generar_ot = ref(false)
 
-        const fecha1 = ref(null)
-        const fecha2 = ref(null)
-        const fecha3 = ref(null)
+const cambiar_fechas_servicio = ref(false)
+const agregar_signatarios = ref(false)
+const logistica = ref(false)
+const llenar_rec = ref(false)
 
-        const fecha_reconocimiento = ref('')
-        const fecha_inicio = ref('')
-        const fecha_fin = ref('')
+const notify = (msg, type) => {
+    $q.notify({
+        position:'top',
+        type,
+        message:msg
+    })
+}
 
-        const servicio = computed(() => {
-            return serviceItem.value
-        })
+const fecha1 = ref(null)
+const fecha2 = ref(null)
+const fecha3 = ref(null)
 
-        const setTime = async () => {
-            // fecha_reconocimiento.value = servicio.value.recognition_date.split('-')
-            fecha_inicio.value = servicio.value.start_date.split('-')
-            fecha_fin.value = servicio.value.end_date.split('-')
+const fecha_reconocimiento = ref('')
+const fecha_inicio = ref('')
+const fecha_fin = ref('')
 
-            // fecha1.value = date.formatDate(new Date(fecha_reconocimiento.value[0], fecha_reconocimiento.value[1]-1, fecha_reconocimiento.value[2]), 'YYYY/MM/DD')
-            fecha2.value = date.formatDate(new Date(fecha_inicio.value[0], fecha_inicio.value[1]-1, fecha_inicio.value[2]), 'YYYY/MM/DD')
-            fecha3.value = date.formatDate(new Date(fecha_fin.value[0], fecha_fin.value[1]-1, fecha_fin.value[2]), 'YYYY/MM/DD')
-        }
-        
-        const permisos = ref([])
+const servicio = computed(() => {
+    return serviceItem.value
+})
 
-        watch(AppActiveUser, (valor) => {
-            permisos.value = valor.permissions
-        })
+const setTime = async () => {
+    // fecha_reconocimiento.value = servicio.value.recognition_date.split('-')
+    fecha_inicio.value = servicio.value.start_date.split('-')
+    fecha_fin.value = servicio.value.end_date.split('-')
 
-        watch(permisos, (newVal) => {
-            if(newVal != undefined){
-                const permisos = newVal
-                cambiar_fechas_servicio.value = permisos.find((permiso) => permiso === 'cambiar_fechas_servicio')
-                agregar_signatarios.value = permisos.find((permiso) => permiso === 'agregar_signatarios')
-                logistica.value = permisos.find((permiso) => permiso === 'agregar_areas_reconocimiento')
-                llenar_rec.value = permisos.find((permiso) => permiso === 'datos_reconocimiento')
-                generar_ot.value = permisos.find((permiso) => permiso === 'generar_ot')
-            }
-            
-        })
-        
-        // console.log(permisos)
+    // fecha1.value = date.formatDate(new Date(fecha_reconocimiento.value[0], fecha_reconocimiento.value[1]-1, fecha_reconocimiento.value[2]), 'YYYY/MM/DD')
+    fecha2.value = date.formatDate(new Date(fecha_inicio.value[0], fecha_inicio.value[1]-1, fecha_inicio.value[2]), 'YYYY/MM/DD')
+    fecha3.value = date.formatDate(new Date(fecha_fin.value[0], fecha_fin.value[1]-1, fecha_fin.value[2]), 'YYYY/MM/DD')
+}
 
-        
+const permisos = ref([])
 
-        const update = async () => {
-            
-            $q.dialog({
-                title: '¿Estás seguro?',
-                message: 'Se guardarán las fechas seleccionadas',
-                ok: {
-                    push: true,
-                    label:'Aceptar'
-                },
-                cancel: {
-                    push: true,
-                    color: 'dark',
-                    label:'Cancelar'
-                },
-                persistent: true
-            }).onOk(async data => {
-                const dates = {
-                    recognition_date: date.formatDate(fecha1.value, 'YYYY-MM-DD'),
-                    start_date: date.formatDate(fecha2.value, 'YYYY-MM-DD'),
-                    end_date: date.formatDate(fecha3.value, 'YYYY-MM-DD')
-                }
-      
-                const payload = await saveCaratulaPayload({data:dates, servicio_id: $router.params.id, dates:true})
-                if(payload.status === 200) notify('Se actualizó la información correctamente', 'positive') 
-                else notify('Hubo un problema al guardar la información','negative')                       
-            })
-                  
-            
-        }
+watch(AppActiveUser, (valor) => {
+    permisos.value = valor.permissions
+})
 
-        const promtOt = () => {
-            $q.dialog({
-                    title: '¿Estás seguro?',
-                    message: 'Se asingará una OT al servicio',
-                    ok: {
-                    push: true,
-                    label:'Aceptar'
-                    },
-                    cancel: {
-                    push: true,
-                    color: 'dark',
-                    label:'Cancelar'
-                    },
-                    persistent: true
-                 }).onOk(async data => {
-                    acceptOt()
-                                  
-                }).onCancel(() => {
-                    // console.log('>>>> Cancel')
-                }).onDismiss(() => {
-                    // console.log('I am triggered on both OK and Cancel')
-                })   
-        }
-
-        const acceptOt = async () => {
-            const response = await generarOT({solicitud_ot:true, servicio_id:servicio.value.id})
-            if(response.status != 200){
-                notify('Error al generar OT', 'negative')
-                return false
-            }
-            await getService($router.params.id)
-        }
-
-
-        
-
-        onMounted(async () => {
-            permisos.value = AppActiveUser.value.permissions
-            // await setPermissions()
-            await getStaff()
-            // await getSignatoryList()
-            // // await this.setSignatory
-            // await getTableA1()
-            await getService($router.params.id)
-            await setTime()
-            
-        
-            
-        })
-        
-        return {
-            cambiar_fechas_servicio,
-            agregar_signatarios,
-            generar_ot,
-            logistica,
-            llenar_rec,
-            servicio,
-            fecha1,
-            fecha2,
-            fecha3,
-            update,
-            promtOt
-        }
-
+watch(permisos, (newVal) => {
+    if(newVal != undefined){
+        const permisos = newVal
+        cambiar_fechas_servicio.value = permisos.find((permiso) => permiso === 'cambiar_fechas_servicio')
+        agregar_signatarios.value = permisos.find((permiso) => permiso === 'agregar_signatarios')
+        logistica.value = permisos.find((permiso) => permiso === 'agregar_areas_reconocimiento')
+        llenar_rec.value = permisos.find((permiso) => permiso === 'datos_reconocimiento')
+        generar_ot.value = permisos.find((permiso) => permiso === 'generar_ot')
     }
     
 })
+
+const update = async () => {
+    
+    $q.dialog({
+        title: '¿Estás seguro?',
+        message: 'Se guardarán las fechas seleccionadas',
+        ok: {
+            push: true,
+            label:'Aceptar'
+        },
+        cancel: {
+            push: true,
+            color: 'dark',
+            label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
+        const dates = {
+            recognition_date: date.formatDate(fecha1.value, 'YYYY-MM-DD'),
+            start_date: date.formatDate(fecha2.value, 'YYYY-MM-DD'),
+            end_date: date.formatDate(fecha3.value, 'YYYY-MM-DD')
+        }
+
+        const payload = await saveCaratulaPayload({data:dates, servicio_id: $router.params.id, dates:true})
+        if(payload.status === 200) notify('Se actualizó la información correctamente', 'positive') 
+        else notify('Hubo un problema al guardar la información','negative')                       
+    })
+            
+    
+}
+
+const promtOt = () => {
+    $q.dialog({
+            title: '¿Estás seguro?',
+            message: 'Se asingará una OT al servicio',
+            ok: {
+            push: true,
+            label:'Aceptar'
+            },
+            cancel: {
+            push: true,
+            color: 'dark',
+            label:'Cancelar'
+            },
+            persistent: true
+            }).onOk(async data => {
+            acceptOt()
+                            
+        }).onCancel(() => {
+            // console.log('>>>> Cancel')
+        }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+        })   
+}
+
+onMounted(async () => {
+    permisos.value = AppActiveUser.value.permissions
+    // await getStaff()
+    await getService($router.params.id)
+})
+
 
 </script>
 

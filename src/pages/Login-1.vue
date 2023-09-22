@@ -94,7 +94,6 @@ export default defineComponent({
 
     const onSubmit = async () => {
       loading.value = true
-      console.log(user.value)
       if(user.value.email == '' || user.value.email == undefined || user.value.password == '' || user.value.password == undefined){
         $q.notify({
             position:'top',
@@ -106,7 +105,7 @@ export default defineComponent({
       }
       
       const req = await login(user.value)
-      console.log('cuando falla',req)
+      // console.log('cuando falla',req)
       if(req.data.error){
         $q.notify({
             position:'top',
@@ -117,7 +116,7 @@ export default defineComponent({
       } else {
         // $router.push({name:'index-admin'})
         setTimeout(() => {
-          console.log('después de 2 segundos')
+          // console.log('después de 2 segundos')
           window.location.replace('/admin/dashboard')
           // $router.push({name:'index-admin'})
         }, 2000);

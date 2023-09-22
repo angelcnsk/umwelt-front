@@ -128,7 +128,7 @@
                                     </template>
                                 </q-input>
                             </div> -->
-                            <div class="col-md-4 col-xs-12 q-pa-sm">
+                            <!-- <div class="col-md-4 col-xs-12 q-pa-sm">
                                 <q-input filled v-model="service.date_start" mask="date" :rules="['date']" label="Inicio de ejecución">
                                     <template v-slot:append>
                                         <q-icon name="event" class="cursor-pointer">
@@ -157,7 +157,7 @@
                                         </q-icon>
                                     </template>
                                 </q-input>
-                            </div>
+                            </div> -->
                         </div>
                         <div class="row justify-end q-mr-sm">
                             <q-btn label="guardar" color="primary" @click="saveService" />
@@ -220,6 +220,7 @@
   import { useClientes } from 'src/composables/useClientes.js'
   import { useUsers } from 'src/composables/useUsers.js'
   import { useServicios } from 'src/composables/useServicios.js'
+  import { useNotificaciones } from 'src/composables/useNotificaciones.js'
   import { useQuasar, date } from "quasar";
   import { useRoute, useRouter } from 'vue-router';
 
@@ -232,12 +233,15 @@
         const storeClientes = useClientes();
         const storeUsers = useUsers();
         const storeServicios = useServicios();
+        const storeNotificaciones = useNotificaciones();
         const $q = useQuasar();
         const router = useRouter();
 
         const { AppActiveUser } = storeUsers
         const {getClients, clients, createClient} = storeClientes
         const { staff, getStaff, getService, generarOT, servicesList, productos, getProductos, getServices, newService } = storeServicios
+        const {launchNotify} = storeNotificaciones
+
         const agregar_servicio = ref(false)
         
         const addService = ref(false)
@@ -281,6 +285,11 @@
           align:'center'
         },
         {
+          label: 'Planta',
+          field: 'alias',
+          align:'center'
+        },
+        {
           label: 'Producto',
           field: 'producto',
           align:'center'
@@ -299,27 +308,6 @@
         {
           label: 'Fecha creación',
           field: 'create_date',
-          align:'center'
-        },
-        // {
-        //   label: 'Reconocimiento',
-        //   field: 'recognition',
-        //   html:   true,
-        //   align:'center'
-        // },
-        // {
-        //   label: 'Fecha reconocimiento',
-        //   field: 'end_date',
-        //   align:'center'
-        // },
-        {
-          label: 'Fecha inicial',
-          field: 'start_date',
-          align:'center'
-        },
-        {
-          label: 'Fecha final',
-          field: 'end_date',
           align:'center'
         }
       ]
@@ -370,20 +358,20 @@
                 return false
             }
 
-            if(service.value.recognition && service.value.date_recognition == undefined || service.value.recognition && service.value.date_recognition == null){
-                notify(`Falta fecha de reconocimiento`, 'negative')
-                return false
-            }
+            // if(service.value.recognition && service.value.date_recognition == undefined || service.value.recognition && service.value.date_recognition == null){
+            //     notify(`Falta fecha de reconocimiento`, 'negative')
+            //     return false
+            // }
 
-            if(service.value.date_start == undefined || service.value.date_start == null){
-                notify(`Falta fecha de inicio de servicio`, 'negative')
-                return false
-            }
+            // if(service.value.date_start == undefined || service.value.date_start == null){
+            //     notify(`Falta fecha de inicio de servicio`, 'negative')
+            //     return false
+            // }
 
-            if(service.value.date_end == undefined || service.value.date_end == null){
-                notify(`Falta fecha de fin de servicio`, 'negative')
-                return false
-            }
+            // if(service.value.date_end == undefined || service.value.date_end == null){
+            //     notify(`Falta fecha de fin de servicio`, 'negative')
+            //     return false
+            // }
             return true   
         }
 
@@ -410,8 +398,8 @@
                  }).onOk(async data => {
                 
                     // service.value.recognition_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
-                    service.value.start_date = date.formatDate(service.value.date_start, 'YYYY-MM-DD')
-                    service.value.end_date = date.formatDate(service.value.date_end, 'YYYY-MM-DD')
+                    // service.value.start_date = date.formatDate(service.value.date_start, 'YYYY-MM-DD')
+                    // service.value.end_date = date.formatDate(service.value.date_end, 'YYYY-MM-DD')
 
                     service.value.producto_id = service.value.producto.id
                     service.value.client_id = service.value.client.id
@@ -419,11 +407,12 @@
                     service.value.owner_id = service.value.owner.value
                     const initService = await newService(service.value)
                     if(initService.status == 200){
+                        await launchNotify(initService.data.info)
                         notify('Se creó un nuevo servicio','positive')
-                        service.value = { 
-                            date_start:formattedString,
-                            date_end:formattedString
-                        }
+                        // service.value = { 
+                        //     date_start:formattedString,
+                        //     date_end:formattedString
+                        // }
                         addService.value = false
                     }
                         

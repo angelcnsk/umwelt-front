@@ -59,6 +59,7 @@ export const useUsersStore = defineStore('users', {
             await this.fetchUser()
             // resolve(response)
             signInWithEmailAndPassword(auth, payload.email, payload.password).then((user) => {
+              localStorage.setItem('firebase_id', user.user.uid)
               if(!user.emailVerified){
                 sendEmailVerification(user)
               }
@@ -129,7 +130,9 @@ export const useUsersStore = defineStore('users', {
         const token = JSON.parse(localStorage.getItem('backendToken'))
         const options = {
           headers:{'Authorization': `Bearer ${token.accessToken}`},
-          params:{id: userId},
+          params:{id: userId,
+            firebase_id: localStorage.getItem('firebase_id')
+          },
         }
         api.get('spa/getUser', options).then((response) => {
           const infoUser = response.data.userData
