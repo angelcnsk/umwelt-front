@@ -25,6 +25,7 @@ export const useNotificacionesStore = defineStore('notificaciones', {
 
         async getNotify(){
             setTimeout(() => {
+                if(auth.currentUser == null) location.replace('/logout')
                 const q = query(collection(db, 'notificaciones'), 
                     where ("firebase_id", "==", auth.currentUser.uid),
                     where ("view", "==", false)

@@ -2,9 +2,6 @@ import { route } from 'quasar/wrappers'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
 import routes from './routes'
 
-import { signOut } from "firebase/auth";
-import { auth } from "boot/firebase";
-
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -37,14 +34,16 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
     history: createHistory(process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE)
   })
 
-  function clearSession () {
-    return new Promise((resolve) => {
-      localStorage.removeItem('backendToken')
-      localStorage.removeItem('userInfo')
-      sessionStorage.clear()
-      resolve(true)
-    })
-  }
+  // function clearSession () {
+  //   return new Promise((resolve) => {
+  //     // localStorage.removeItem('backendToken')
+  //     // localStorage.removeItem('userInfo')
+  //     // localStorage.removeItem('firebase_id')
+  //     auth.signOut().catch((e) => console.log(e))
+  //     // sessionStorage.clear()
+  //     resolve(true)
+  //   })
+  // }
   
   function getMenus () {
     return new Promise((resolve, reject) => {
@@ -87,7 +86,11 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
       if ((to.path === '/login' && from.path == '/login' || from.path == '/' && to.path === '/') && user === null) {
         // console.log('hace redirect en login', from, to)
         return next()
-      } 
+      }
+      
+      if(to.name=='recovery'){
+        return next()
+      }
 
       if (routesName.includes(to.name)) {
         window.addEventListener('beforeunload', beforeUnloadListener, {capture: true});
@@ -98,9 +101,8 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
       }
       
       if (to.path === '/logout') {
-        const logout = await signOut(auth)
-        const close = await clearSession()
-        if (close) window.location.replace(`/`)
+        next()
+        window.location.replace(`/`)
       }
       
       if (user !== null && user.id) {
@@ -126,8 +128,7 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
         return next()
       } else {
         // console.log('no hay usuario', user)
-        clearSession()
-        window.location.replace(`/`)
+        next({name:'salir'})
       }
       return next()
     })

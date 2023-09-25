@@ -25,22 +25,6 @@
                             class="uppercase"
                             :label="servicio.ot"
                         />
-                            
-                        
-                        <div class="" v-if="servicio.ot === 'Sin OT asignada'">
-                            <q-btn flat 
-                                round
-                                size="sm"
-                                color="green"
-                                class="q-ml-sm"
-                                outline
-                                icon="check_circle"
-                                v-if="generar_ot"
-                                @click="promtOt"
-                            >
-                                <q-tooltip>Generar OT</q-tooltip>
-                            </q-btn>
-                        </div>
                         </div>
                     </div> -->
                     <div class="col-lg-4 col-md-4 col-sm-12">
@@ -55,26 +39,28 @@
                     
                 </div>
                 <div class="row q-mt-md q-mb-lg q-ma-sm">
-                    <div class="col-md-4 col-sm-12">
+                    <div class="col-md-3 col-sm-12">
                         <span class="label">Solicitante</span><br>
                         <q-avatar class="q-mr-sm q-mt-sm" size="30px">
                             <img :src="servicio.requester_avatar" alt="">
                         </q-avatar>
                         <span class="user-name-label">{{servicio.requester}}</span>
                     </div>
-                    <div class="col-md-4 col-sm-12">
+                    <div class="col-md-3 col-sm-12">
                         <span class="label q-mt-sm">Responsable</span><br>
                         <q-avatar class="q-mr-sm q-mt-sm" size="30px">
                             <img :src="servicio.owner_avatar" alt="">
                         </q-avatar>
                         <span class="user-name-label">{{servicio.owner}}</span>
                     </div>
-                    <div class="col-md-4 col-sm-12">
+                    <div class="col-md-3 col-sm-12">
                         <span class="label q-mt-sm">Fecha creación</span><br>
-                        <q-badge outline color="grey-7" :label="servicio.create_date" class="q-mt-md" />
-                        
-                        
-                    </div>        
+                        <q-badge outline color="grey-7" :label="servicio.create_date" class="q-mt-md" />    
+                    </div>
+                    <div class="col-md-3 col-sm-12">
+                        <span class="label q-mt-sm">Número dictamen</span><br>
+                        <q-badge outline color="grey-7" :label="servicio.num_dictamen" class="q-mt-md" />
+                    </div>
                 </div>
 
                 <!-- <div class="row q-mt-md q-mb-md ">
@@ -141,7 +127,7 @@
     </q-card>
 </div>
 <!-- <logistica :servicio="servicio" :id="$route.params.id" /> -->
-<gestion :servicio_id="$route.params.id" />
+<gestion :servicio_id="$route.params.id" :data="servicio" />
 
 </q-page>
 </template>
@@ -170,7 +156,7 @@ const $q = useQuasar();
 const $router = useRoute()
 
 const { AppActiveUser } = storeUsers
-const { getService, serviceItem, generarOT, getStaff, getTableA1, saveCaratulaPayload } = storeServicios
+const { getService, serviceItem, saveCaratulaPayload } = storeServicios
 
 const generar_ot = ref(false)
 
@@ -222,7 +208,7 @@ watch(permisos, (newVal) => {
         agregar_signatarios.value = permisos.find((permiso) => permiso === 'agregar_signatarios')
         logistica.value = permisos.find((permiso) => permiso === 'agregar_areas_reconocimiento')
         llenar_rec.value = permisos.find((permiso) => permiso === 'datos_reconocimiento')
-        generar_ot.value = permisos.find((permiso) => permiso === 'generar_ot')
+        generar_ot.value = permisos.find((permiso) => permiso === 'generar_num_dictamen')
     }
     
 })
@@ -255,30 +241,6 @@ const update = async () => {
     })
             
     
-}
-
-const promtOt = () => {
-    $q.dialog({
-            title: '¿Estás seguro?',
-            message: 'Se asingará una OT al servicio',
-            ok: {
-            push: true,
-            label:'Aceptar'
-            },
-            cancel: {
-            push: true,
-            color: 'dark',
-            label:'Cancelar'
-            },
-            persistent: true
-            }).onOk(async data => {
-            acceptOt()
-                            
-        }).onCancel(() => {
-            // console.log('>>>> Cancel')
-        }).onDismiss(() => {
-            // console.log('I am triggered on both OK and Cancel')
-        })   
 }
 
 onMounted(async () => {

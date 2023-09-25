@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { api } from 'boot/axios'
-import { auth, storage } from "boot/firebase";
-import {EmailAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, updateProfile } from "firebase/auth"
+import { auth } from "boot/firebase";
+import {onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, updateProfile } from "firebase/auth"
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 export const useUsersStore = defineStore('users', {
@@ -59,8 +59,12 @@ export const useUsersStore = defineStore('users', {
             await this.fetchUser()
             // resolve(response)
             signInWithEmailAndPassword(auth, payload.email, payload.password).then((user) => {
+              onAuthStateChanged(auth,(currentUser) => {
+                console.log('login firebase',currentUser)
+              })
               localStorage.setItem('firebase_id', user.user.uid)
               if(!user.emailVerified){
+                console.log('se manda verificación')
                 sendEmailVerification(user)
               }
             }).catch(async (e) => {

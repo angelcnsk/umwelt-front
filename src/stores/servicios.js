@@ -102,14 +102,15 @@ export const useServiciosStore = defineStore('servicios', {
               }).catch((error) => { reject(error) })
             })
         },
-        generarOT (payload) {
-            const url = 'spa/editService'
+        generarNumDictamen (payload) {
+            const url = 'spa/generarFolio'
             const options = {
             //   params:payload
             }
         
             return new Promise((resolve, reject) => {
               api.post(url, payload, options).then((response) => {
+                this.serviceItem.num_dictamen = response.data.num_dictamen
                 resolve(response)
               }).catch((error) => { reject(error) })
             })

@@ -4,7 +4,7 @@ import { useServiciosStore } from '../stores/servicios'
 export const useServicios = () => {
     const serviciosStore = useServiciosStore()
     const { 
-        nuevoProducto, getProductos, getTableA1, newService, getServices, getService, generarOT, closeServiceStatus, saveDptoDB, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getRecognitions, saveRecognition, saveCaratulaPayload, getDepartments, saveAreaPayload, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, managePoints,getDevices
+        nuevoProducto, getProductos, getTableA1, newService, getServices, getService, generarNumDictamen, closeServiceStatus, saveDptoDB, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getRecognitions, saveRecognition, saveCaratulaPayload, getDepartments, saveAreaPayload, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, managePoints,getDevices
     } = serviciosStore
     const { productos,
         nuevoServicio,
@@ -48,6 +48,6 @@ export const useServicios = () => {
         archivos,
         dispositivos,
         usuariosDevice,
-        nuevoProducto, getProductos, getTableA1, newService, getServices, getService, generarOT, closeServiceStatus, saveDptoDB, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getRecognitions, saveRecognition, saveCaratulaPayload, getDepartments, saveAreaPayload, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, managePoints,getDevices
+        nuevoProducto, getProductos, getTableA1, newService, getServices, getService, generarNumDictamen, closeServiceStatus, saveDptoDB, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getRecognitions, saveRecognition, saveCaratulaPayload, getDepartments, saveAreaPayload, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, managePoints,getDevices
     }
 }

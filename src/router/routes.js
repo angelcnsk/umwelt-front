@@ -1,3 +1,6 @@
+import { auth } from "boot/firebase";
+import { signOut } from "firebase/auth";
+
 const routes = [
   {
     path: '',
@@ -9,13 +12,21 @@ const routes = [
     name: 'salir',
     component: () => {
       return new Promise((resolve) => {
+        localStorage.removeItem('firebase_id')
         localStorage.removeItem('backendToken')
         localStorage.removeItem('userInfo')
-        sessionStorage.clear()
+        
+        auth.signOut().then((response) => console.log(response)).catch((e) =>   console.log(e))
+        // sessionStorage.clear()
         window.location.replace('/')
         resolve(true)
       })
     }
+  },
+  {
+    path: '/_/auth/action',
+    name: 'recovery',
+    component: () => import('pages/Recovery.vue')
   },
   {
     // path:'/dashboard',

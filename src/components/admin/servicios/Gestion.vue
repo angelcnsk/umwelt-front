@@ -51,12 +51,23 @@
             <q-separator spaced />
             <div class="text-subtitle text-grey-8">Reporte y control</div>
             <q-separator spaced />
-
+            
             <div class="row q-pa-md">
+                <q-btn label="Número dictamen" 
+                    color="primary" 
+                    class="q-mr-md" 
+                    @click="generarFolio"
+                    :disable="data.num_dictamen !== 'Sin número dictamen'"
+                >
+                    <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
+                        Genera número de dictamen
+                    </q-tooltip>
+                </q-btn>
                 <q-btn label="Guía Documental" 
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('documental')"
+                    :disable="data.visita_en_curso"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         Descarga guía documental
@@ -66,6 +77,7 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('inspeccion')"
+                    :disable="data.visita_en_curso"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         Descarga guía de inspección
@@ -75,6 +87,7 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('acta')"
+                    :disable="data.visita_en_curso"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         Descarga acta
@@ -84,6 +97,7 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('dictamen')"
+                    :disable="data.visita_en_curso"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         Descarga dictamen
@@ -107,7 +121,8 @@ import archivos from 'components/admin/servicios/Archivos.vue'
 // import { utils, writeFileXLSX } from 'xlsx';
 
 const props = defineProps({
-    servicio_id: String
+    servicio_id: String,
+    data: Object
 })
 
 const servicio_id = ref(props.servicio_id)
@@ -116,10 +131,7 @@ const $q = useQuasar();
 const storeUsers = useUsers();
 const storeServicios = useServicios();
 const { AppActiveUser } = storeUsers
-const { staff, managePoints, sin_asignar, asignados, serviceItem, 
-    getSignatoryList, signatoryList,saveSignatory, 
-    getFieldSheets,getPdfFieldSheets, getReport
-} = storeServicios
+const { generarNumDictamen } = storeServicios
 
 
 const notify = (msg, type) => {
@@ -160,6 +172,36 @@ const getDocument = (type) => {
     }
     console.log(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`)
     window.open(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`,'_blank')
+}
+
+const generarFolio = () => {
+    $q.dialog({
+            title: '¿Estás seguro?',
+            message: 'Se asingará un número de dictamen al servicio',
+            ok: {
+            push: true,
+            label:'Aceptar'
+            },
+            cancel: {
+            push: true,
+            color: 'dark',
+            label:'Cancelar'
+            },
+            persistent: true
+            }).onOk(async app => {
+
+            const getfolio = await generarNumDictamen({servicio_id:props.data.id, generar_folio:true})
+            if(getfolio.status == 200){
+                notify('Se asignó número de dictamen', 'positive')
+            } else {
+                notify('Por favor contácta al administrador', 'negative')
+            }
+                            
+        }).onCancel(() => {
+            // console.log('>>>> Cancel')
+        }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+        })   
 }
 
 

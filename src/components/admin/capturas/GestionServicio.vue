@@ -2,11 +2,14 @@
     <q-card class="q-pa-sm">
         <q-card-section>
             <div class="row">
-                <q-btn class="q-mr-md" color="primary" outline label="guia general" @click="imprimir('guia general')" /> 
-                <q-btn class="q-mr-md" color="primary" outline label="guia inspección" @click="imprimir('guia inspeccion')" /> 
-                <q-btn class="q-mr-md" color="primary" outline label="acta" @click="imprimir('acta')" /> 
-                <q-btn class="q-mr-md" color="primary" outline label="dictamen" @click="imprimir('dictamen')" /> 
-                
+                <q-btn 
+                    class="q-mr-md" 
+                    color="primary" 
+                    outline 
+                    label="guia inspección" 
+                    @click="imprimir('guia inspeccion')"
+                    :disable="5<3"
+                />                 
             </div>
         </q-card-section>
     </q-card>
@@ -36,22 +39,22 @@ export default defineComponent({
         const dialog = ref(false)
 
         const imprimir = (doc) => {
-            let url = 'https:umwelt-admin.test/reportes/'
+            let url = import.meta.env.VITE_api_host
             switch (doc) {
                 case 'guia general':
-                    url = `${url}getGuiaDoc/?service_id=${service.value.id}`
+                    url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=1`
                     break;
             
                 case 'guia inspeccion':
-                    url = `${url}getGuiaInspeccion/?service_id=${service.value.id}`
+                    url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=3`
                 break;
         
                 case 'acta':
-                    url = `${url}getActaEvaluacion/?service_id=${service.value.id}`
+                url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=2`
                 break;
 
                 default:
-                    url = `${url}getDictamen/?service_id=${service.value.id}`
+                url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=4`
                     break;
             }
 
