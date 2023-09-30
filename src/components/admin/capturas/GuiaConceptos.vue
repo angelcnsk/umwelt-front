@@ -21,7 +21,7 @@
                 <div class="col-xs-12 col-md-2">
                     <q-radio v-model="visita" val="2" label="visita 2" />
                 </div> -->
-                <div class="col-xs-12 col-md-2">
+                <!-- <div class="col-xs-12 col-md-2">
                     <q-btn icon="event" outline class="cursor-pointer q-mt-md" size="md" color="primary" label="Fecha Visita">
                         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                             <q-date v-model="fechas_visita" range>
@@ -31,10 +31,19 @@
                             </q-date>
                         </q-popup-proxy>
                     </q-btn>
+                </div> -->
+                <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
+                    <q-input v-model="fechas_visita.from" filled type="date" hint="Native date" />
+                    
                 </div>
-                <div class="col-xs-12 col-md-4 d-inline-block q-mt-lg">
-                    <span class="text-body2">Fecha inicial: {{ fechas_visita.from }}</span>
-                    <span class="text-body2 q-ml-sm">Fecha final {{ fechas_visita.to }}</span>
+                <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
+                    <q-input v-model="fechas_visita.to" filled type="date" hint="Native date" />
+                </div>
+                <div class="col-xs-12 col-md-1 d-inline-block q-mt-lg q-ml-sm">
+                    <q-input v-model="fechas_visita.inicio" filled type="time" hint="Hora inicio" />
+                </div>
+                <div class="col-xs-12 col-md-1 d-inline-block q-mt-lg q-ml-sm">
+                    <q-input v-model="fechas_visita.fin" filled type="time" hint="Hora final" />
                 </div>
             </div>
             <div class="row q-pa-md items-center justify-start ">
@@ -65,10 +74,10 @@
                             <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
                         </div>
                         <div class="row q-pa-sm">
-                            <q-checkbox v-model="concepto.value" val="si" label="Si" color="orange" />
-                            <q-checkbox v-model="concepto.value" val="no" label="No" color="orange" />
-                            <q-checkbox v-model="concepto.value" val="cumple" label="Cumple" color="orange" />
-                            <q-checkbox v-model="concepto.value" val="no_cumple" label="No cumple" color="orange" />
+                            <q-checkbox v-model="concepto.value" val="si" label="Si" color="orange" :disable="concepto.value.includes('no')" />
+                            <q-checkbox v-model="concepto.value" val="no" label="No" color="orange" :disable="concepto.value.includes('si')" />
+                            <q-checkbox v-model="concepto.value" val="cumple" label="Cumple" color="orange" :disable="concepto.value.includes('no_cumple')" />
+                            <q-checkbox v-model="concepto.value" val="no_cumple" label="No cumple" color="orange" :disable="concepto.value.includes('cumple')" />
                             <q-checkbox v-model="concepto.value" val="na" label="N.A." color="orange" />
                             <q-checkbox v-model="concepto.value" val="et" label="E.T." color="orange" />
                         </div>                                                            
@@ -154,331 +163,308 @@
         </q-dialog>
 </template>
 
-<script>
+<script setup>
 import {defineComponent, ref, computed, watch, onMounted, toRef, defineEmits} from 'vue';
 import { useQuasar, date } from "quasar";
 import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
 
-export default defineComponent({
-    name: "guiaconceptos",
-    props:['service'],
-    // emits: ['savePoints','async'],
-    setup(props, ctx) {
-        const $q = useQuasar();
-        const storeCapturas = useCapturas();
-        const { getServiceList, servicesList,
-            currentService, saveCaptures, saveSectionFile,
-            getCategories, newVisit,categories
-        } = storeCapturas
+const $q = useQuasar();
+const storeCapturas = useCapturas();
+const { getServiceList, servicesList, currentService, saveCaptures, saveSectionFile, getCategories, newVisit,categories} = storeCapturas
 
-        const categorias = ref([])
-        const service = toRef(props,'service')
+const props = defineProps({
+    service: Object
+})
+const categorias = ref([])
+const service = toRef(props,'service')
+
+const dialog = ref(false)
+const loading = ref(false)
+const visitas = ref([])
+const tipo = ref('')
+const timeStamp = Date.now()
+const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
+const visitSelected = ref('')
+
+const fechas_visita = ref({
+    from: formattedString,
+    to: formattedString
+})
+
+watch(fechas_visita,(newVal) => {
+    if(newVal != undefined && service.value.id != undefined){
+        // fechas_visita.value = newVal
+        // console.log('cambia valor', fechas_visita.value)    
         
-        const dialog = ref(false)
-        const loading = ref(false)
-        const visitas = ref([])
-        const tipo = ref('')
-        const timeStamp = Date.now()
-        const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
-        const visitSelected = ref('')
+        if(service.value.fechas == undefined){
+            service.value.fechas = []
+            // console.log('agregó array', service.value.fechas)
+        } 
+        // console.log(visita.value)    
+        // if(visita.value == "1"){
+        //     service.value.fechas[0] = newVal
+        //     // console.log('set fecha1', service.value.fechas)
+        // }
+        // else {
+        //     service.value.fechas[1] = newVal
+        //     // console.log('set fecha2', service.value.fechas)
+        // }
 
-        const fechas_visita = ref({
-            from: formattedString,
-            to: formattedString
+    } else {
+        fechas_visita.value.from = formattedString
+        fechas_visita.value.to = formattedString
+    }
+})
+
+const setNoCumple = () => {
+    categorias.value.forEach(categoria => {
+        categoria.conceptos.forEach(concepto => {
+            if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
         })
+    });
+}
 
-        watch(fechas_visita,(newVal) => {
-            if(newVal != undefined && service.value.id != undefined){
-                // fechas_visita.value = newVal
-                // console.log('cambia valor', fechas_visita.value)    
-                
-                if(service.value.fechas == undefined){
-                    service.value.fechas = []
-                    // console.log('agregó array', service.value.fechas)
-                } 
-                // console.log(visita.value)    
-                // if(visita.value == "1"){
-                //     service.value.fechas[0] = newVal
-                //     // console.log('set fecha1', service.value.fechas)
-                // }
-                // else {
-                //     service.value.fechas[1] = newVal
-                //     // console.log('set fecha2', service.value.fechas)
-                // }
+const setService = (type) => {
+    if(service.value.id != undefined){
+        visitas.value = []
+        let visita = 0
+        const fechas = service.value.fechas.length == 0 ? 1 : service.value.fechas.length
+        
+        for (let index = 0; index < fechas; index++) {
+            visitas.value.push({valor:visita+1, texto:`Visita ${visita+1}`})
+            visita++
+        }
+        visitSelected.value = visitas.value[0]
+    }
 
+    setLocal(type)
+    setFechas()
+}
+
+watch(service, (newVal) => {
+    setService('load')
+    setFechas()
+})
+
+watch(visitSelected, async (fecha) => {
+    if(service.value.id != undefined){
+        categorias.value = []
+        setFechas()
+        const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
+        if(getCategorias.status == 200){
+            categorias.value = categories.value.categorias
+        }
+    }
+})
+
+const setFechas = (value) => {
+    if(service.value.fechas != undefined){
+        if(service.value.fechas.length == 0){
+            fechas_visita.value.from = formattedString
+            fechas_visita.value.to = formattedString
+            visitSelected.value = visitas.value[0]
+        } else {
+            const indice = visitas.value.indexOf(visitSelected.value)
+            // console.log(indice, visitSelected.value)
+            // console.log('fecha visita', service.value.fechas[indice].fecha_inicio)
+            fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
+            fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
+        }
+        
+        
+    }
+    // const valor = value != undefined ? value : visita.value
+    // fechas_visita.value = {}
+    // if(service.value.fechas != undefined && valor == "1"){
+    //     // console.log('trae fechas 1', service.value.fechas)
+    //     fechas_visita.value.from = service.value.fechas[0].fecha_inicio != undefined ? service.value.fechas[0].fecha_inicio : service.value.fechas[0].from
+    //     fechas_visita.value.to = service.value.fechas[0].fecha_fin != undefined ? service.value.fechas[0].fecha_fin : service.value.fechas[0].to
+    // }
+
+    // if(service.value.fechas != undefined && valor == "2"){
+    //     // console.log('trae fechas 2', service.value.fechas)
+    //     fechas_visita.value.from = service.value.fechas[1].fecha_inicio != undefined ? service.value.fechas[1].fecha_inicio : service.value.fechas[1].from
+    //     fechas_visita.value.to = service.value.fechas[1].fecha_fin != undefined ? service.value.fechas[1].fecha_fin : service.value.fechas[1].to
+    // } 
+}
+
+const toolbar = ref([
+    [
+        {
+            icon: $q.iconSet.editor.align,
+            fixedLabel: true,
+            list: 'only-icons',
+            options: ['left', 'center', 'right', 'justify']
+        },
+        
+    ],
+    ['removeFormat'],
+    ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
+    ['undo', 'redo'],
+])
+const fonts = ref({
+    arial: 'Arial',
+    arial_black: 'Arial Black',
+    comic_sans: 'Comic Sans MS',
+    courier_new: 'Courier New',
+    impact: 'Impact',
+    lucida_grande: 'Lucida Grande',
+    times_new_roman: 'Times New Roman',
+    verdana: 'Verdana'
+})    
+                                            
+
+const autoSave = async (type) => {
+    if(!serviceSelected()) return false     
+    setNoCumple()
+    setLocal('update')
+    // dialog.value = true
+    // tipo.value = type == 'manual' ? 'Guardando...' : 'Auto guardado'
+}
+
+const bloquearVisita = computed(() => {
+    const splitDate = fechas_visita.value.to.split('-')
+    const fecha_final = date.buildDate({year:splitDate[0], month:splitDate[1], date:splitDate[2]})
+    return new Date() < fecha_final
+})
+
+const addVisit = () => {
+    if(!serviceSelected()) return false
+    $q.dialog({
+        title: '¿Deseas agregar otra visita?',
+        message: 'Asegúrate de haber cerrado la visita anterior, la información guardada en este equipo se borrará',
+        ok: {
+        push: true,
+        label:'Continuar'
+        },
+        cancel: {
+        push: true,
+        color: 'dark',
+        label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
+        
+        // visitas.value.push({valor:visitas.value.length+1, texto:`Visita ${visitas.value.length+1}` })
+        const addVisit = await newVisit({service_id:service.value.id})
+        
+        if(addVisit.status == 200){
+            if(addVisit.data.msg){
+                $q.notify({
+                    position:'top',
+                    type:'warning',
+                    message:'No es necesario agregar una visita, todos los puntos cumplen'
+                })
             } else {
-                fechas_visita.value.from = formattedString
-                fechas_visita.value.to = formattedString
-            }
-        })
-
-        const setNoCumple = () => {
-            categorias.value.forEach(categoria => {
-                categoria.conceptos.forEach(concepto => {
-                    if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
+                localStorage.removeItem('categorias')
+                service.value.fechas = addVisit.data.fechas
+                setService()                    
+                $q.notify({
+                    position:'top',
+                    type:'positive',
+                    message:'Se agregó una nueva visita'
                 })
-            });
-        }
-
-        const setService = (type) => {
-            if(service.value.id != undefined){
-                visitas.value = []
-                let visita = 0
-                const fechas = service.value.fechas.length == 0 ? 1 : service.value.fechas.length
-                
-                for (let index = 0; index < fechas; index++) {
-                    visitas.value.push({valor:visita+1, texto:`Visita ${visita+1}`})
-                    visita++
-                }
-                visitSelected.value = visitas.value[0]
             }
-
-            setLocal(type)
-            setFechas()
         }
 
-        watch(service, (newVal) => {
-            setService('load')
-            setFechas()
-        })
+    })        
+}
 
-        watch(visitSelected, async (fecha) => {
-            if(service.value.id != undefined){
-                categorias.value = []
-                setFechas()
-                const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
-                if(getCategorias.status == 200){
-                    categorias.value = categories.value.categorias
-                }
-            }
-        })
+const setLocal = (type) => {
+    if(type == 'load'){
+        const data = JSON.parse(localStorage.getItem('categorias'))
 
-        const setFechas = (value) => {
-            if(service.value.fechas != undefined){
-                if(service.value.fechas.length == 0){
-                    fechas_visita.value.from = formattedString
-                    fechas_visita.value.to = formattedString
-                    visitSelected.value = visitas.value[0]
-                } else {
-                    const indice = visitas.value.indexOf(visitSelected.value)
-                    // console.log(indice, visitSelected.value)
-                    // console.log('fecha visita', service.value.fechas[indice].fecha_inicio)
-                    fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
-                    fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
-                }
-                
-                
-            }
-            // const valor = value != undefined ? value : visita.value
-            // fechas_visita.value = {}
-            // if(service.value.fechas != undefined && valor == "1"){
-            //     // console.log('trae fechas 1', service.value.fechas)
-            //     fechas_visita.value.from = service.value.fechas[0].fecha_inicio != undefined ? service.value.fechas[0].fecha_inicio : service.value.fechas[0].from
-            //     fechas_visita.value.to = service.value.fechas[0].fecha_fin != undefined ? service.value.fechas[0].fecha_fin : service.value.fechas[0].to
-            // }
+        if(data != null){
+            categorias.value = data.categorias
+            visitSelected.value = visitas.value[0]
+            fechas_visita.value.from = data.fechas.from
+            fechas_visita.value.to = data.fechas.to
+        } 
+        else categorias.value = service.value.categorias
+    }
 
-            // if(service.value.fechas != undefined && valor == "2"){
-            //     // console.log('trae fechas 2', service.value.fechas)
-            //     fechas_visita.value.from = service.value.fechas[1].fecha_inicio != undefined ? service.value.fechas[1].fecha_inicio : service.value.fechas[1].from
-            //     fechas_visita.value.to = service.value.fechas[1].fecha_fin != undefined ? service.value.fechas[1].fecha_fin : service.value.fechas[1].to
-            // } 
+    if(type == 'update'){
+        const indice = visitas.value.indexOf(visitSelected.value)
+
+
+        localStorage.setItem('categorias', JSON.stringify({
+            service_id:service.value.id,
+            categorias:categorias.value,
+            fechas:fechas_visita.value,
+            visita:visitSelected.value.valor,
+            finalizado: service.value.fechas[indice].finalizado
+        }))
+    }
+}
+
+const closeVisit = () => {
+    if(!serviceSelected()) return false
+
+    
+    $q.dialog({
+        title: '¿Deseas finalizar la visita?',
+        message: 'Se guardarán los datos ingresados y no podrán ser modificados',
+        ok: {
+        push: true,
+        label:'Continuar'
+        },
+        cancel: {
+        push: true,
+        color: 'dark',
+        label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
+        
+        const info = JSON.parse(localStorage.getItem('categorias'))
+
+        if(info.finalizado == 1){
+            $q.notify({
+                position:'top',
+                type:'negative',
+                message:'La visita está finalizada, no es posible continuar'
+            })
+            return false
         }
 
-        const toolbar = ref([
-            [
-                {
-                    icon: $q.iconSet.editor.align,
-                    fixedLabel: true,
-                    list: 'only-icons',
-                    options: ['left', 'center', 'right', 'justify']
-                },
-                
-            ],
-            ['removeFormat'],
-            ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
-            ['undo', 'redo'],
-        ])
-        const fonts = ref({
-            arial: 'Arial',
-            arial_black: 'Arial Black',
-            comic_sans: 'Comic Sans MS',
-            courier_new: 'Courier New',
-            impact: 'Impact',
-            lucida_grande: 'Lucida Grande',
-            times_new_roman: 'Times New Roman',
-            verdana: 'Verdana'
-        })    
-                                                    
-
-        const autoSave = async (type) => {
-            if(!serviceSelected()) return false     
-            setNoCumple()
-            setLocal('update')
-            // dialog.value = true
-            // tipo.value = type == 'manual' ? 'Guardando...' : 'Auto guardado'
-        }
-
-        const bloquearVisita = computed(() => {
-            const splitDate = fechas_visita.value.to.split('-')
-            const fecha_final = date.buildDate({year:splitDate[0], month:splitDate[1], date:splitDate[2]})
-            return new Date() < fecha_final
+        const saveData = await saveCaptures({
+            service_id: info.service_id, 
+            categorias:info.categorias, 
+            type:"conceptos",
+            fechas:info.fechas,
+            visita: visitSelected.value.valor,
+            finalizado:1
         })
         
-        const addVisit = () => {
-            if(!serviceSelected()) return false
-            $q.dialog({
-                title: '¿Deseas agregar otra visita?',
-                message: 'Asegúrate de haber cerrado la visita anterior, la información guardada en este equipo se borrará',
-                ok: {
-                push: true,
-                label:'Continuar'
-                },
-                cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-                },
-                persistent: true
-            }).onOk(async data => {
-                
-                // visitas.value.push({valor:visitas.value.length+1, texto:`Visita ${visitas.value.length+1}` })
-                const addVisit = await newVisit({service_id:service.value.id})
-                
-                if(addVisit.status == 200){
-                    if(addVisit.data.msg){
-                        $q.notify({
-                            position:'top',
-                            type:'warning',
-                            message:'No es necesario agregar una visita, todos los puntos cumplen'
-                        })
-                    } else {
-                        localStorage.removeItem('categorias')
-                        service.value.fechas = addVisit.data.fechas
-                        setService()                    
-                        $q.notify({
-                            position:'top',
-                            type:'positive',
-                            message:'Se agregó una nueva visita'
-                        })
-                    }
-                }
-
-            })        
-        }
-        
-        const setLocal = (type) => {
-            if(type == 'load'){
-                const data = JSON.parse(localStorage.getItem('categorias'))
-
-                if(data != null){
-                    categorias.value = data.categorias
-                    visitSelected.value = visitas.value[0]
-                    fechas_visita.value.from = data.fechas.from
-                    fechas_visita.value.to = data.fechas.to
-                } 
-                else categorias.value = service.value.categorias
-            }
-
-            if(type == 'update'){
-                const indice = visitas.value.indexOf(visitSelected.value)
-
-
-                localStorage.setItem('categorias', JSON.stringify({
-                    service_id:service.value.id,
-                    categorias:categorias.value,
-                    fechas:fechas_visita.value,
-                    visita:visitSelected.value.valor,
-                    finalizado: service.value.fechas[indice].finalizado
-                }))
-            }
-        }
-
-        const closeVisit = () => {
-            if(!serviceSelected()) return false
-
-            
-            $q.dialog({
-                title: '¿Deseas finalizar la visita?',
-                message: 'Se guardarán los datos ingresados y no podrán ser modificados',
-                ok: {
-                push: true,
-                label:'Continuar'
-                },
-                cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-                },
-                persistent: true
-            }).onOk(async data => {
-                
-                const info = JSON.parse(localStorage.getItem('categorias'))
-
-                if(info.finalizado == 1){
-                    $q.notify({
-                        position:'top',
-                        type:'negative',
-                        message:'La visita está finalizada, no es posible continuar'
-                    })
-                    return false
-                }
-
-                const saveData = await saveCaptures({
-                    service_id: info.service_id, 
-                    categorias:info.categorias, 
-                    type:"conceptos",
-                    fechas:info.fechas,
-                    visita: visitSelected.value.valor,
-                    finalizado:1
-                })
-                
-                if(saveData.status == 200){
-                    $q.notify({
-                        position:'top',
-                        type:'positive',
-                        message:'Visita finalizada'
-                    })
-                }
-
+        if(saveData.status == 200){
+            $q.notify({
+                position:'top',
+                type:'positive',
+                message:'Visita finalizada'
             })
         }
 
-        const serviceSelected = () => {
-            if(service.value.id == undefined){
-                $q.notify({
-                    position:'top',
-                    type:'negative',
-                    message:'Para continuar selecciona un servicio'
-                })
-                return false
-            }
-            return true
-        }
+    })
+}
 
-        onMounted( async () => {
-            setService('load')
-            setInterval(() => {
-                if(categorias.value.length>0) autoSave()
-            }, 300000);
+const serviceSelected = () => {
+    if(service.value.id == undefined){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para continuar selecciona un servicio'
         })
-
-        return {
-            categorias,
-            loading,
-            dialog,
-            visitas,
-            tipo,
-            toolbar,
-            fonts,
-            fechas_visita,
-            bloquearVisita,
-            visitSelected,
-            addVisit,
-            autoSave,
-            closeVisit
-        }
+        return false
     }
+    return true
+}
+
+onMounted( async () => {
+    setService('load')
+    setInterval(() => {
+        if(categorias.value.length>0) autoSave()
+    }, 300000);
 })
 
 </script>

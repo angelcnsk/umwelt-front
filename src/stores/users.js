@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { api } from 'boot/axios'
 import { auth } from "boot/firebase";
-import {onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, updateProfile } from "firebase/auth"
+import {onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, updateProfile, setPersistence, browserLocalPersistence } from "firebase/auth"
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 export const useUsersStore = defineStore('users', {
@@ -86,9 +86,6 @@ export const useUsersStore = defineStore('users', {
           resolve(response.data)
         })
       })
-    },
-    actionEditUserInfo (payload) {
-      commit('UPDATE_USER_INFO', payload.data)
     },
     resetPassword (params) {
       // const options = {

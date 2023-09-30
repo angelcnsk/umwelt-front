@@ -214,298 +214,269 @@
     </q-page>
 </template>
   
-<script>
+<script setup>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
+  import {computed, onMounted, watch, ref} from 'vue'
   import { useClientes } from 'src/composables/useClientes.js'
   import { useUsers } from 'src/composables/useUsers.js'
   import { useServicios } from 'src/composables/useServicios.js'
-  import { useNotificaciones } from 'src/composables/useNotificaciones.js'
+  import { launchNotify, getNotify } from 'src/composables/firebase/notificaciones'
   import { useQuasar, date } from "quasar";
-  import { useRoute, useRouter } from 'vue-router';
+  import { useRouter } from 'vue-router';
 
-  export default defineComponent({
-    name: 'serviciosPage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
-    setup() {
-        const storeClientes = useClientes();
-        const storeUsers = useUsers();
-        const storeServicios = useServicios();
-        const storeNotificaciones = useNotificaciones();
-        const $q = useQuasar();
-        const router = useRouter();
+const storeClientes = useClientes();
+const storeUsers = useUsers();
+const storeServicios = useServicios();
 
-        const { AppActiveUser } = storeUsers
-        const {getClients, clients, createClient} = storeClientes
-        const { staff, getStaff, getService, generarOT, servicesList, productos, getProductos, getServices, newService } = storeServicios
-        const {launchNotify} = storeNotificaciones
+const $q = useQuasar();
+const router = useRouter();
 
-        const agregar_servicio = ref(false)
+const { AppActiveUser } = storeUsers
+const {getClients, clients, createClient} = storeClientes
+const { staff, getStaff, getService, servicesList, productos, getProductos, getServices, newService } = storeServicios
+const {launchNotify} = storeNotificaciones
+
+const agregar_servicio = ref(false)
+
+const addService = ref(false)
+const clienteSelected = ref(null)
+const clientes = ref([])
+const plantasArr = ref([])
+const plantas = ref([])
+const owners = ref([])
+const timeStamp = Date.now()
+const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
+
+const service = ref({
+    recognition:false,
+    date_recognition:formattedString,
+    date_start:formattedString,
+    date_end:formattedString
+})
+
+const filter = ref('')
+const columns =  [
+{
+    label: 'Id',
+    field: 'id',
+    sortable:false,
+    align:'center'
+},
+// {
+//   label: 'OT',
+//   field: 'ot',
+//   align:'center'
+// },
+{
+    label: 'Estatus',
+    field: 'status',
+    html:   true,
+    align:'center'
+},
+{
+    label: 'Cliente',
+    field: 'cliente',
+    align:'center'
+},
+{
+    label: 'Planta',
+    field: 'alias',
+    align:'center'
+},
+{
+    label: 'Producto',
+    field: 'producto',
+    align:'center'
+},
+{
+    label: 'Solicitante',
+    field: 'requester',
+    html:   true,
+    align:'center'
+},
+{
+    label: 'Responsable',
+    field: 'owner',
+    align:'center'
+},
+{
+    label: 'Fecha creación',
+    field: 'create_date',
+    align:'center'
+}
+]
+
+const notify = (msg, type) => {
+    $q.notify({
+        position:'top',
+        type,
+        message:msg
+    })
+}
+const permisos = computed(async () => {
+    return AppActiveUser.value.permissions
+})
+
+watch(permisos, async (newVal) => {
+    const find = await newVal
+    agregar_servicio.value = find.find((permiso) => permiso === 'agregar_servicio')
+})
+
+watch( () => service,(currValue, prevValue) => {
+    // second param, watcher callback
+    if(currValue.value.client){
+        plantasArr.value = currValue.value.client.plantas
+    }
+    if(!currValue.value.recognition){
+        service.value.date_recognition = null
+    }
+},
+    { deep: true }                       // third param, for deep checking
+);
+
+const validate = () => {
+    if(service.value.producto == undefined || service.value.producto == null){
+        notify(`Para continuar selecciona un producto`, 'negative')
+        return false
+    }
+    if(service.value.client == undefined || service.value.client == null){
+        notify(`Para continuar selecciona un cliente`, 'negative')
+        return false
+    }
+    if(service.value.planta == undefined || service.value.planta == null){
+        notify(`Para continuar selecciona una planta`, 'negative')
+        return false
+    }
+    if(service.value.owner == undefined || service.value.owner == null){
+        notify(`Para continuar selecciona un responsable`, 'negative')
+        return false
+    }
+
+    // if(service.value.recognition && service.value.date_recognition == undefined || service.value.recognition && service.value.date_recognition == null){
+    //     notify(`Falta fecha de reconocimiento`, 'negative')
+    //     return false
+    // }
+
+    // if(service.value.date_start == undefined || service.value.date_start == null){
+    //     notify(`Falta fecha de inicio de servicio`, 'negative')
+    //     return false
+    // }
+
+    // if(service.value.date_end == undefined || service.value.date_end == null){
+    //     notify(`Falta fecha de fin de servicio`, 'negative')
+    //     return false
+    // }
+    return true   
+}
+
+const saveService = async() => {
+    if(validate()){
+        $q.dialog({
+            title: '¿Estás seguro?',
+            message: 'Se iniciará un nuevo servicio',
+            // prompt: {
+            //   model: password,
+            //   isValid: val => val.length > 5,
+            //   type: 'password' // optional
+            // },
+            ok: {
+            push: true,
+            label:'Aceptar'
+            },
+            cancel: {
+            push: true,
+            color: 'dark',
+            label:'Cancelar'
+            },
+            persistent: true
+            }).onOk(async data => {
         
-        const addService = ref(false)
-        const clienteSelected = ref(null)
-        const clientes = ref([])
-        const plantasArr = ref([])
-        const plantas = ref([])
-        const owners = ref([])
-        const timeStamp = Date.now()
-        const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
+            // service.value.recognition_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
+            // service.value.start_date = date.formatDate(service.value.date_start, 'YYYY-MM-DD')
+            // service.value.end_date = date.formatDate(service.value.date_end, 'YYYY-MM-DD')
 
-        const service = ref({
-            recognition:false,
-            date_recognition:formattedString,
-            date_start:formattedString,
-            date_end:formattedString
-        })
-        
-        const filter = ref('')
-        const columns =  [
-        {
-          label: 'Id',
-          field: 'id',
-          sortable:false,
-          align:'center'
-        },
-        // {
-        //   label: 'OT',
-        //   field: 'ot',
-        //   align:'center'
-        // },
-        {
-          label: 'Estatus',
-          field: 'status',
-          html:   true,
-          align:'center'
-        },
-        {
-          label: 'Cliente',
-          field: 'cliente',
-          align:'center'
-        },
-        {
-          label: 'Planta',
-          field: 'alias',
-          align:'center'
-        },
-        {
-          label: 'Producto',
-          field: 'producto',
-          align:'center'
-        },
-        {
-          label: 'Solicitante',
-          field: 'requester',
-          html:   true,
-          align:'center'
-        },
-        {
-          label: 'Responsable',
-          field: 'owner',
-          align:'center'
-        },
-        {
-          label: 'Fecha creación',
-          field: 'create_date',
-          align:'center'
-        }
-      ]
-
-        const notify = (msg, type) => {
-            $q.notify({
-                position:'top',
-                type,
-                message:msg
-            })
-        }
-        const permisos = computed(async () => {
-            return AppActiveUser.value.permissions
-        })
-    
-        watch(permisos, async (newVal) => {
-            const find = await newVal
-            agregar_servicio.value = find.find((permiso) => permiso === 'agregar_servicio')
-        })
-
-        watch( () => service,(currValue, prevValue) => {
-            // second param, watcher callback
-            if(currValue.value.client){
-                plantasArr.value = currValue.value.client.plantas
+            service.value.producto_id = service.value.producto.id
+            service.value.client_id = service.value.client.id
+            service.value.planta_id = service.value.planta.client_id
+            service.value.owner_id = service.value.owner.value
+            const initService = await newService(service.value)
+            if(initService.status == 200){
+                await launchNotify(initService.data.info)
+                notify('Se creó un nuevo servicio','positive')
+                // service.value = { 
+                //     date_start:formattedString,
+                //     date_end:formattedString
+                // }
+                addService.value = false
             }
-            if(!currValue.value.recognition){
-                service.value.date_recognition = null
-            }
-        },
-            { deep: true }                       // third param, for deep checking
-        );
-
-        const validate = () => {
-            if(service.value.producto == undefined || service.value.producto == null){
-                notify(`Para continuar selecciona un producto`, 'negative')
-                return false
-            }
-            if(service.value.client == undefined || service.value.client == null){
-                notify(`Para continuar selecciona un cliente`, 'negative')
-                return false
-            }
-            if(service.value.planta == undefined || service.value.planta == null){
-                notify(`Para continuar selecciona una planta`, 'negative')
-                return false
-            }
-            if(service.value.owner == undefined || service.value.owner == null){
-                notify(`Para continuar selecciona un responsable`, 'negative')
-                return false
-            }
-
-            // if(service.value.recognition && service.value.date_recognition == undefined || service.value.recognition && service.value.date_recognition == null){
-            //     notify(`Falta fecha de reconocimiento`, 'negative')
-            //     return false
-            // }
-
-            // if(service.value.date_start == undefined || service.value.date_start == null){
-            //     notify(`Falta fecha de inicio de servicio`, 'negative')
-            //     return false
-            // }
-
-            // if(service.value.date_end == undefined || service.value.date_end == null){
-            //     notify(`Falta fecha de fin de servicio`, 'negative')
-            //     return false
-            // }
-            return true   
-        }
-
-        const saveService = async() => {
-            if(validate()){
-                $q.dialog({
-                    title: '¿Estás seguro?',
-                    message: 'Se iniciará un nuevo servicio',
-                    // prompt: {
-                    //   model: password,
-                    //   isValid: val => val.length > 5,
-                    //   type: 'password' // optional
-                    // },
-                    ok: {
-                    push: true,
-                    label:'Aceptar'
-                    },
-                    cancel: {
-                    push: true,
-                    color: 'dark',
-                    label:'Cancelar'
-                    },
-                    persistent: true
-                 }).onOk(async data => {
                 
-                    // service.value.recognition_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
-                    // service.value.start_date = date.formatDate(service.value.date_start, 'YYYY-MM-DD')
-                    // service.value.end_date = date.formatDate(service.value.date_end, 'YYYY-MM-DD')
-
-                    service.value.producto_id = service.value.producto.id
-                    service.value.client_id = service.value.client.id
-                    service.value.planta_id = service.value.planta.client_id
-                    service.value.owner_id = service.value.owner.value
-                    const initService = await newService(service.value)
-                    if(initService.status == 200){
-                        await launchNotify(initService.data.info)
-                        notify('Se creó un nuevo servicio','positive')
-                        // service.value = { 
-                        //     date_start:formattedString,
-                        //     date_end:formattedString
-                        // }
-                        addService.value = false
-                    }
-                        
-                    else {
-                        notify('Error al crear un nuevo servicio','negative')
-                    }
-                    await getServices()                
-                }).onCancel(() => {
-                    // console.log('>>>> Cancel')
-                }).onDismiss(() => {
-                    // console.log('I am triggered on both OK and Cancel')
-                })         
+            else {
+                notify('Error al crear un nuevo servicio','negative')
             }
-        }
+            await getServices()                
+        }).onCancel(() => {
+            // console.log('>>>> Cancel')
+        }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+        })         
+    }
+}
 
-        const filterFn = (val, update, abort) => {
-            if (val === '') {
-                update(() => {
-                    clientes.value = clients.value
-                })
-                return
-            }
-
-            update(() => {
-                const needle = val.toLowerCase()
-                clientes.value = clients.value.filter(v => v.legalname.toLowerCase().indexOf(needle) > -1)
-            })
-        }
-
-        const filterStaff = (val, update, abort) => {
-            if (val === '') {
-                update(() => {
-                    owners.value = staff.value
-                })
-                return
-            }
-
-            update(() => {
-                const needle = val.toLowerCase()
-                owners.value = staff.value.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
-            })
-        }
-
-        const filterPlanta = (val, update, abort) => {
-            if (val === '') {
-                update(() => {
-                    plantas.value = plantasArr.value
-                })
-                return
-            }
-
-            update(() => {
-                const needle = val.toLowerCase()
-                plantas.value = plantasArr.value.filter(v => v.alias.toLowerCase().indexOf(needle) > -1)
-            })
-        }
-
-
-        const goTo = (e, value) => {
-            router.push({name:'servicio', params:{id:value.id}})
-        }
-
-        onMounted(async () => {
-            if(AppActiveUser.value.permissions){
-                agregar_servicio.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_servicio')
-            }
-            await getClients()
-            await getProductos()
-            await getServices()
-            await getStaff({owner_service:true})
+const filterFn = (val, update, abort) => {
+    if (val === '') {
+        update(() => {
+            clientes.value = clients.value
         })
-        
-        return {
-            agregar_servicio,
-            servicesList,
-            columns,
-            filter,
-            addService,
-            service,
-            productos,
-            clientes,
-            clienteSelected,
-            plantas,
-            owners,
-            goTo,
-            filterFn,
-            filterPlanta,
-            filterStaff,
-            saveService,
-            getClients
-        }
-    },
-  
-  })
+        return
+    }
+
+    update(() => {
+        const needle = val.toLowerCase()
+        clientes.value = clients.value.filter(v => v.legalname.toLowerCase().indexOf(needle) > -1)
+    })
+}
+
+const filterStaff = (val, update, abort) => {
+    if (val === '') {
+        update(() => {
+            owners.value = staff.value
+        })
+        return
+    }
+
+    update(() => {
+        const needle = val.toLowerCase()
+        owners.value = staff.value.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+    })
+}
+
+const filterPlanta = (val, update, abort) => {
+    if (val === '') {
+        update(() => {
+            plantas.value = plantasArr.value
+        })
+        return
+    }
+
+    update(() => {
+        const needle = val.toLowerCase()
+        plantas.value = plantasArr.value.filter(v => v.alias.toLowerCase().indexOf(needle) > -1)
+    })
+}
+
+
+const goTo = (e, value) => {
+    router.push({name:'servicio', params:{id:value.id}})
+}
+
+onMounted(async () => {
+    if(AppActiveUser.value.permissions){
+        agregar_servicio.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_servicio')
+    }
+    await getClients()
+    await getProductos()
+    await getServices()
+    await getStaff({owner_service:true})
+})
   </script>
   

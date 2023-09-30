@@ -20,22 +20,23 @@
                 <q-card-section>
                 
                   <q-input
+                    :type="typeInput"
                     filled
-                    v-model="user.email"
-                    type="email"
-                    label="E-mail"
+                    v-model="user.password1"
+                    label="Password"
                     lazy-rules
-                    :rules="[
-                      val => !!val || '* Campo obligatorio',
-                      (val, rules) => rules.email(val) || 'Ingresa un e-mail válido',
-                    ]"
-                  />
+                    :rules="[val => !!val || 'Campo requerido']"
+                  >
+                    <template v-slot:append>
+                      <q-btn @click="showPass" round dense flat :icon="iconVisivility" />
+                    </template>
+                  </q-input>
   
                   <q-input
                     :type="typeInput"
                     filled
-                    v-model="user.password"
-                    label="Password"
+                    v-model="user.password2"
+                    label="Confirmar Password"
                     lazy-rules
                     @keyup.enter="onSubmit"
                     :rules="[val => !!val || 'Campo requerido']"
@@ -46,10 +47,16 @@
                   </q-input>
   
                   <div class="row">
-                    <q-btn label="Iniciar sesión" color="primary" @click="onSubmit"/>
+                    <q-btn label="Actualizar contraseña" color="primary" @click="onSubmit"/>
                     <q-spinner-dots v-if="loading" class="q-ml-lg" color="primary" size="lg" />
                   </div>
                 
+                </q-card-section>
+                <q-card-section v-if="msgSuccess">
+                  <div class="text-subtitle1 text-center bg-green-2">
+                    <span>Contraseña modificada correctamente</span> <br>
+                    <router-link style="text-decoration: none;" :to="{ name: 'login'}">Iniciar sesión</router-link>
+                  </div>
                 </q-card-section>
               </q-card>
             </div>
@@ -61,15 +68,15 @@
   
 <script setup>
 import {ref, onMounted} from 'vue'
-import env from 'process';
 
 import { useQuasar} from "quasar";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useUsers } from '../composables/useUsers.js'
-
+import { confirmPassword } from "../composables/firebase/auth";
   
 const $q = useQuasar();
-const $router = useRoute();
+const $route = useRoute();
+const $router = useRouter();
 const $store = useUsers();
 const {login} = $store
 const user = ref({})
@@ -77,6 +84,8 @@ const loading = ref(false)
 const visivility = ref(false)
 const iconVisivility = ref('')
 const typeInput = ref('')
+
+const msgSuccess = ref(false)
 
 const user_details = ref({})
 
@@ -92,38 +101,48 @@ typeInput.value = visivility.value ? 'text' : 'password'
 
 const onSubmit = async () => {
     loading.value = true
-    if(user.value.email == '' || user.value.email == undefined || user.value.password == '' || user.value.password == undefined){
+    
+    if(user.value.password1 == '' || user.value.password1 == undefined || user.value.password2 == '' || user.value.password2 == undefined){
         $q.notify({
             position:'top',
             type: 'negative',
-            message: 'Usuario o contraseña incorrectos'
+            message: 'Ingresa una contraseña válida'
         })
         loading.value = false
         return false
     }
 
-    const req = await login(user.value)
-    // console.log('cuando falla',req)
-    if(req.data.error){
+    if(user.value.password1 !== user.value.password2){
         $q.notify({
             position:'top',
             type: 'negative',
-            message: 'Usuario o contraseña incorrectos'
+            message: 'Contraseñas diferentes'
         })
         loading.value = false
-    } else {
-        // $router.push({name:'index-admin'})
+        return false
+    }
+    user.value.code = $route.query.oobCode
+    user.value.url = location.href
+    
+    const req = await confirmPassword(user.value)
+    // console.log('cuando falla',req)
+    if(req.status == 200){
+        msgSuccess.value = true
         setTimeout(() => {
-        // console.log('después de 2 segundos')
+          loading.value = false
+          $router.push({name:'salir'})
         // window.location.replace('/admin/dashboard')
-        // $router.push({name:'index-admin'})
-        }, 2000);
+        }, 5000);
+        
+    } else {
+      console.log(req)
+      $q.notify({
+          position:'top',
+          type: 'negative',
+          message: req.error
+      })
     }
 };
-
-onMounted(() => {
-    console.log($router)
-})
   
 </script>
   

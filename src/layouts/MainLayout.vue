@@ -115,47 +115,46 @@
 import itemsProfile from 'components/Profile/ItemProfile.vue'
 import { useQuasar } from 'quasar'
 
-import { defineComponent, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUsers } from 'src/composables/useUsers.js'
-import { useNotificaciones } from 'src/composables/useNotificaciones.js'
+import { getNotify, setNotifyView } from 'src/composables/firebase/notificaciones'
 
 const leftDrawerOpen = ref(false)
-    const $q = useQuasar()
-    const $store = useUsers();
-    const $notificaciones = useNotificaciones()
-    const {fetchUser, menus, AppActiveUser} = $store
-    const {notifications, getNotify, setNotifyView} = $notificaciones
+const $q = useQuasar()
+const $store = useUsers();
+const {fetchUser, menus, AppActiveUser} = $store
 
-    const icon = ref('')
-    const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
-    const user = localStorage.getItem('userInfo')
-    
-    $q.dark.set(false)
+const notifications = ref([])
+const icon = ref('')
+const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
+const user = localStorage.getItem('userInfo')
 
-    // console.log($q.dark)
-    if(darkMode.value != null){
-      icon.value = darkMode.value ? 'sunny' : 'bedtime'
-      $q.dark.set(darkMode.value)
-    }
-    // console.log($q.dark)
-    // calling here; equivalent to when component is created
-    const setDarkMode = () => {
-      darkMode.value = !darkMode.value
-      icon.value = darkMode.value ? 'sunny' : 'bedtime'
-      localStorage.setItem('darkMode', darkMode.value)
-      $q.dark.set(darkMode.value)
-    }
+$q.dark.set(false)
 
-    const toggleLeftDrawer = () => {
-      leftDrawerOpen.value = !leftDrawerOpen.value
-    }
+// console.log($q.dark)
+if(darkMode.value != null){
+  icon.value = darkMode.value ? 'sunny' : 'bedtime'
+  $q.dark.set(darkMode.value)
+}
+// console.log($q.dark)
+// calling here; equivalent to when component is created
+const setDarkMode = () => {
+  darkMode.value = !darkMode.value
+  icon.value = darkMode.value ? 'sunny' : 'bedtime'
+  localStorage.setItem('darkMode', darkMode.value)
+  $q.dark.set(darkMode.value)
+}
 
-    const viewNotify = async (item) => {
-      setNotifyView(item)
-    }
+const toggleLeftDrawer = () => {
+  leftDrawerOpen.value = !leftDrawerOpen.value
+}
 
-    onMounted(async() => {
-      await fetchUser(user.id)
-      await getNotify()
-    })
+const viewNotify = async (item) => {
+  setNotifyView(item)
+}
+
+onMounted(async() => {
+  await fetchUser(user.id)
+  notifications.value = await getNotify()
+})
 </script>

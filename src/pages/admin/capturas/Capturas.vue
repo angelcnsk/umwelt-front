@@ -87,8 +87,8 @@
 </q-page>
 </template>
 
-<script>
-import {defineComponent,getCurrentInstance, computed, onMounted, watch, ref, onBeforeMount} from 'vue'
+<script setup>
+import {getCurrentInstance, computed, onMounted, watch, ref, onBeforeMount} from 'vue'
 import { useQuasar, date } from "quasar";
 
 
@@ -101,16 +101,7 @@ import archivos from 'src/components/admin/capturas/ArchivosMasivos.vue'
 import gestion from 'src/components/admin/capturas/GestionServicio.vue'
 // import { utils, writeFileXLSX } from 'xlsx';
 
-export default defineComponent({
-name: 'Capturas',
-components:{
-    documentacion,
-    guiaConceptos,
-    archivos,
-    gestion
-},
-setup () {
-    const storeUsers = useUsers();
+const storeUsers = useUsers();
     const storeCapturas = useCapturas();
     const $q = useQuasar();
 
@@ -267,18 +258,6 @@ setup () {
         } else {
             // store.commit('app/SET_OFFLINE_MOD', true)
         }
-    })
-
-    return {
-        serviceSelected,
-        servicesList,
-        currentService,
-        guiaconceptos,
-        secciones,
-        tab,
-        
-    }
-}
-})    
+    }) 
 
 </script>

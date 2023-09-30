@@ -29,7 +29,7 @@
                             <q-toggle v-model="statusUser" val="calories" label="Inactivo / Activo" />
                            </div>
                            <div class="q-pl-md q-mt-md">
-                            <q-btn size="md" color="primary" label="Reset password" />
+                            <q-btn size="md" color="primary" @click="resetPass" label="Reset password" />
                            </div>
                     </div>
                     
@@ -39,7 +39,7 @@
                         <p class="row text-h4">Roles</p>
                     </div>
                     <q-separator spaced />
-                    <q-toggle v-model="selectedRoles" v-for="role in roles" :val="role.id" :label="role.role" />
+                    <q-toggle v-model="selectedRoles" v-for="role in roles" :key="role.id" :val="role.id" :label="role.role" />
                 </div>
                 <div class="row q-mt-md justify-end">
                     <q-btn size="md" color="primary" label="Guardar"  @click="confirmRoles"/>
@@ -49,110 +49,107 @@
     </q-page>
 </template>
 
-<script>
+<script setup>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
-  import { useUsers } from 'src/composables/useUsers.js'
-  import { usePermisos } from 'src/composables/usePermisos.js'
-  import { useQuasar } from "quasar";
-  import { useRoute, useRouter } from 'vue-router';
+import { computed, onMounted, watch, ref} from 'vue'
+import { useUsers } from 'src/composables/useUsers.js'
+import { usePermisos } from 'src/composables/usePermisos.js'
+import { useQuasar } from "quasar";
+import { useRoute, useRouter } from 'vue-router';
+import { recovery } from '../../../composables/firebase/auth'
 
-  export default defineComponent({
-    name: 'editarUsuarioPage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
-    setup() {
-        const $q = useQuasar()
-        const route = useRoute()
-        const {fetchUser, setStatusUser, user_edit, AppActiveUser} = useUsers()
-        const { getRoles, roles, addRolesToUser } = usePermisos()
-        const userData = computed(() => user_edit.value)
-        const statusUser = ref(true)
-        const selectedRoles = ref([])
+const $q = useQuasar()
+const route = useRoute()
+const {fetchUser, setStatusUser, user_edit, AppActiveUser} = useUsers()
+const { getRoles, roles, addRolesToUser } = usePermisos()
+const userData = computed(() => user_edit.value)
+const statusUser = ref(true)
+const selectedRoles = ref([])
 
-        const assigmentRolesToUser = async () => {
-            selectedRoles.value
-            const addRole = await addRolesToUser({user_id: route.params.id, roles_ids:selectedRoles.value})
-            if(addRole.status == 200){
-                $q.notify({
-                    position:'top',
-                    type: 'positive',
-                    message: 'Se actualizaron los roles del usuario'
-                })
-
-                if (AppActiveUser.value.id === route.params.id) {
-                 //si el usuario que edita es el mismo que se editó, se actualiza la página para que tome los nuevos roles
-                    window.location.replace(`${location.href}`)
-                }
-
-            } else {
-                const msg = addRole.response.data.message
-                $q.notify({
-                    position:'top',
-                    type: 'negative',
-                    message: msg
-                })
-            }
-        }
-
-        const confirmRoles = () => {
-            $q.dialog({
-                title: '¿Seguro que quieres continuar?',
-                message: 'Se actualizarán los roles seleccionados',
-                cancel: {
-                    label:'cancelar',
-                    color:'dark'
-                },
-                persistent: true,
-                ok:{
-                    label:'Aceptar',
-                    color:'primary'
-                }
-                
-            }).onOk(() => {
-                assigmentRolesToUser()
-            }).onOk(() => {
-                // console.log('>>>> second OK catcher')
-            }).onCancel(() => {
-                // console.log('>>>> Cancel')
-            }).onDismiss(() => {
-                // console.log('I am triggered on both OK and Cancel')
-            })
-        }
-
-        watch(statusUser, async (value) => {
-            const msgStatus = value === false ? 'inactivó' : 'activó'
-            const data = {id:userData.value.id, status:value}
-            const setStatus = await setStatusUser(data)
-
-            $q.notify({
-                position:'top',
-                type: 'positive',
-                message: `Se ${msgStatus} al usuario`
-            })
-
+const assigmentRolesToUser = async () => {
+    selectedRoles.value
+    const addRole = await addRolesToUser({user_id: route.params.id, roles_ids:selectedRoles.value})
+    if(addRole.status == 200){
+        $q.notify({
+            position:'top',
+            type: 'positive',
+            message: 'Se actualizaron los roles del usuario'
         })
 
-        onMounted(async () => {
-            await fetchUser(route.params.id)
-            await getRoles()
-            statusUser.value = userData.value.active == 1
-            userData.value.roles.forEach((item) => {
-                selectedRoles.value.push(item.id)
-            })
-        })
-
-        return {
-            userData,
-            statusUser,
-            roles,
-            selectedRoles,
-            confirmRoles
+        if (AppActiveUser.value.id === route.params.id) {
+            //si el usuario que edita es el mismo que se editó, se actualiza la página para que tome los nuevos roles
+            window.location.replace(`${location.href}`)
         }
+
+    } else {
+        const msg = addRole.response.data.message
+        $q.notify({
+            position:'top',
+            type: 'negative',
+            message: msg
+        })
     }
-  
+}
+
+const confirmRoles = () => {
+    $q.dialog({
+        title: '¿Seguro que quieres continuar?',
+        message: 'Se actualizarán los roles seleccionados',
+        cancel: {
+            label:'cancelar',
+            color:'dark'
+        },
+        persistent: true,
+        ok:{
+            label:'Aceptar',
+            color:'primary'
+        }
+        
+    }).onOk(() => {
+        assigmentRolesToUser()
+    }).onOk(() => {
+        // console.log('>>>> second OK catcher')
+    }).onCancel(() => {
+        // console.log('>>>> Cancel')
+    }).onDismiss(() => {
+        // console.log('I am triggered on both OK and Cancel')
+    })
+}
+
+const resetPass = () => {
+    const reset = recovery({email: userData.value.email, domain:`${origin}?email=${userData.value.email}`})
+
+    if(reset){
+        $q.notify({
+            position:'top',
+            type: 'positive',
+            message: `Se envió correo de recuperación`
+        })
+    }
+}
+
+watch(statusUser, async (value) => {
+    const msgStatus = value === false ? 'inactivó' : 'activó'
+    const data = {id:userData.value.id, status:value}
+    const setStatus = await setStatusUser(data)
+
+    $q.notify({
+        position:'top',
+        type: 'positive',
+        message: `Se ${msgStatus} al usuario`
+    })
+
 })
+
+onMounted(async () => {
+    await fetchUser(route.params.id)
+    await getRoles()
+    statusUser.value = userData.value.active == 1
+    userData.value.roles.forEach((item) => {
+        selectedRoles.value.push(item.id)
+    })
+}) 
+
 </script>
 
 <style>

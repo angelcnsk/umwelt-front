@@ -112,7 +112,7 @@
 
 
 <script setup>
-import {ref, computed, watch, onMounted, defineProps} from 'vue';
+import {ref, computed, watch, onMounted} from 'vue';
 import { useQuasar } from "quasar";
 import { useServicios } from 'src/composables/useServicios.js'
 import { useUsers } from 'src/composables/useUsers.js'
@@ -170,7 +170,7 @@ const getDocument = (type) => {
             req = 4;
             break;
     }
-    console.log(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`)
+    // console.log(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`)
     window.open(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`,'_blank')
 }
 
