@@ -28,73 +28,45 @@
         </q-dialog>
 </template>
 
-<script>
-import {defineComponent, ref, computed, watch, onMounted, toRef, defineEmits} from 'vue';
+<script setup>
+import {ref, onMounted, toRef } from 'vue';
 import { useQuasar, date } from "quasar";
-import { useUsers } from 'src/composables/useUsers.js'
-import { useCapturas } from 'src/composables/useCapturas.js'
+import { loadFile } from 'src/composables/firebase/storage'
 
-export default defineComponent({
-    name: "documentacion",
-    props:['service'],
-    // emits: ['savePoints','async'],
-    setup(props, ctx) {
-        const storeCapturas = useCapturas();
-        const { getServiceList, servicesList,
-            currentService, saveCaptures, saveSectionFile
-        } = storeCapturas
-
-        const service = toRef(props,'service')
-        
-        const loading = ref(false)
-        const inputFile = ref()
-        const dialog = ref(false)
-
-        const autoSave = async () => {            
-            dialog.value = true
-            
-            const saveData = await saveCaptures({service_id: service.value.id, secciones:service.value.secciones, type:'documentos'})
-            if(saveData.status == 200){
-                setTimeout(() => {
-                    dialog.value = false
-                }, 2000);
-            }
-        }
-
-        const upLoadFile = async (file) => {
-            // console.log(inputFile.value)
-            const guardar = await saveSectionFile({
-                files:file[0],
-                service_id: currentService.value.id,
-            })
-            inputFile.value = ref()
-            console.log(guardar)
-            notify('Archivo cargado con éxito','positive')
-            if(guardar.status == 200){
-                console.log('se cargó bien')
-                notify('Archivo cargado con éxito','positive')
-                // await getSectionFile({service_id:props.servicio_id, type:'get'})
-            } else {
-                notify('Error al cargar archivo','negative')   
-            }
-        }
-
-        
-
-        onMounted( async () => {  
-            console.log(service)
-            // setInterval(() => {
-            //     if(secciones.value.length>0)autoSave()
-            // }, 300000);
-        })
-
-        return {
-            loading,
-            inputFile,
-            dialog,
-            upLoadFile  
-        }
-    }
+const props = defineProps({
+    service:Object
 })
+const service = toRef(props,'service')
+const $q = useQuasar();
+const loading = ref(false)
+const inputFile = ref()
+const dialog = ref(false)
+
+const notify = (msg, type) => {
+    $q.notify({
+        position:'top',
+        type,
+        message:msg
+    })
+}
+
+const upLoadFile = async (file) => {
+    // let input = document.getElementById("fileInput")
+    loading.value = true    
+    const guardar = await loadFile({
+        files:file[0],
+        service_id: service.value.id,
+    })
+    
+    
+    if(guardar.status != undefined){
+        inputFile.value.removeQueuedFiles()
+        notify('Archivo cargado con éxito','positive')
+        loading.value = false
+        // await getSectionFile({service_id:props.servicio_id, type:'get'})
+    } else {
+        notify('Error al cargar archivo','negative')   
+    }
+}
 
 </script>
