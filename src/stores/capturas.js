@@ -20,9 +20,9 @@ export const useCapturasStore = defineStore('capturas', {
               api.get(url, options).then((response) => {
                 if (typeof payload === 'undefined') {
                   this.servicesList = response.data.service_list
-                  // localStorage.setItem('serviceList', JSON.stringify(response.data.service_list))
-                  // localStorage.setItem('deviceList', JSON.stringify(response.data.device))
+                  localStorage.setItem('serviceList', JSON.stringify(response.data.service_list))
                 } else {
+                  localStorage.setItem('serviceData', JSON.stringify(response.data.service))
                   this.currentService = response.data.service
                 }
                 

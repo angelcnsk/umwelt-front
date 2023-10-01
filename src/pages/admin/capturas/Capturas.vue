@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import {getCurrentInstance, computed, onMounted, watch, ref, onBeforeMount} from 'vue'
+import {getCurrentInstance, computed, onMounted, watch, ref} from 'vue'
 import { useQuasar, date } from "quasar";
 
 
@@ -102,86 +102,83 @@ import gestion from 'src/components/admin/capturas/GestionServicio.vue'
 // import { utils, writeFileXLSX } from 'xlsx';
 
 const storeUsers = useUsers();
-    const storeCapturas = useCapturas();
-    const $q = useQuasar();
+const storeCapturas = useCapturas();
+const $q = useQuasar();
 
-    const { AppActiveUser } = storeUsers
-    const { getServiceList, servicesList,
-        currentService, saveSectionFile
-    } = storeCapturas
+const { getServiceList, servicesList, currentService } = storeCapturas
 
-    const notify = (msg, type) => {
-        $q.notify({
-            position:'top',
-            type,
-            message:msg
-        })
-    }
-    
-    const servicio = computed(() => {
-        return serviceItem.value
+const notify = (msg, type) => {
+    $q.notify({
+        position:'top',
+        type,
+        message:msg
     })
-    
-    const serviceSelected = ref(null)
-    
-    // const offline = computed(() => store.state.app.offline)
-    
-    const dataOffline = ref([])
-    const disableSync = ref(false)
-    const secciones = ref([])
-    const guiaconceptos = ref([])
-    
-    const tab = ref('documentacion')
+}
 
-    const inst = getCurrentInstance()
+const servicio = computed(() => {
+    return serviceItem.value
+})
 
-    const formDate =  (date) => {
-        const year = date.getFullYear().toString()
-        const month = (date.getMonth() + 101).toString().substring(1)
-        const day = (date.getDate() + 100).toString().substring(1)
-        return `${year  }-${  month  }-${  day}`
-    }
+const serviceSelected = ref(null)
 
-    const cleanData = () => {
+// const offline = computed(() => store.state.app.offline)
+
+const dataOffline = ref([])
+const disableSync = ref(false)
+const secciones = ref([])
+const guiaconceptos = ref([])
+
+const tab = ref('documentacion')
+
+const inst = getCurrentInstance()
+
+const formDate =  (date) => {
+    const year = date.getFullYear().toString()
+    const month = (date.getMonth() + 101).toString().substring(1)
+    const day = (date.getDate() + 100).toString().substring(1)
+    return `${year  }-${  month  }-${  day}`
+}
+
+const cleanData = () => {
+    
+    $q.dialog({
+        title: '¿Estás seguro?',
+        message: 'Esta acción borrará toda la información guardada en tu dispositivo',
+        ok: {
+            push: true,
+            label:'Si, borrar',
+            color:'red-4'
+        },
+        cancel: {
+            push: true,
+            color: 'dark',
+            label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
         
-        $q.dialog({
-            title: '¿Estás seguro?',
-            message: 'Esta acción borrará toda la información guardada en tu dispositivo',
-            ok: {
-                push: true,
-                label:'Si, borrar',
-                color:'red-4'
-            },
-            cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-            },
-            persistent: true
-        }).onOk(async data => {
-            
-            const servicios = JSON.parse(localStorage.getItem(`serviceList`))
-            const areas = JSON.parse(localStorage.getItem(`areas_capturadas`))
-            
-            if(servicios != null){
-                servicios.forEach((item) => {
-                    localStorage.removeItem(`service_data${item.id}`)
-                })
-            }
-            if(areas != null){
-                areas.forEach((item) => {
-                    localStorage.removeItem(`capturePointsArea_${item}`)
-                })
-            }
-            localStorage.removeItem(`luxometro`)
-            localStorage.removeItem(`serviceList`)
-            localStorage.removeItem(`deviceList`)
-            localStorage.removeItem(`areas_capturadas`)
-            
-            notify('Se borró la información guardada sin conexión', 'positive')
-        })
-            
-    }
+        const servicios = JSON.parse(localStorage.getItem(`serviceList`))
+        const areas = JSON.parse(localStorage.getItem(`areas_capturadas`))
+        
+        if(servicios != null){
+            servicios.forEach((item) => {
+                localStorage.removeItem(`service_data${item.id}`)
+            })
+        }
+        if(areas != null){
+            areas.forEach((item) => {
+                localStorage.removeItem(`capturePointsArea_${item}`)
+            })
+        }
+        localStorage.removeItem(`luxometro`)
+        localStorage.removeItem(`serviceList`)
+        localStorage.removeItem(`deviceList`)
+        localStorage.removeItem(`areas_capturadas`)
+        
+        notify('Se borró la información guardada sin conexión', 'positive')
+    })
+        
+}
 
     // const exportCapture = () => {
     //     const listaStores = Object.keys(localStorage)
@@ -215,49 +212,49 @@ const storeUsers = useUsers();
     //     } else notify('No hay información para exportar', 'negative')
     // }
 
-    watch(serviceSelected, async (item) => {
-        console.log(item)
-        
-        if (serviceSelected.value !== null) {
-            await getServiceList(serviceSelected.value.id)
-            setDataService()
-            // setDataOffline(departments.value, 'departments')
-        }
-        // }
-    })
+watch(serviceSelected, async (item) => {
+    console.log(item)
+    
+    if (serviceSelected.value !== null) {
+        await getServiceList(serviceSelected.value.id)
+        setDataService()
+        // setDataOffline(departments.value, 'departments')
+    }
+    // }
+})
 
-    const setDataService = () => {
-        secciones.value = currentService.value.secciones
-        if(currentService.value.docs_guardados.length > 0){
-            currentService.value.docs_guardados.forEach((docSave)=>{
-                currentService.value.secciones.forEach((element)=>{
-                    element.documents.forEach((doc)=>{
-                        if(doc.id === docSave.doc_id){
-                            doc.filled_i = docSave.value
-                        }
-                    })
+const setDataService = () => {
+    secciones.value = currentService.value.secciones
+    if(currentService.value.docs_guardados.length > 0){
+        currentService.value.docs_guardados.forEach((docSave)=>{
+            currentService.value.secciones.forEach((element)=>{
+                element.documents.forEach((doc)=>{
+                    if(doc.id === docSave.doc_id){
+                        doc.filled_i = docSave.value
+                    }
                 })
             })
-        }
-
-        
-        guiaconceptos.value = currentService.value.categorias
-        
+        })
     }
 
-    const guardarLocal = () => {
-        if(displayPoints.value != undefined){
-            displayPoints.value.localDot()
-        }
-    }
     
+    guiaconceptos.value = currentService.value.categorias
+    
+}
 
-    onMounted( async () => {  
-        if (window.navigator.onLine) {
-            await getServiceList()
-        } else {
-            // store.commit('app/SET_OFFLINE_MOD', true)
-        }
-    }) 
+const guardarLocal = () => {
+    if(displayPoints.value != undefined){
+        displayPoints.value.localDot()
+    }
+}
+
+
+onMounted( async () => {  
+    if (window.navigator.onLine) {
+        await getServiceList()
+    } else {
+        servicesList.value = JSON.parse(localStorage.getItem('serviceList'))
+    }
+}) 
 
 </script>
