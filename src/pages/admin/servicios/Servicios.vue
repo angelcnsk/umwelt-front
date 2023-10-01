@@ -234,7 +234,7 @@ const router = useRouter();
 const { AppActiveUser } = storeUsers
 const {getClients, clients, createClient} = storeClientes
 const { staff, getStaff, getService, servicesList, productos, getProductos, getServices, newService } = storeServicios
-const {launchNotify} = storeNotificaciones
+
 
 const agregar_servicio = ref(false)
 

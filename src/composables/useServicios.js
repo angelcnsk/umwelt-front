@@ -4,27 +4,19 @@ import { useServiciosStore } from '../stores/servicios'
 export const useServicios = () => {
     const serviciosStore = useServiciosStore()
     const { 
-        nuevoProducto, getProductos, getTableA1, newService, getServices, getService, generarNumDictamen, closeServiceStatus, saveDptoDB, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getRecognitions, saveRecognition, saveCaratulaPayload, getDepartments, saveAreaPayload, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, managePoints,getDevices
+        nuevoProducto, getProductos, newService, getServices, getService, generarNumDictamen, closeServiceStatus, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, 
     } = serviciosStore
     const { productos,
         nuevoServicio,
         servicesList,
         serviceItem,
         staff,
-        recognitions,
-        recognitionItem,
-        departmentsList,
-        tableA1,
         signatoryList,
-        areas,
-        editArea,
         addStaff,
         sin_asignar,
         asignados,
         archivos,
         secciones,
-        dispositivos,
-        usuariosDevice
     } = storeToRefs(serviciosStore)
     
 
@@ -34,20 +26,12 @@ export const useServicios = () => {
         servicesList,
         serviceItem,
         staff,
-        recognitions,
-        recognitionItem,
-        departmentsList,
-        tableA1,
         signatoryList,
-        areas,
-        editArea,
         addStaff,
         sin_asignar,
         asignados,
         secciones,
         archivos,
-        dispositivos,
-        usuariosDevice,
-        nuevoProducto, getProductos, getTableA1, newService, getServices, getService, generarNumDictamen, closeServiceStatus, saveDptoDB, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getRecognitions, saveRecognition, saveCaratulaPayload, getDepartments, saveAreaPayload, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, managePoints,getDevices
+        nuevoProducto, getProductos, newService, getServices, getService, generarNumDictamen, closeServiceStatus, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, 
     }
 }

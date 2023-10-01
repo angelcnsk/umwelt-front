@@ -9,20 +9,12 @@ export const useServiciosStore = defineStore('servicios', {
             servicesList:[],
             serviceItem:{},
             staff:[],
-            recognitions:[],
-            recognitionItem: {},
-            departmentsList:[],
-            tableA1:[],
             signatoryList:[],
-            areas:[],
-            editArea:true,
             addStaff:true,
             sin_asignar:[],
             asignados:[],
             archivos:[],
             secciones:[],
-            dispositivos:[],
-            usuariosDevice:[]
         }
     },
     actions:{
@@ -46,20 +38,6 @@ export const useServiciosStore = defineStore('servicios', {
             return new Promise((resolve, reject) => {
               api.get(url, options).then((response) => {
                 this.productos = response.data
-                resolve()
-              }).catch((error) => { reject(error) })
-            })
-        },
-        getTableA1 (payload) {
-            const url = 'spa/getTableA1'
-            const options = {
-              params:{id:payload}
-            }
-            return new Promise((resolve, reject) => {
-              api.get(url, options).then((response) => {
-                if (typeof payload === 'undefined') {
-                  this.tableA1 = response.data
-                }
                 resolve()
               }).catch((error) => { reject(error) })
             })
@@ -116,20 +94,6 @@ export const useServiciosStore = defineStore('servicios', {
             })
         },
         closeServiceStatus (payload) {
-            const url = 'spa/editService'
-            const options = {
-            //   params:payload
-            }
-        
-            return new Promise((resolve, reject) => {
-              api.post(url, payload, options).then((response) => {
-                resolve(response)
-              }).catch((error) => { reject(error) })
-            })
-        },
-        async saveDptoDB (payload) {
-            // const resDB = await db.collection('departamentos').add(payload)
-            // console.log(resDB)
             const url = 'spa/editService'
             const options = {
             //   params:payload
@@ -216,18 +180,18 @@ export const useServiciosStore = defineStore('servicios', {
         async saveSectionFile (payload) {
             console.log(payload)
             try {
-              const url = 'spa/saveFiles'
+              const url = 'spa/saveFile'
               
-              const formData = new FormData()
-              formData.append('service_id', payload.service_id)
-              formData.append('archivos', payload.files)
+              // const formData = new FormData()
+              // formData.append('service_id', payload.service_id)
+              // formData.append('archivos', payload.files)
               
               const options = {
                 // params:{service_id:payload.service_id, section:payload.section}
               }
             
               return new Promise((resolve, reject) => {
-                api.post(url, formData, options).then((response) => {
+                api.post(url, payload, options).then((response) => {
                     resolve(response)
                 }).catch((error) => { reject(error) })
               })
@@ -248,94 +212,6 @@ export const useServiciosStore = defineStore('servicios', {
                 this.archivos = response.data.archivos
                 this.secciones = response.data.secciones
                 resolve()
-              }).catch((error) => { reject(error) })
-            })
-        },
-        getRecognitions (id) {
-            const url = 'spa/getReconocimientos'
-            const options = {
-              params:{recognition_id:id}
-            }
-        
-            return new Promise((resolve, reject) => {
-              api.get(url, options).then((response) => {
-                if (id !== undefined) {
-                  commit('SET_RECOGNITION_DATA', response.data)
-                } else {
-                  commit('SET_RECOGNITIONS', response.data)
-                }
-        
-                resolve(response)
-              }).catch((error) => { reject(error) })
-            })
-        },
-        saveRecognition (payload) {
-            const url = 'spa/saveReconocimiento'
-            const options = {
-            //   params:payload
-            }
-        
-            return new Promise((resolve, reject) => {
-              api.post(url, payload, options).then((response) => {
-                resolve(response)
-              }).catch((error) => { reject(error) })
-            })
-        },
-        saveCaratulaPayload (payload) {
-            const url = 'spa/editService'
-            const options = {
-            //   params:payload
-            }
-        
-            return new Promise((resolve, reject) => {
-              api.post(url, payload, options).then((response) => {
-                resolve(response)
-              }).catch((error) => { reject(error) })
-            })
-        },
-        getDepartments (payload) {
-            const url = 'spa/getDepartments'
-            const options = {
-              params:payload
-            }
-            return new Promise((resolve, reject) => {
-              api.get(url, options).then((response) => {
-                this.asignados = []
-                this.departmentsList = response.data.dptos
-                this.usuariosDevice = response.data.dispositivo_usuarios
-                if(response.data.areas){
-                  response.data.areas.map((area) => {
-                    
-                    if(area.payload != null){
-                      area.payload = JSON.parse(area.payload)
-                      area.payload.areas_iluminadas.map((iluminada) => {
-                        iluminada.cambiarNombre = false
-                      })
-                    }
-                    if(area.puntos.length > 0){
-                      area.puntos.forEach(punto => {
-                        if(punto.user_id != null)
-                          this.asignados.push(punto)
-                      })
-                    }
-                    
-                  })
-                  this.areas = response.data.areas
-                }
-                resolve()
-              }).catch((error) => { reject(error) })
-            })
-        },
-        async saveAreaPayload (payload) {
-            const url = 'spa/createArea'
-            
-            const options = {
-            //   params:payload
-            }
-        
-            return new Promise((resolve, reject) => {
-              api.post(url, payload, options).then((response) => {
-                resolve(response)
               }).catch((error) => { reject(error) })
             })
         },
@@ -395,41 +271,9 @@ export const useServiciosStore = defineStore('servicios', {
         
             return new Promise((resolve, reject) => {
               api.post(url, payload, options).then((response) => {
-                resolve(response.data)
-              }).catch((error) => { reject(error) })
-            })
-        },
-        managePoints(payload){
-            const url = 'spa/managePoints'
-            const options = {
-              params:payload
-            }
-        
-            return new Promise((resolve, reject) => {
-              api.post(url, payload, options).then((response) => {
-                if(response.data.action == 'get'){
-                  this.sin_asignar = response.data.puntos.filter((item) => {
-                    if(item.user_id == null) return item
-                  })
-                  // this.asignados = response.data.puntos.filter((item) => {
-                  //   if(item.user_id !== null) return item
-                  // })
-                }
                 resolve(response)
               }).catch((error) => { reject(error) })
             })
         },
-        getDevices(payload){
-          const url = 'spa/getDevices'
-          const options = {
-            params:payload
-          }  
-          return new Promise((resolve, reject) => {
-            api.get(url, options).then((response) => {
-              this.dispositivos = response.data
-              resolve()
-            }).catch((error) => { reject(error) })
-          })
-        }
     }
 })

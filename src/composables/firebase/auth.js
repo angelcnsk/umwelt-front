@@ -1,6 +1,6 @@
 import {auth} from 'boot/firebase'
-import { getAuth, confirmPasswordReset, parseActionCodeURL, sendPasswordResetEmail } from "firebase/auth";
-import {api} from 'boot/axios'
+import { confirmPasswordReset, parseActionCodeURL, sendPasswordResetEmail } from "firebase/auth";
+
 import { useUsers } from "../useUsers";
 
 const useStore = useUsers()
