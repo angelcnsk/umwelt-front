@@ -28,6 +28,16 @@ registerRoute(
 );
 
 registerRoute(
+  new RegExp('https://identitytoolkit.googleapis.com/'), 
+  new NetworkFirst({
+      cacheName: 'google-api',
+      plugins:[
+          new CacheableResponse({ statuses:[200]})
+      ]
+  })
+);
+
+registerRoute(
   new RegExp(".[js || css || json]$"), 
   new StaleWhileRevalidate({
       cacheName: 'statics',
@@ -57,10 +67,6 @@ registerRoute(
 //   },
 //   // Otros recursos a precachear
 // ]);
-
-self.addEventListener('fetch', event => {
-  console.log(event.request)
-})
 
 // Use with precache injection
 precacheAndRoute(self.__WB_MANIFEST)

@@ -4,6 +4,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ref } from "vue";
 
 
+export const mensajes = ref([])
+
 export async function launchNotify(req) {
     addDoc(collection(db, 'notificaciones'), {
         'firebase_id': req.firebase_id,
@@ -19,7 +21,6 @@ export async function launchNotify(req) {
 
 export async function getNotify () {
    return new Promise((resolve) => {
-        const mensajes = ref([])
         onAuthStateChanged(auth, (user) => {
             if(user){
                 const q = query(collection(db, 'notificaciones'), 

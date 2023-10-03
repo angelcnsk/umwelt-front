@@ -24,9 +24,9 @@
   <script setup>
   //seguir el mismo ejemplo para crear todo como componente
   import {onMounted, ref} from 'vue'
-  // import { getNotify } from 'src/composables/firebase/notificaciones'
+  import { mensajes } from 'src/composables/firebase/notificaciones'
 
-  const notifications = ref([])
+  const notifications = ref(mensajes)
   // const CardBasic = defineAsyncComponent(() => import('components/cards/CardBasic.vue'))
   onMounted(async () => {
     // notifications.value = await getNotify()

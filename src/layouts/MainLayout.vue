@@ -127,7 +127,7 @@ const {fetchUser, menus, AppActiveUser} = $store
 const notifications = ref([])
 const icon = ref('')
 const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
-const user = localStorage.getItem('userInfo')
+const user = JSON.parse(localStorage.getItem('userInfo'))
 
 $q.dark.set(false)
 
@@ -156,6 +156,7 @@ const viewNotify = async (item) => {
 const offline = ref(false)
 
 onMounted(async() => {
+  notifications.value = await getNotify()
   
   window.addEventListener('offline',() => {
     offline.value = true
@@ -164,14 +165,17 @@ onMounted(async() => {
   window.addEventListener('online', async () => {
     offline.value = false
   })
-
-  if(window.navigator.onLine && offline){
-      if (user !== null) {
-        await fetchUser(user.id)
-        // notifications.value = await getNotify()
-      } else {
-        console.log('debe configurar desde localstorage')
-      }
+  
+  if(window.navigator.onLine && offline){  
+    AppActiveUser.value = user
+    menus.value = AppActiveUser.value.menus
+    
+      // if (user !== null) {
+      //   await fetchUser(user.id)
+      
+      // } else {
+      //   console.log('debe configurar desde localstorage')
+      // }
   }
   
 })

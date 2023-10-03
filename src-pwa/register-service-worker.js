@@ -3,7 +3,7 @@ import { register } from 'register-service-worker'
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
 // ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
-console.log(process.env.SERVICE_WORKER_FILE)
+
 register(process.env.SERVICE_WORKER_FILE, {
   // The registrationOptions object will be passed as the second argument
   // to ServiceWorkerContainer.register()
@@ -12,7 +12,7 @@ register(process.env.SERVICE_WORKER_FILE, {
   // registrationOptions: { scope: './' },
 
   ready (/* registration */) {
-    console.log('Service worker is active.')
+    // console.log('Service worker is active.')
   },
 
   registered (/* registration */) {
