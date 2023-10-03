@@ -28,7 +28,8 @@ module.exports = configure(function (/* ctx */) {
       'pinia',
       'axios',
       'signature',
-      'firebase'
+      'firebase',
+      'bootSw'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -176,16 +177,16 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'generateSW', // or 'injectManifest'
-      injectPwaMetaTags: true,
-      swFilename: 'sw.js',
-      manifestFilename: 'manifest.json',
-      useCredentialsForManifestTag: false,
-      // useFilenameHashes: true,
-      // extendGenerateSWOptions (cfg) {}
-      // extendInjectManifestOptions (cfg) {},
-      // extendManifestJson (json) {}
-      // extendPWACustomSWConf (esbuildConf) {}
+      // workboxPluginMode: "GenerateSW",
+      workboxMode: 'injectManifest', // 'GenerateSW' or 'InjectManifest'
+      workboxOptions: {
+        swSrc: 'src-pwa/custom-service-worker.js',
+        swDest: 'sw.js',
+        globPatterns: [
+          // 'index.html', // Asegúrate de que esta línea esté presente
+          // '**/*.png',
+        ],
+      },
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli/developing-cordova-apps/configuring-cordova

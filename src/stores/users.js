@@ -58,21 +58,21 @@ export const useUsersStore = defineStore('users', {
             localStorage.setItem('backendToken', token)   
             await this.fetchUser()
             // resolve(response)
-            signInWithEmailAndPassword(auth, payload.email, payload.password).then((user) => {
-              onAuthStateChanged(auth,(currentUser) => {
-                console.log('login firebase',currentUser)
-              })
-              localStorage.setItem('firebase_id', user.user.uid)
-              if(!user.emailVerified){
-                console.log('se manda verificación')
-                sendEmailVerification(user)
-              }
-            }).catch(async (e) => {
-              if(e.code === 'auth/invalid-login-credentials'){
-                const newUser = await createUserWithEmailAndPassword(auth, payload.email, payload.password);
-              }
+            // signInWithEmailAndPassword(auth, payload.email, payload.password).then((user) => {
+            //   onAuthStateChanged(auth,(currentUser) => {
+            //     console.log('login firebase',currentUser)
+            //   })
+            //   localStorage.setItem('firebase_id', user.user.uid)
+            //   if(!user.emailVerified){
+            //     console.log('se manda verificación')
+            //     sendEmailVerification(user)
+            //   }
+            // }).catch(async (e) => {
+            //   if(e.code === 'auth/invalid-login-credentials'){
+            //     const newUser = await createUserWithEmailAndPassword(auth, payload.email, payload.password);
+            //   }
               
-            });
+            // });
             resolve(response)
           }
       })

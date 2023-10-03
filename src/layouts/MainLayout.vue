@@ -64,7 +64,7 @@
             <q-avatar size="56px" @click="$router.push('/admin/profile')">
               <!-- <img src="https://cdn.quasar.dev/img/boy-avatar.png"> -->
               <img :src="AppActiveUser.avatar" v-if="AppActiveUser.avatar != null">
-              <img v-else src="~/assets/avatar-s-11.png" >
+              <img v-else src="avatar-s-11.png" >
             </q-avatar>
             <q-menu class="text-green text-center"
             >
@@ -112,7 +112,7 @@
 
 <script setup>
 // import EssentialLink from 'components/EssentialLink.vue'
-import itemsProfile from 'components/Profile/ItemProfile.vue'
+
 import { useQuasar } from 'quasar'
 
 import { ref, onMounted } from 'vue'
@@ -153,8 +153,28 @@ const viewNotify = async (item) => {
   setNotifyView(item)
 }
 
+const offline = ref(false)
+
 onMounted(async() => {
-  await fetchUser(user.id)
-  notifications.value = await getNotify()
+  
+  window.addEventListener('offline',() => {
+    offline.value = true
+  })
+
+  window.addEventListener('online', async () => {
+    offline.value = false
+  })
+
+  if(window.navigator.onLine && offline){
+      if (user !== null) {
+        await fetchUser(user.id)
+        // notifications.value = await getNotify()
+      } else {
+        console.log('debe configurar desde localstorage')
+      }
+  }
+  
 })
+
+
 </script>
