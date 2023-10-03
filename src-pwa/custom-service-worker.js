@@ -50,13 +50,13 @@ registerRoute(
   })
 );
 
-precacheAndRoute([
-  {
-    url: 'index.html',
-    revision: '123456' // Reemplaza con el número de revisión adecuado
-  },
-  // Otros recursos a precachear
-]);
+// precacheAndRoute([
+//   {
+//     url: 'index.html',
+//     revision: '123456' // Reemplaza con el número de revisión adecuado
+//   },
+//   // Otros recursos a precachear
+// ]);
 
 self.addEventListener('fetch', event => {
   console.log(event.request)
