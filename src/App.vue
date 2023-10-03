@@ -1,11 +1,17 @@
 <template>
   <router-view />
 </template>
+<script setup>
+import { ref,provide } from "vue";
+import { onAuthStateChanged, sendEmailVerification } from "firebase/auth";
+import { auth } from "boot/firebase";
 
-<script>
-import { defineComponent } from 'vue'
+const fireUser = ref(false);
 
-export default defineComponent({
-  name: 'App'
+provide('fireUser', fireUser);
+
+onAuthStateChanged(auth, (user) => {
+  fireUser.value = user;
 })
+
 </script>

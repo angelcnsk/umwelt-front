@@ -27,3 +27,6 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+.vercel
+.env
+*.code-workspace

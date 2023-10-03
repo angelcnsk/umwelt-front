@@ -11,8 +11,10 @@
 
 const { configure } = require('quasar/wrappers');
 const path = require('path');
+const { loadEnv } = require('vite');
 
 module.exports = configure(function (/* ctx */) {
+  const env = loadEnv('', process.cwd())
   return {
 
 
@@ -23,20 +25,22 @@ module.exports = configure(function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli/boot-files
     boot: [
-      'i18n',
+      'pinia',
       'axios',
+      'signature',
+      'firebase'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [
-      'app.css'
+      'app.scss'
     ],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       // 'ionicons-v4',
       // 'mdi-v5',
-      'fontawesome-v6',
+      // 'fontawesome-v6',
       // 'eva-icons',
       // 'themify',
       // 'line-awesome',
@@ -50,10 +54,12 @@ module.exports = configure(function (/* ctx */) {
     build: {
       target: {
         browser: [ 'es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1' ],
-        node: 'node16'
+        node: 'node18'
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
+      publicPath: '/',
+      distDir: 'dist',
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
@@ -73,39 +79,61 @@ module.exports = configure(function (/* ctx */) {
       // viteVuePluginOptions: {},
 
       vitePlugins: [
-        ['@intlify/vite-plugin-vue-i18n', {
-          // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
-          // compositionOnly: false,
-
-          // you need to set i18n resource including paths !
-          include: path.resolve(__dirname, './src/i18n/**')
-        }]
+        
       ]
     },
+    // server: {
+    //   // ...
+    //   middleware: [
+    //     function (req, res, next) {
+    //       const parsedUrl = url.parse(req.url, true);
+    //       const { pathname } = parsedUrl;
+
+    //       if (pathname.startsWith('/api/')) {
+    //         const filePath = path.join(__dirname, `api${pathname}`);
+    //         const { method } = req;
+    //         const { headers } = req;
+
+    //         delete headers.host;
+
+    //         const lambda = new AWS.Lambda();
+    //         const lambdaParams = {
+    //           FunctionName: 'my-lambda',
+    //           InvocationType: 'RequestResponse',
+    //           Payload: JSON.stringify({ method, headers, path: pathname })
+    //         };
+
+    //         lambda.invoke(lambdaParams, (err, data) => {
+    //           if (err) {
+    //             res.status(500).send(err);
+    //           } else {
+    //             res.status(200).send(data.Payload);
+    //           }
+    //         });
+    //       } else {
+    //         next();
+    //       }
+    //     }
+    //   ]
+    // },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
-      // https: true
+      https: false,
+      port: 8085,
       open: true // opens browser window automatically
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
-      config: {},
-
-      // iconSet: 'material-icons', // Quasar icon set
-      // lang: 'en-US', // Quasar language pack
-
-      // For special cases outside of where the auto-import strategy can have an impact
-      // (like functional components as one of the examples),
-      // you can manually specify Quasar components/directives to be available everywhere:
-      //
-      // components: [],
-      // directives: [],
-
-      // Quasar plugins
+      config: {
+        'Notify':{},
+        'loading': {},
+      },
       plugins: [
-        'AppFullscreen'
+        'Notify',
+        'Loading',
+        'Dialog'
       ]
     },
 
