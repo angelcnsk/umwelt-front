@@ -255,12 +255,13 @@ const guardarLocal = () => {
 }
 
 
-onMounted( async () => {  
-    //hay conexión a internet
+onMounted( async () => {
     if (!offline.value) {
+        //hay conexión a internet
         await getServiceList()
     } else {
         servicesList.value = JSON.parse(localStorage.getItem('serviceList'))
+        console.log(servicesList.value)
     }
 }) 
 

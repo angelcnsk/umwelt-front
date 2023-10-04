@@ -24,6 +24,11 @@
                  v-if="$q.screen.gt.sm">
           </q-btn> -->
           <!-- <q-btn round dense flat color="grey" :icon="icon" @click="setDarkMode" /> -->
+          <q-icon name="wifi_off" color="red" size="md" v-if="offline">
+            <q-tooltip max-width="200px" self="top middle" class="bg-red" >
+              Sin conexión a internet, funcionalidad limitada
+            </q-tooltip>
+          </q-icon>
           <q-btn round dense flat color="primary" icon="notifications">
             <q-badge color="red" text-color="white" floating>
               {{notifications.length}}
@@ -168,14 +173,12 @@ onMounted(async() => {
     offline.value = false
   })
   
-  if(!offline.value){  
-    console.log('sin conexión?', offline.value)
+  if(offline.value){  
     //data sin conexión, se obtiene del localStorage
     AppActiveUser.value = user
     menus.value = AppActiveUser.value.menus
     
   } else {
-    console.log('hace fetch', offline.value)
     await fetchUser()
   }
   
