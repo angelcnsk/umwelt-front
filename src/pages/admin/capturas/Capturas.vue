@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import {getCurrentInstance, computed, onMounted, watch, ref} from 'vue'
+import {getCurrentInstance, computed, onMounted, watch, ref, inject} from 'vue'
 import { useQuasar, date } from "quasar";
 
 
@@ -121,7 +121,7 @@ const servicio = computed(() => {
 
 const serviceSelected = ref(null)
 
-// const offline = computed(() => store.state.app.offline)
+const offline = inject('statusOnLine')
 
 const dataOffline = ref([])
 const disableSync = ref(false)
@@ -216,7 +216,13 @@ watch(serviceSelected, async (item) => {
     console.log(item)
     
     if (serviceSelected.value !== null) {
-        await getServiceList(serviceSelected.value.id)
+        if(!offline.value){
+            await getServiceList(serviceSelected.value.id)
+        } else {
+            const serviceData = JSON.parse(localStorage.getItem('serviceData'))
+            if(serviceSelected.value.id == serviceData.id) currentService.value = serviceData
+        }
+        
         setDataService()
         // setDataOffline(departments.value, 'departments')
     }
@@ -250,7 +256,8 @@ const guardarLocal = () => {
 
 
 onMounted( async () => {  
-    if (window.navigator.onLine) {
+    //hay conexión a internet
+    if (!offline.value) {
         await getServiceList()
     } else {
         servicesList.value = JSON.parse(localStorage.getItem('serviceList'))

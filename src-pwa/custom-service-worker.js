@@ -28,7 +28,7 @@ registerRoute(
 );
 
 registerRoute(
-  new RegExp('https://identitytoolkit.googleapis.com/'), 
+  new RegExp('https://identitytoolkit.googleapis.com/v1'), 
   new NetworkFirst({
       cacheName: 'google-api',
       plugins:[

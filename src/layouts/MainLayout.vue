@@ -115,7 +115,7 @@
 
 import { useQuasar } from 'quasar'
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, provide } from 'vue'
 import { useUsers } from 'src/composables/useUsers.js'
 import { getNotify, setNotifyView } from 'src/composables/firebase/notificaciones'
 
@@ -155,6 +155,8 @@ const viewNotify = async (item) => {
 
 const offline = ref(false)
 
+provide('statusOnLine', offline);
+
 onMounted(async() => {
   notifications.value = await getNotify()
   
@@ -166,16 +168,15 @@ onMounted(async() => {
     offline.value = false
   })
   
-  if(window.navigator.onLine && offline){  
+  if(offline.value){  
+    console.log('sin conexión?', offline.value)
+    //data sin conexión, se obtiene del localStorage
     AppActiveUser.value = user
     menus.value = AppActiveUser.value.menus
     
-      // if (user !== null) {
-      //   await fetchUser(user.id)
-      
-      // } else {
-      //   console.log('debe configurar desde localstorage')
-      // }
+  } else {
+    console.log('hace fetch', offline.value)
+    await fetchUser()
   }
   
 })
