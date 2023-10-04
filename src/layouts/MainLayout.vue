@@ -168,7 +168,7 @@ onMounted(async() => {
     offline.value = false
   })
   
-  if(offline.value){  
+  if(!offline.value){  
     console.log('sin conexión?', offline.value)
     //data sin conexión, se obtiene del localStorage
     AppActiveUser.value = user
