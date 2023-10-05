@@ -113,78 +113,72 @@
         </q-dialog>
 </template>
 
-<script>
-import {defineComponent, ref, computed, watch, onMounted, toRef, defineEmits} from 'vue';
+<script setup>
+import { ref, watch, onMounted, toRef } from 'vue';
 import { useQuasar, date } from "quasar";
 import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
+import { updateRowDoc } from 'src/composables/firebase/capturas/nom02/documentos'
 
-export default defineComponent({
-    name: "documentacion",
-    props:['secciones','service'],
-    // emits: ['savePoints','async'],
-    setup(props, ctx) {
-        const storeCapturas = useCapturas();
-        const { getServiceList, servicesList,
-            currentService, saveCaptures, saveSectionFile
-        } = storeCapturas
+const props = defineProps({
+    secciones: Array,
+    service: Object
+})
 
-        const secciones = toRef(props,'secciones')
-        const service = toRef(props,'service')
-        const uploader = ref()
-        const loading = ref(false)
-        const inputFile = ref()
-        const dialog = ref(false)
+const storeCapturas = useCapturas();
+const { getServiceList, servicesList, currentService, saveCaptures, saveSectionFile } = storeCapturas
 
-        const autoSave = async () => {            
-            dialog.value = true
-            
-            const saveData = await saveCaptures({service_id: service.value.id, secciones:service.value.secciones, type:'documentos'})
-            if(saveData.status == 200){
-                setTimeout(() => {
-                    dialog.value = false
-                }, 2000);
-            }
-        }
+const secciones = toRef(props,'secciones')
+const service = toRef(props,'service')
+const uploader = ref()
+const loading = ref(false)
+const inputFile = ref()
+const dialog = ref(false)
 
-        const upLoadFile = async (docSection, index) => {
-            
-            let input = document.getElementById("fileInput")
-            
-            const file = docSection.inputFile
-            
-            const guardar = await saveSectionFile({
-                files:file,
-                service_id: currentService.value.id,
-                document: docSection 
-            })
-            inputFile.value = ref()
-            if(guardar.status == 200){
-                notify('Archivo cargado con éxito','positive')
-                docSection.
-                loading.value = false
-                // await getSectionFile({service_id:props.servicio_id, type:'get'})
-            } else {
-                notify('Error al cargar archivo','negative')   
-            }
-        }
-
-        onMounted( async () => {  
-            console.log(service)
-            setInterval(() => {
-                if(secciones.value.length>0)autoSave()
-            }, 300000);
+const autoSave = async () => {
+    dialog.value = true
+    const objUpdate = []
+    currentService.value.secciones.forEach((seccion) => {
+        seccion.documents.forEach((document) => {
+            objUpdate.push(document)
         })
-
-        return {
-            secciones,
-            uploader,
-            loading,
-            inputFile,
-            dialog,
-            upLoadFile        
-        }
+    })
+    const update = await updateRowDoc(objUpdate)
+    
+    // const saveData = await saveCaptures({service_id: service.value.id, secciones:service.value.secciones, type:'documentos'})
+    if(update){
+        setTimeout(() => {
+            dialog.value = false
+        }, 2000);
     }
+}
+
+const upLoadFile = async (docSection, index) => {
+    
+    let input = document.getElementById("fileInput")
+    
+    const file = docSection.inputFile
+    
+    const guardar = await saveSectionFile({
+        files:file,
+        service_id: currentService.value.id,
+        document: docSection 
+    })
+    inputFile.value = ref()
+    if(guardar.status == 200){
+        notify('Archivo cargado con éxito','positive')
+        docSection.
+        loading.value = false
+        // await getSectionFile({service_id:props.servicio_id, type:'get'})
+    } else {
+        notify('Error al cargar archivo','negative')   
+    }
+}
+
+onMounted( async () => {
+    setInterval(() => {
+        if(secciones.value.length>0)autoSave()
+    }, 300000);
 })
 
 </script>

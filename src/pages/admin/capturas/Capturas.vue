@@ -94,6 +94,7 @@ import { useQuasar, date } from "quasar";
 
 import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
+import { searchDocuments, createDocument } from "src/composables/firebase/capturas/nom02/documentos.js";
 
 import documentacion from 'src/components/admin/capturas/Documentacion.vue'
 import guiaConceptos from 'src/components/admin/capturas/GuiaConceptos.vue'
@@ -106,7 +107,7 @@ const storeCapturas = useCapturas();
 const $q = useQuasar();
 
 const { getServiceList, servicesList, currentService } = storeCapturas
-
+const { AppActiveUser } = storeUsers
 const notify = (msg, type) => {
     $q.notify({
         position:'top',
@@ -213,8 +214,6 @@ const cleanData = () => {
     // }
 
 watch(serviceSelected, async (item) => {
-    console.log(item)
-    
     if (serviceSelected.value !== null) {
         if(!offline.value){
             await getServiceList(serviceSelected.value.id)
@@ -222,38 +221,71 @@ watch(serviceSelected, async (item) => {
             const serviceData = JSON.parse(localStorage.getItem('serviceData'))
             if(serviceSelected.value.id == serviceData.id) currentService.value = serviceData
         }
-        
         setDataService()
-        // setDataOffline(departments.value, 'departments')
     }
-    // }
 })
 
-const setDataService = () => {
+const setDataService = async () => {
+    let empty = true
     secciones.value = currentService.value.secciones
-    if(currentService.value.docs_guardados.length > 0){
-        currentService.value.docs_guardados.forEach((docSave)=>{
-            currentService.value.secciones.forEach((element)=>{
-                element.documents.forEach((doc)=>{
-                    if(doc.id === docSave.doc_id){
-                        doc.filled_i = docSave.value
-                    }
+
+    //si hay internet recupero la data
+    //obtengo los documentos del servicio
+    if(!offline.value){
+        let documents = await searchDocuments({
+            service_id: currentService.value.id
+        })
+
+        if(documents == undefined){
+            empty = true
+            //si no existen documentos se crean
+            secciones.value.forEach(async (seccion) => {
+                seccion.documents.forEach(async (document) => {
+                    await createDocument({
+                        global:document.global,
+                        seccion_id:seccion.id,
+                        doc_id:document.id,
+                        service_id:currentService.value.id,
+                        value:'',
+                        user_id:AppActiveUser.value.id,
+                    })
                 })
+            })
+        }
+        
+        if(empty){
+            //si no había documentos y se crearon, los recupero
+            documents = await searchDocuments({
+                service_id: currentService.value.id
+            })
+        }
+        
+
+        if(documents != undefined){
+            documents.forEach((document) => {
+                currentService.value.secciones.forEach((seccion) => {
+                    seccion.documents.forEach((doc) => {
+                        if(doc.id === document.doc_id){
+                            doc.filled_i = document.value
+                            doc.uid = document.uid
+                        }
+                    })
+                })
+            })
+        }
+        //se actualiza el localstorage con la data
+        localStorage.setItem('serviceData', JSON.stringify(currentService.value))
+    } else {
+        //si al seleccionar servicio no hay internet
+        //se agrega el valor en vacío para que se pueda llenar el form
+        currentService.value.secciones.forEach((seccion) => {
+            seccion.documents.forEach((doc) => {
+                doc.filled_i = ''
             })
         })
     }
-
-    
     guiaconceptos.value = currentService.value.categorias
-    
 }
-
-const guardarLocal = () => {
-    if(displayPoints.value != undefined){
-        displayPoints.value.localDot()
-    }
-}
-
 
 onMounted( async () => {
     if (!offline.value) {
