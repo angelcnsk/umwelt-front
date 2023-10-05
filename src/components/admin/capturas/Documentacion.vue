@@ -1,6 +1,9 @@
 <template>
     <q-card class="q-pa-sm">
             <q-card-section>
+                <div class="row q-mb-md">
+                    <q-btn  color="white" text-color="primary" round icon="save" @click="autoSave('click')" />
+                </div>
                 <q-list bordered class="rounded-borders" v-if="secciones.length>0">
                     <q-expansion-item
                         group="somegroup"
@@ -81,7 +84,7 @@
 
             <q-card-section class="row items-center no-wrap">
             <div>
-                <div class="text-weight-bold">Auto guardado</div>
+                <div class="text-weight-bold">Guardando...</div>
             </div>
 
             <q-space />
@@ -107,29 +110,31 @@ const storeCapturas = useCapturas();
 const { currentService } = storeCapturas
 
 const dialog = ref(false)
-
-const autoSave = async () => {
-    dialog.value = true
-    const objUpdate = []
-    currentService.value.secciones.forEach((seccion) => {
-        seccion.documents.forEach((document) => {
-            objUpdate.push(document)
-        })
-    })
-    const update = await updateRowDoc(objUpdate)
+const secciones = toRef(props,'secciones')
+const autoSave = async (type) => {
     
-    // const saveData = await saveCaptures({service_id: service.value.id, secciones:service.value.secciones, type:'documentos'})
-    if(update){
+    if(type == 'click'){
+        dialog.value = true
+        const objUpdate = []
+        currentService.value.secciones.forEach((seccion) => {
+            seccion.documents.forEach((document) => {
+                objUpdate.push(document)
+            })
+        })
+        const update = await updateRowDoc(objUpdate)        
         setTimeout(() => {
             dialog.value = false
         }, 2000);
+    } else {
+        servicesList.value = JSON.parse(localStorage.getItem('serviceList'))
     }
+    
 }
 
 onMounted( async () => {
     setInterval(() => {
         if(secciones.value.length>0)autoSave()
-    }, 300000);
+    }, 60000);
 })
 
 </script>
