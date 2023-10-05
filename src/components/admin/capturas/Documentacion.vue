@@ -1,10 +1,10 @@
 <template>
     <q-card class="q-pa-sm">
             <q-card-section>
-                <div class="row q-mb-md">
-                    <q-btn  color="white" text-color="primary" round icon="save" @click="autoSave('click')" />
-                </div>
                 <q-list bordered class="rounded-borders" v-if="secciones.length>0">
+                    <div class="row q-mb-md q-pa-sm">
+                        <q-btn  color="white" text-color="primary" round icon="save" @click="autoSave('click')" />
+                    </div>
                     <q-expansion-item
                         group="somegroup"
                         expand-separator
@@ -126,7 +126,7 @@ const autoSave = async (type) => {
             dialog.value = false
         }, 2000);
     } else {
-        servicesList.value = JSON.parse(localStorage.getItem('serviceList'))
+        localStorage.setItem('serviceData', JSON.stringify(currentService.value))
     }
     
 }
