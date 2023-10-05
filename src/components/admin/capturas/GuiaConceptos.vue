@@ -15,23 +15,6 @@
                 <div class="col-xs-12 col-md-2 offset-1">
                     <q-btn class="q-mr-md q-mt-md" icon="add" color="primary" outline @click="addVisit" />
                 </div>
-                <!-- <div class="col-xs-12 col-md-2">
-                    <q-radio v-model="visita" val="1" label="visita 1" />
-                </div>
-                <div class="col-xs-12 col-md-2">
-                    <q-radio v-model="visita" val="2" label="visita 2" />
-                </div> -->
-                <!-- <div class="col-xs-12 col-md-2">
-                    <q-btn icon="event" outline class="cursor-pointer q-mt-md" size="md" color="primary" label="Fecha Visita">
-                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                            <q-date v-model="fechas_visita" range>
-                                <div class="row items-center justify-end">
-                                    <q-btn v-close-popup label="Close" color="primary" flat />
-                                </div>
-                            </q-date>
-                        </q-popup-proxy>
-                    </q-btn>
-                </div> -->
                 <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
                     <q-input v-model="fechas_visita.from" filled type="date" hint="Native date" />
                     
@@ -164,14 +147,13 @@
 </template>
 
 <script setup>
-import {defineComponent, ref, computed, watch, onMounted, toRef, defineEmits} from 'vue';
+import {ref, computed, watch, onMounted, toRef} from 'vue';
 import { useQuasar, date } from "quasar";
-import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const { getServiceList, servicesList, currentService, saveCaptures, saveSectionFile, getCategories, newVisit,categories} = storeCapturas
+const { saveCaptures, getCategories, newVisit,categories} = storeCapturas
 
 const props = defineProps({
     service: Object
@@ -180,7 +162,6 @@ const categorias = ref([])
 const service = toRef(props,'service')
 
 const dialog = ref(false)
-const loading = ref(false)
 const visitas = ref([])
 const tipo = ref('')
 const timeStamp = Date.now()
@@ -193,24 +174,10 @@ const fechas_visita = ref({
 })
 
 watch(fechas_visita,(newVal) => {
-    if(newVal != undefined && service.value.id != undefined){
-        // fechas_visita.value = newVal
-        // console.log('cambia valor', fechas_visita.value)    
-        
+    if(newVal != undefined && service.value.id != undefined){        
         if(service.value.fechas == undefined){
             service.value.fechas = []
-            // console.log('agregó array', service.value.fechas)
         } 
-        // console.log(visita.value)    
-        // if(visita.value == "1"){
-        //     service.value.fechas[0] = newVal
-        //     // console.log('set fecha1', service.value.fechas)
-        // }
-        // else {
-        //     service.value.fechas[1] = newVal
-        //     // console.log('set fecha2', service.value.fechas)
-        // }
-
     } else {
         fechas_visita.value.from = formattedString
         fechas_visita.value.to = formattedString
@@ -266,27 +233,13 @@ const setFechas = (value) => {
             visitSelected.value = visitas.value[0]
         } else {
             const indice = visitas.value.indexOf(visitSelected.value)
-            // console.log(indice, visitSelected.value)
-            // console.log('fecha visita', service.value.fechas[indice].fecha_inicio)
+            
             fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
             fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
         }
         
         
     }
-    // const valor = value != undefined ? value : visita.value
-    // fechas_visita.value = {}
-    // if(service.value.fechas != undefined && valor == "1"){
-    //     // console.log('trae fechas 1', service.value.fechas)
-    //     fechas_visita.value.from = service.value.fechas[0].fecha_inicio != undefined ? service.value.fechas[0].fecha_inicio : service.value.fechas[0].from
-    //     fechas_visita.value.to = service.value.fechas[0].fecha_fin != undefined ? service.value.fechas[0].fecha_fin : service.value.fechas[0].to
-    // }
-
-    // if(service.value.fechas != undefined && valor == "2"){
-    //     // console.log('trae fechas 2', service.value.fechas)
-    //     fechas_visita.value.from = service.value.fechas[1].fecha_inicio != undefined ? service.value.fechas[1].fecha_inicio : service.value.fechas[1].from
-    //     fechas_visita.value.to = service.value.fechas[1].fecha_fin != undefined ? service.value.fechas[1].fecha_fin : service.value.fechas[1].to
-    // } 
 }
 
 const toolbar = ref([

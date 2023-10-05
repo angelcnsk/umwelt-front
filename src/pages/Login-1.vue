@@ -59,85 +59,63 @@
   </q-layout>
 </template>
 
-<script>
-import {defineComponent} from 'vue'
+<script setup>
 import {ref} from 'vue'
-import env from 'process';
 
 import { useQuasar } from "quasar";
 import { useUsers } from '../composables/useUsers.js'
-import { useRouter } from 'vue-router';
 
-export default defineComponent({
-  setup() {
-    const $q = useQuasar();
-    const $router = useRouter();
-    const $store = useUsers();
-    const {login} = $store
-    const user = ref({})
-    const loading = ref(false)
-    const visivility = ref(false)
-    const iconVisivility = ref('')
-    const typeInput = ref('')
+const $q = useQuasar();
+const $store = useUsers();
+const {login} = $store
+const user = ref({})
+const loading = ref(false)
+const visivility = ref(false)
+const iconVisivility = ref('')
+const typeInput = ref('')
 
-    const user_details = ref({})
+iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
+typeInput.value = visivility.value ? 'text' : 'password'
 
-    iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
-    typeInput.value = visivility.value ? 'text' : 'password'
-
-    const showPass = () => {
-      visivility.value = !visivility.value
-      iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
-      typeInput.value = visivility.value ? 'text' : 'password'
-    }
+const showPass = () => {
+  visivility.value = !visivility.value
+  iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
+  typeInput.value = visivility.value ? 'text' : 'password'
+}
 
 
-    const onSubmit = async () => {
-      loading.value = true
-      if(user.value.email == '' || user.value.email == undefined || user.value.password == '' || user.value.password == undefined){
-        $q.notify({
-            position:'top',
-            type: 'negative',
-            message: 'Usuario o contraseña incorrectos'
-        })
-        loading.value = false
-        return false
-      }
-      
-      const req = await login(user.value)
-      // console.log('cuando falla',req)
-      if(req.data.error){
-        $q.notify({
-            position:'top',
-            type: 'negative',
-            message: 'Usuario o contraseña incorrectos'
-        })
-        loading.value = false
-      } else {
-        // $router.push({name:'index-admin'})
-        setTimeout(() => {
-          // console.log('después de 2 segundos')
-          window.location.replace('/admin/dashboard')
-          // $router.push({name:'index-admin'})
-        }, 2000);
-      }
+const onSubmit = async () => {
+  loading.value = true
+  if(user.value.email == '' || user.value.email == undefined || user.value.password == '' || user.value.password == undefined){
+    $q.notify({
+        position:'top',
+        type: 'negative',
+        message: 'Usuario o contraseña incorrectos'
+    })
+    loading.value = false
+    return false
+  }
+  
+  const req = await login(user.value)
+  // console.log('cuando falla',req)
+  if(req.data.error){
+    $q.notify({
+        position:'top',
+        type: 'negative',
+        message: 'Usuario o contraseña incorrectos'
+    })
+    loading.value = false
+  } else {
+    // $router.push({name:'index-admin'})
+    setTimeout(() => {
+      // console.log('después de 2 segundos')
+      window.location.replace('/admin/dashboard')
+      // $router.push({name:'index-admin'})
+    }, 2000);
+  }
 
-    };
+};
 
-    // console.log('ingresa a login', process.env)
-
-    return {
-      user,
-      loading,
-      visivility,
-      iconVisivility,
-      typeInput,
-      user_details,
-      onSubmit,
-      showPass
-    }
-  },
-})
 </script>
 
 <style>
@@ -167,16 +145,6 @@ export default defineComponent({
   }
 }
 
-/*@media screen and (max-width: 820px) {
-  .col-card{
-    margin: 0 auto;
-  }
-  .card-login{
-    width: 90%;
-    margin: 100px auto;
-  }
-}*/
-
 @media screen and (max-width: 768px) {
   .hidden-mobile{
     display: none;
@@ -189,5 +157,4 @@ export default defineComponent({
     margin: 100px auto;
   }
 }
-
 </style>

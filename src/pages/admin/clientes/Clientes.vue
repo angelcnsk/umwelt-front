@@ -71,12 +71,6 @@
                                 label="RFC"
                             />
                         </div>
-                        <!-- <div class="col-xs-11 col-sm-4 q-pa-sm">
-                            <q-input 
-                                v-model="newClient.business_description"
-                                label="Descripción giro comercial"
-                            />
-                        </div> -->
                     </div>
                 </q-card-section>
             <!-- buttons example -->
@@ -90,97 +84,77 @@
     </q-page>
 </template>
   
-<script>
+<script setup>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
-  import { useClientes } from 'src/composables/useClientes.js'
-  import { useUsers } from 'src/composables/useUsers.js'
-  import { useQuasar } from "quasar";
-  import { useRoute, useRouter } from 'vue-router';
+import {computed, onMounted, watch, ref} from 'vue'
+import { useClientes } from 'src/composables/useClientes.js'
+import { useUsers } from 'src/composables/useUsers.js'
+import { useQuasar } from "quasar";
+import { useRouter } from 'vue-router';
+const storeClientes = useClientes();
+const storeUsers = useUsers()
+const $q = useQuasar();
+const router = useRouter()
 
-  export default defineComponent({
-    name: 'clientesPage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
-    setup() {
-        const storeClientes = useClientes();
-        const storeUsers = useUsers()
-        const $q = useQuasar();
-        const router = useRouter()
+const { AppActiveUser } = storeUsers
+const {getClients, clients, createClient} = storeClientes
+const agregar_cliente = ref(false)
+const newClient = ref({})
+const addClient = ref(false)
 
-        const { AppActiveUser } = storeUsers
-        const {getClients, clients, createClient} = storeClientes
-        const agregar_cliente = ref(false)
-        const newClient = ref({})
-        const addClient = ref(false)
-        
-        const filter = ref('')
-        const columns = ref([
-            {name: 'id', label: 'Id',field: 'id', align:'center'},
-            {name: 'legalname', label: 'Nombre', field: 'legalname', align:'center', sortable:true, sortOrder:'ad'},
-            // {name: 'client_id', label: 'Principal', field: 'client_id', align:'center'},
-            // {name: 'alias', label: 'Planta', field: 'alias', align:'center'},
-            {name: 'rfc', label: 'RFC', field: 'rfc', align:'center'},
-            // {name: 'statedsc', label: 'Estado', field: 'statedsc', align:'center'},
-            {name: 'status', label: 'Estatus', field: 'status', align:'center'}
-        ])
+const filter = ref('')
+const columns = ref([
+    {name: 'id', label: 'Id',field: 'id', align:'center'},
+    {name: 'legalname', label: 'Nombre', field: 'legalname', align:'center', sortable:true, sortOrder:'ad'},
+    // {name: 'client_id', label: 'Principal', field: 'client_id', align:'center'},
+    // {name: 'alias', label: 'Planta', field: 'alias', align:'center'},
+    {name: 'rfc', label: 'RFC', field: 'rfc', align:'center'},
+    // {name: 'statedsc', label: 'Estado', field: 'statedsc', align:'center'},
+    {name: 'status', label: 'Estatus', field: 'status', align:'center'}
+])
 
-        const permisos = computed(async () => {
-            return AppActiveUser.value.permissions
+const permisos = computed(async () => {
+    return AppActiveUser.value.permissions
+})
+
+watch(permisos, async (newVal) => {
+    const find = await newVal
+    agregar_cliente.value = find.find((permiso) => permiso === 'agregar_empresa')
+})
+
+const goTo = (e, value) => {
+    router.push({name:'cliente', params:{id:value.id}})
+}
+
+const saveClient = async () => {
+    const crearCliente = await createClient(newClient.value)
+    if(crearCliente.response){
+        if(crearCliente.response.data.errors)
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'El RFC ingresado corresponde a otro cliente'
         })
-        
-        watch(permisos, async (newVal) => {
-            const find = await newVal
-            agregar_cliente.value = find.find((permiso) => permiso === 'agregar_empresa')
+    }
+    
+    if(crearCliente.status == 200){
+        $q.notify({
+            position:'top',
+            type:'positive',
+            message:'El cliente se creó correctamente'
         })
+        getClients()
+        addClient.value = false
+        newClient.value = {}
+    }
+}
 
-        const goTo = (e, value) => {
-            router.push({name:'cliente', params:{id:value.id}})
-        }
-
-        const saveClient = async () => {
-            const crearCliente = await createClient(newClient.value)
-            if(crearCliente.response){
-                if(crearCliente.response.data.errors)
-                $q.notify({
-                    position:'top',
-                    type:'negative',
-                    message:'El RFC ingresado corresponde a otro cliente'
-                })
-            }
-            
-            if(crearCliente.status == 200){
-                $q.notify({
-                    position:'top',
-                    type:'positive',
-                    message:'El cliente se creó correctamente'
-                })
-                getClients()
-                addClient.value = false
-                newClient.value = {}
-            }
-        }
-
-        onMounted(async () => {
-            if(AppActiveUser.value.permissions){
-                agregar_cliente.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_empresa')
-            }
-            await getClients()
-        })
-        
-        return {
-            agregar_cliente,
-            clients,
-            columns,
-            filter,
-            addClient,
-            newClient,
-            goTo,
-            saveClient
-        }
-    },
+onMounted(async () => {
+    if(AppActiveUser.value.permissions){
+        agregar_cliente.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_empresa')
+    }
+    await getClients()
+})
   
-  })
-  </script>
+</script>
   

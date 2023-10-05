@@ -141,14 +141,7 @@ import { useRoute } from "vue-router";
 import { useUsers } from 'src/composables/useUsers.js'
 import { useServicios } from 'src/composables/useServicios.js'
 
-// import logistica from 'src/components/admin/servicios/Logistica.vue'
 import gestion from 'src/components/admin/servicios/Gestion.vue'
-import { route } from 'quasar/wrappers';
-
-// import XLSX from 'xlsx'
-// import modalStaff from '../custom-components/AsignarStaff.vue'
-// import modalAreas from '../custom-components/ModalAreas.vue'
-// import modalDptos from '../custom-components/ModalDptos.vue'
 
 const storeUsers = useUsers();
 const storeServicios = useServicios();

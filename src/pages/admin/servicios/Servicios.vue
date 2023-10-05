@@ -102,62 +102,6 @@
                                     </template>
                                 </q-select>
                             </div>
-                            <!-- <div class="col-md-3 q-pa-sm">
-                                <q-toggle label="Acepta reconocimiento" v-model="service.recognition" />
-                            </div> -->
-                        </div>
-                        <div class="row">
-                            <!-- <div class="col-md-4 col-xs-12 q-pa-sm">
-                                <q-input 
-                                    filled 
-                                    v-model="service.date_recognition" 
-                                    mask="date" 
-                                    label="Inicio de reconocimiento"
-                                    :readonly="!service.recognition"
-                                >
-                                    <template v-slot:append>
-                                        <q-icon name="event" class="cursor-pointer">
-                                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                            <q-date v-model="service.date_recognition" :readonly="!service.recognition">
-                                            <div class="row items-center justify-end">
-                                                <q-btn v-close-popup label="Close" color="primary" flat />
-                                            </div>
-                                            </q-date>
-                                        </q-popup-proxy>
-                                        </q-icon>
-                                    </template>
-                                </q-input>
-                            </div> -->
-                            <!-- <div class="col-md-4 col-xs-12 q-pa-sm">
-                                <q-input filled v-model="service.date_start" mask="date" :rules="['date']" label="Inicio de ejecución">
-                                    <template v-slot:append>
-                                        <q-icon name="event" class="cursor-pointer">
-                                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                            <q-date v-model="service.date_start">
-                                            <div class="row items-center justify-end">
-                                                <q-btn v-close-popup label="Close" color="primary" flat />
-                                            </div>
-                                            </q-date>
-                                        </q-popup-proxy>
-                                        </q-icon>
-                                    </template>
-                                </q-input>
-                            </div>
-                            <div class="col-md-4 col-xs-12 q-pa-sm">
-                                <q-input filled v-model="service.date_end" mask="date" :rules="['date']" label="Fin de ejecución">
-                                    <template v-slot:append>
-                                        <q-icon name="event" class="cursor-pointer">
-                                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                            <q-date v-model="service.date_end">
-                                            <div class="row items-center justify-end">
-                                                <q-btn v-close-popup label="Close" color="primary" flat />
-                                            </div>
-                                            </q-date>
-                                        </q-popup-proxy>
-                                        </q-icon>
-                                    </template>
-                                </q-input>
-                            </div> -->
                         </div>
                         <div class="row justify-end q-mr-sm">
                             <q-btn label="guardar" color="primary" @click="saveService" />
@@ -220,7 +164,7 @@
   import { useClientes } from 'src/composables/useClientes.js'
   import { useUsers } from 'src/composables/useUsers.js'
   import { useServicios } from 'src/composables/useServicios.js'
-  import { launchNotify, getNotify } from 'src/composables/firebase/notificaciones'
+  import { launchNotify } from 'src/composables/firebase/notificaciones'
   import { useQuasar, date } from "quasar";
   import { useRouter } from 'vue-router';
 
@@ -239,7 +183,6 @@ const { staff, getStaff, getService, servicesList, productos, getProductos, getS
 const agregar_servicio = ref(false)
 
 const addService = ref(false)
-const clienteSelected = ref(null)
 const clientes = ref([])
 const plantasArr = ref([])
 const plantas = ref([])
@@ -352,20 +295,6 @@ const validate = () => {
         return false
     }
 
-    // if(service.value.recognition && service.value.date_recognition == undefined || service.value.recognition && service.value.date_recognition == null){
-    //     notify(`Falta fecha de reconocimiento`, 'negative')
-    //     return false
-    // }
-
-    // if(service.value.date_start == undefined || service.value.date_start == null){
-    //     notify(`Falta fecha de inicio de servicio`, 'negative')
-    //     return false
-    // }
-
-    // if(service.value.date_end == undefined || service.value.date_end == null){
-    //     notify(`Falta fecha de fin de servicio`, 'negative')
-    //     return false
-    // }
     return true   
 }
 

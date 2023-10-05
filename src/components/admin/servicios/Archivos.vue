@@ -75,10 +75,9 @@ const props = defineProps({
     servicio_id: String,
 })
 
-const servicio_id = ref(props.servicio_id)
 const cargar_archivos = ref(false)
 const borrar_archivos = ref(false)
-const seccion = ref(null)
+
 const uploader = ref()
 const loading = ref(false)
 const inputFile = ref()
@@ -141,10 +140,7 @@ const columns = ref([
     },    
 ])
 
-const upLoadFile = async () => {
-    // let input = document.getElementById("fileInput")
-    // console.log(inputFile.value, uploader.value)
-    
+const upLoadFile = async () => {    
     loading.value = true    
     const guardar = await loadFile({
         files:uploader.value,

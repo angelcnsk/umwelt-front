@@ -1,46 +1,6 @@
 <template>
 <div class="q-ma-md" style="margin-top: 50px;">
     <q-card>
-        <!-- <q-card-section>
-            <div class="text-h6 text-grey-8">Gestión</div>
-            <q-separator spaced />
-            <div class="text-subtitle text-grey-8">Signatarios y destinatarios</div>
-            <q-separator spaced />
-            <div class="row q-pa-sm">
-                <div class="col-xs-12 col-md-3">
-                    <q-select v-model="signatario.elabora" :options="signatoryList.signatario" label="Elaboró" class="q-pa-sm">
-                        <template v-slot:prepend>    
-                            <q-icon name="help" color="orange" >
-                                <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                                    Responsable que aparece en carátula
-                                </q-tooltip>
-                            </q-icon>
-                        </template>
-                    </q-select>
-                </div>
-                <div class="col-xs-12 col-md-3">
-                    <q-select v-model="signatario.revisa" :options="signatoryList.aprueba" label="Revisó" class="q-pa-sm">
-                        <template v-slot:prepend>    
-                            <q-icon name="help" color="orange" >
-                                <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                                    Responsable que aparece en carátula
-                                </q-tooltip>
-                            </q-icon>
-                        </template>
-                    </q-select>
-                </div>
-                <div class="col-xs-12 col-md-3">
-                    <q-input label="Dirigido a" v-model="signatario.dirigido_a" class="q-pa-sm" />
-                </div>
-                <div class="col-xs-12 col-md-3">
-                    <q-input label="Representante legal" v-model="signatario.representante" class="q-pa-sm" />
-                </div>
-                <div class="col-xs-12 col-md-2">
-                    <q-btn label="guardar" color="primary" class="q-mt-lg q-ml-md" @click="addSignatory"/>
-                </div>
-            </div>
-        </q-card-section> -->
-        
         <q-card-section>
             <q-separator spaced />
                 <div class="text-subtitle text-grey-8">Archivos</div>
@@ -117,8 +77,7 @@ import { useQuasar } from "quasar";
 import { useServicios } from 'src/composables/useServicios.js'
 import { useUsers } from 'src/composables/useUsers.js'
 
-import archivos from 'components/admin/servicios/Archivos.vue'
-// import { utils, writeFileXLSX } from 'xlsx';
+const archivos = defineAsyncComponent(() => import('src/components/admin/servicios/Archivos.vue'))
 
 const props = defineProps({
     servicio_id: String,
@@ -128,9 +87,8 @@ const props = defineProps({
 const servicio_id = ref(props.servicio_id)
 
 const $q = useQuasar();
-const storeUsers = useUsers();
+
 const storeServicios = useServicios();
-const { AppActiveUser } = storeUsers
 const { generarNumDictamen } = storeServicios
 
 

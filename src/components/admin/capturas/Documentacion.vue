@@ -24,26 +24,6 @@
                                 <q-radio v-model="document.filled_i" val="no_anexo" label="No anexa" />
                                 <q-radio v-model="document.filled_i" val="no_cuenta" label="No se cuenta" />
                             </div>                                
-                            <!-- <div class="row">
-                                <div class="col-md-5">
-                                    <q-file
-                                        id="fileInput"
-                                        for="fileInput`"
-                                        class="q-mt-sm"
-                                        ref="inputFile"
-                                        v-model="document.inputFile"
-                                        filled
-                                        type="file"
-                                        label="Selecciona un archivo"
-                                    > 
-                                        <template v-slot:after>
-                                            <q-btn round dense flat icon="send" @click="upLoadFile(document,i)" />
-                                        </template>
-                                    </q-file>
-                                    <q-spinner-dots v-if="loading" class="q-ml-lg" color="primary" size="lg" />
-                                </div>
-                            </div> -->
-                            
                         </div>
                     </q-expansion-item>
                 </q-list>
@@ -114,9 +94,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, toRef } from 'vue';
-import { useQuasar, date } from "quasar";
-import { useUsers } from 'src/composables/useUsers.js'
+import { ref, onMounted, toRef } from 'vue';
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { updateRowDoc } from 'src/composables/firebase/capturas/nom02/documentos'
 
@@ -126,13 +104,8 @@ const props = defineProps({
 })
 
 const storeCapturas = useCapturas();
-const { getServiceList, servicesList, currentService, saveCaptures, saveSectionFile } = storeCapturas
+const { currentService } = storeCapturas
 
-const secciones = toRef(props,'secciones')
-const service = toRef(props,'service')
-const uploader = ref()
-const loading = ref(false)
-const inputFile = ref()
 const dialog = ref(false)
 
 const autoSave = async () => {
@@ -150,28 +123,6 @@ const autoSave = async () => {
         setTimeout(() => {
             dialog.value = false
         }, 2000);
-    }
-}
-
-const upLoadFile = async (docSection, index) => {
-    
-    let input = document.getElementById("fileInput")
-    
-    const file = docSection.inputFile
-    
-    const guardar = await saveSectionFile({
-        files:file,
-        service_id: currentService.value.id,
-        document: docSection 
-    })
-    inputFile.value = ref()
-    if(guardar.status == 200){
-        notify('Archivo cargado con éxito','positive')
-        docSection.
-        loading.value = false
-        // await getSectionFile({service_id:props.servicio_id, type:'get'})
-    } else {
-        notify('Error al cargar archivo','negative')   
     }
 }
 

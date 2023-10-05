@@ -31,7 +31,7 @@ export async function getNotify () {
                     snapShot.docChanges().forEach((change) => {
                         const obj = change.doc.data()
                         obj.id = change.doc.id
-                        console.log('cambia', change)
+                        
                         if(change.type == 'added'){    
                             mensajes.value.push(obj)
                         }

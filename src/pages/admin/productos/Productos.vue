@@ -181,68 +181,50 @@
     </q-page>
 </template>
   
-<script>
+<script setup>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
-  import { useClientes } from 'src/composables/useClientes.js'
-  import { useUsers } from 'src/composables/useUsers.js'
-  import { useServicios } from 'src/composables/useServicios.js'
-  import { useQuasar, date } from "quasar";
-  import { useRoute, useRouter } from 'vue-router';
+import {computed, onMounted, watch, ref} from 'vue'
 
-  export default defineComponent({
-    name: 'productosPage',
-    setup() {
-        const storeClientes = useClientes();
-        const storeUsers = useUsers();
-        const storeServicios = useServicios();
-        const $q = useQuasar();
-        const router = useRouter();
+import { useUsers } from 'src/composables/useUsers.js'
+import { useServicios } from 'src/composables/useServicios.js'
+import { useQuasar } from "quasar";
 
-        const { AppActiveUser } = storeUsers
-        const {getClients, clients, createClient} = storeClientes
-        const { staff, getStaff, getService, generarOT, servicesList, productos, getProductos, getServices } = storeServicios
-        const agregar_producto = ref(false)
-        
-        const addProduct = ref(false)
-        const Categoria = ref([{label: 'Ambiente laboral', value: 1}, {label: 'Fuentes fijas', value: 2}])
+const storeUsers = useUsers();
+const storeServicios = useServicios();
+const $q = useQuasar();
 
-        const notify = (msg, type) => {
-            $q.notify({
-                position:'top',
-                type,
-                message:msg
-            })
-        }
-        const permisos = computed(async () => {
-            return AppActiveUser.value.permissions
-        })
+
+const { AppActiveUser } = storeUsers
+
+const { productos, getProductos } = storeServicios
+const agregar_producto = ref(false)
+
+const addProduct = ref(false)
+const Categoria = ref([{label: 'Ambiente laboral', value: 1}, {label: 'Fuentes fijas', value: 2}])
+
+const notify = (msg, type) => {
+    $q.notify({
+        position:'top',
+        type,
+        message:msg
+    })
+}
+const permisos = computed(async () => {
+    return AppActiveUser.value.permissions
+})
+
+watch(permisos, async (newVal) => {
+    const find = await newVal
+    agregar_producto.value = find.find((permiso) => permiso === 'agregar_producto')
+})
+
+onMounted(async () => {
+    if(AppActiveUser.value.permissions){
+        agregar_producto.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_producto')
+    }
     
-        watch(permisos, async (newVal) => {
-            const find = await newVal
-            agregar_producto.value = find.find((permiso) => permiso === 'agregar_producto')
-        })
-
-        onMounted(async () => {
-            if(AppActiveUser.value.permissions){
-                agregar_producto.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_producto')
-            }
-            
-            await getProductos()
-        })
-        
-        return {
-            agregar_producto,
-            Categoria,
-            addProduct,
-            productos,
-            
-            
-            
-            
-        }
-    },
+    await getProductos()
+})
   
-  })
-  </script>
+</script>
   

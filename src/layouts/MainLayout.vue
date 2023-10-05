@@ -13,17 +13,9 @@
         />
         <q-toolbar-title class="text-primary">
           <span class="text-bold">Umwelt</span>
-          <!-- <q-avatar>
-            <img src="~/assets/icon_greenlab.png">
-          </q-avatar> -->
         </q-toolbar-title>
         <q-space/>
         <div class="q-gutter-sm row items-center no-wrap">
-          <!-- <q-btn round dense flat color="white" :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
-                 @click="$q.fullscreen.toggle()"
-                 v-if="$q.screen.gt.sm">
-          </q-btn> -->
-          <!-- <q-btn round dense flat color="grey" :icon="icon" @click="setDarkMode" /> -->
           <q-icon name="wifi_off" color="red" size="md" v-if="offline">
             <q-tooltip max-width="200px" self="top middle" class="bg-red" >
               Sin conexión a internet, funcionalidad limitada
@@ -69,13 +61,10 @@
             <q-avatar size="56px" @click="$router.push('/admin/profile')">
               <!-- <img src="https://cdn.quasar.dev/img/boy-avatar.png"> -->
               <img :src="AppActiveUser.avatar" v-if="AppActiveUser.avatar != null">
-              <img v-else src="avatar-s-11.png" >
+              <img v-else :src="uknow" >
             </q-avatar>
             <q-menu class="text-green text-center"
             >
-              <!-- <q-list style="min-width: 180px" class="text-center">
-                <items-profile />
-              </q-list> -->
             </q-menu>
           </q-btn>
       </div>
@@ -116,8 +105,6 @@
 </template>
 
 <script setup>
-// import EssentialLink from 'components/EssentialLink.vue'
-
 import { useQuasar } from 'quasar'
 
 import { ref, onMounted, provide } from 'vue'
@@ -128,6 +115,8 @@ const leftDrawerOpen = ref(false)
 const $q = useQuasar()
 const $store = useUsers();
 const {fetchUser, menus, AppActiveUser} = $store
+
+const uknow = ref("https://firebasestorage.googleapis.com/v0/b/umwelt-4afa1.appspot.com/o/assets%2Favatar-s-11.png?alt=media&token=1d9c1292-75e8-4f8e-a8b4-64e80ce42087&_gl=1*52kp9q*_ga*NzAyNDQwMzI5LjE2OTQ4MjY4Mzg.*_ga_CW55HF8NVT*MTY5NjQ3NDY0OC41MC4xLjE2OTY0NzYyMDUuMTYuMC4w")
 
 const notifications = ref([])
 const icon = ref('')

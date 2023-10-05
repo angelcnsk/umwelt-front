@@ -3,7 +3,7 @@
 </template>
 <script setup>
 import { ref,provide } from "vue";
-import { onAuthStateChanged, sendEmailVerification } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "boot/firebase";
 
 const fireUser = ref(false);

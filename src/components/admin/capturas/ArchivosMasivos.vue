@@ -29,8 +29,8 @@
 </template>
 
 <script setup>
-import {ref, onMounted, toRef } from 'vue';
-import { useQuasar, date } from "quasar";
+import {ref, toRef } from 'vue';
+import { useQuasar } from "quasar";
 import { loadFile } from 'src/composables/firebase/storage'
 
 const props = defineProps({

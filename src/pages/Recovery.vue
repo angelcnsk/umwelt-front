@@ -77,8 +77,7 @@ import { confirmPassword } from "../composables/firebase/auth";
 const $q = useQuasar();
 const $route = useRoute();
 const $router = useRouter();
-const $store = useUsers();
-const {login} = $store
+
 const user = ref({})
 const loading = ref(false)
 const visivility = ref(false)
@@ -87,7 +86,6 @@ const typeInput = ref('')
 
 const msgSuccess = ref(false)
 
-const user_details = ref({})
 
 iconVisivility.value = visivility.value ? 'visibility_off' : 'visibility'
 typeInput.value = visivility.value ? 'text' : 'password'

@@ -28,10 +28,6 @@
 
   const notifications = ref(mensajes)
   // const CardBasic = defineAsyncComponent(() => import('components/cards/CardBasic.vue'))
-  onMounted(async () => {
-    // notifications.value = await getNotify()
-    // console.log(notifications.value)
-  })
   
   </script>
   
