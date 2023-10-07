@@ -1,8 +1,4 @@
 {
-    // "routes": [
-    //     { "handle": "filesystem" },
-    //     { "src": "dist/.*", "dest": "/index.html" }
-    // ],
     "rewrites": [
         {
           "source": "dist/(.*)",
