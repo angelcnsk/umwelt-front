@@ -22,7 +22,6 @@ export const useCapturasStore = defineStore('capturas', {
                   this.servicesList = response.data.service_list
                   localStorage.setItem('serviceList', JSON.stringify(response.data.service_list))
                 } else {
-                  localStorage.setItem('serviceData', JSON.stringify(response.data.service))
                   this.currentService = response.data.service
                 }
                 

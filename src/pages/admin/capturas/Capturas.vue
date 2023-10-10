@@ -13,6 +13,7 @@
     
     <div class="q-mt-md">
         <q-tabs
+            no-swipe
             v-model="tab"
             inline-label
             outside-arrows
@@ -93,75 +94,79 @@ const formDate =  (date) => {
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
         const serviceData = JSON.parse(localStorage.getItem('serviceData'))
-
-        if(serviceData != null){
+        const getLocal = serviceData != null ? 'local' : 'remote'
+        if(getLocal == 'local'){
             //si existe en localstorage se usa para evitar sobreescribir datos
-            if(serviceSelected.value.id == serviceData.id) currentService.value = serviceData  
+            if(serviceSelected.value.id == serviceData.id) currentService.value = serviceData
         } else {
             //si no existe en local se obtiene la información y se hace el set
             await getServiceList(serviceSelected.value.id)
         }
-        setDataService()
+        setDataService(getLocal)
     }
 })
 
-const setDataService = async () => {
+const setDataService = async (type) => {
     let empty = true
     secciones.value = currentService.value.secciones
 
     //si hay internet recupero la data
     //obtengo los documentos del servicio
     if(!offline.value){
-        let documents = await searchDocuments({
-            service_id: currentService.value.id
-        })
-
-        if(documents == undefined){
-            empty = true
-            //si no existen documentos se crean
-            secciones.value.forEach(async (seccion) => {
-                seccion.documents.forEach(async (document) => {
-                    await createDocument({
-                        global:document.global,
-                        seccion_id:seccion.id,
-                        doc_id:document.id,
-                        service_id:currentService.value.id,
-                        value:'',
-                        user_id:AppActiveUser.value.id,
-                    })
-                })
-            })
-        }
-        
-        if(empty){
-            //si no había documentos y se crearon, los recupero
-            documents = await searchDocuments({
+        if(type == 'remote'){
+            let documents = await searchDocuments({
                 service_id: currentService.value.id
             })
-        }
-        
-        if(documents != undefined){
-            documents.forEach((document) => {
-                currentService.value.secciones.forEach((seccion) => {
-                    seccion.documents.forEach((doc) => {
-                        if(doc.id === document.doc_id){
-                            doc.filled_i = document.value
-                            doc.uid = document.uid
-                        }
+
+            if(documents == undefined){
+                empty = true
+                //si no existen documentos se crean
+                secciones.value.forEach(async (seccion) => {
+                    seccion.documents.forEach(async (document) => {
+                        await createDocument({
+                            global:document.global,
+                            seccion_id:seccion.id,
+                            doc_id:document.id,
+                            service_id:currentService.value.id,
+                            value:'',
+                            user_id:AppActiveUser.value.id,
+                        })
                     })
                 })
-            })
-        }
+            }
+            if(empty){
+            //si no había documentos y se crearon, los recupero
+                documents = await searchDocuments({
+                    service_id: currentService.value.id
+                })
+            }
+            
+            if(documents != undefined){
+                documents.forEach((document) => {
+                    currentService.value.secciones.forEach((seccion) => {
+                        seccion.documents.forEach((doc) => {
+                            if(doc.id === document.doc_id){
+                                doc.filled_i = document.value
+                                doc.uid = document.uid
+                            }
+                        })
+                    })
+                })
+            }
+        } 
+        
         //se actualiza el localstorage con la data
         localStorage.setItem('serviceData', JSON.stringify(currentService.value))
     } else {
-        //si al seleccionar servicio no hay internet
+        //si al seleccionar servicio no hay internet o se busca en local
         //se agrega el valor en vacío para que se pueda llenar el form
-        currentService.value.secciones.forEach((seccion) => {
-            seccion.documents.forEach((doc) => {
-                doc.filled_i = ''
+        if(type == 'remote'){
+            currentService.value.secciones.forEach((seccion) => {
+                seccion.documents.forEach((doc) => {
+                    doc.filled_i = ''
+                })
             })
-        })
+        }
     }
     guiaconceptos.value = currentService.value.categorias
 }
