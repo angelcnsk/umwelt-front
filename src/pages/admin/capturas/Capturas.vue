@@ -93,14 +93,14 @@ const formDate =  (date) => {
 
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
-        const serviceData = JSON.parse(localStorage.getItem('serviceData'))
+        const serviceData = JSON.parse(localStorage.getItem(`service_${item.id}_data`))
         const getLocal = serviceData != null ? 'local' : 'remote'
-        if(getLocal == 'local'){
-            //si existe en localstorage se usa para evitar sobreescribir datos
-            if(serviceSelected.value.id == serviceData.id) currentService.value = serviceData
-        } else {
+        
+        if(getLocal == 'remote'){
             //si no existe en local se obtiene la información y se hace el set
             await getServiceList(serviceSelected.value.id)
+        } else {
+            currentService.value = serviceData
         }
         setDataService(getLocal)
     }
@@ -156,7 +156,7 @@ const setDataService = async (type) => {
         } 
         
         //se actualiza el localstorage con la data
-        localStorage.setItem('serviceData', JSON.stringify(currentService.value))
+        localStorage.setItem(`service_${currentService.value.id}_data`, JSON.stringify(currentService.value))
     } else {
         //si al seleccionar servicio no hay internet o se busca en local
         //se agrega el valor en vacío para que se pueda llenar el form

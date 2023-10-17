@@ -150,6 +150,7 @@ const viewNotify = async (item) => {
 const offline = ref(false)
 
 provide('statusOnLine', offline);
+provide('currentUser', AppActiveUser)
 
 onMounted(async() => {
   notifications.value = await getNotify()

@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, toRef } from 'vue';
+import { ref, onMounted, toRef, inject } from 'vue';
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { updateRowDoc } from 'src/composables/firebase/capturas/nom02/documentos'
 
@@ -105,7 +105,7 @@ const props = defineProps({
     secciones: Array,
     service: Object
 })
-
+const currentUser = inject('currentUser');
 const storeCapturas = useCapturas();
 const { currentService } = storeCapturas
 
@@ -118,6 +118,7 @@ const autoSave = async (type) => {
         const objUpdate = []
         currentService.value.secciones.forEach((seccion) => {
             seccion.documents.forEach((document) => {
+                document.user_id = currentUser.value.id
                 objUpdate.push(document)
             })
         })

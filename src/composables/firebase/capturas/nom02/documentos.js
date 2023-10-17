@@ -49,7 +49,7 @@ export async function searchDocuments (obj) {
 export async function updateRowDoc (objUpdate) {
     try {
         objUpdate.map(async (req) => {
-            updateDoc(doc(db,'documentos_servicio',req.uid), {value:req.filled_i})
+            updateDoc(doc(db,'documentos_servicio',req.uid), {value:req.filled_i, user_id:req.user_id})
         })
         return true
     } catch (error) {

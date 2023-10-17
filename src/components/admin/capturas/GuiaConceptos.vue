@@ -16,11 +16,11 @@
                     <q-btn class="q-mr-md q-mt-md" icon="add" color="primary" outline @click="addVisit" />
                 </div>
                 <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.from" filled type="date" hint="Native date" />
+                    <q-input v-model="fechas_visita.from" filled type="date" hint="Fecha inicial" />
                     
                 </div>
                 <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.to" filled type="date" hint="Native date" />
+                    <q-input v-model="fechas_visita.to" filled type="date" hint="Fecha final" />
                 </div>
                 <div class="col-xs-12 col-md-1 d-inline-block q-mt-lg q-ml-sm">
                     <q-input v-model="fechas_visita.inicio" filled type="time" hint="Hora inicio" />
@@ -47,7 +47,7 @@
                     expand-separator
                     icon="ads_click"
                     header-class="text-primary"
-                    :label="`${categoria.texto}`" v-for="(categoria,i) in categorias" :key="i"
+                    :label="`${categoria.texto}`" v-for="(categoria,index) in categorias" :key="index"
                     style="border: .2px solid gray"
                 >
                 <q-separator />
@@ -57,12 +57,12 @@
                             <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
                         </div>
                         <div class="row q-pa-sm">
-                            <q-checkbox v-model="concepto.value" val="si" label="Si" color="orange" :disable="concepto.value.includes('no')" />
-                            <q-checkbox v-model="concepto.value" val="no" label="No" color="orange" :disable="concepto.value.includes('si')" />
-                            <q-checkbox v-model="concepto.value" val="cumple" label="Cumple" color="orange" :disable="concepto.value.includes('no_cumple')" />
-                            <q-checkbox v-model="concepto.value" val="no_cumple" label="No cumple" color="orange" :disable="concepto.value.includes('cumple')" />
-                            <q-checkbox v-model="concepto.value" val="na" label="N.A." color="orange" />
-                            <q-checkbox v-model="concepto.value" val="et" label="E.T." color="orange" />
+                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="si" label="Si" color="orange" :disable="concepto.value.includes('no')" />
+                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="no" label="No" color="orange" :disable="concepto.value.includes('si')" />
+                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="cumple" label="Cumple" color="orange" :disable="concepto.value.includes('no_cumple')" />
+                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="no_cumple" label="No cumple" color="orange" :disable="concepto.value.includes('cumple')" />
+                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="na" label="N.A." color="orange" />
+                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="et" label="E.T." color="orange" />
                         </div>                                                            
                     </div>
                 </div>
@@ -76,6 +76,7 @@
                                     filled
                                     clearable
                                     color="red-12"
+                                    @blur="saveObservaciones(index)"
                                 />
                             </div>
                 </q-expansion-item>
@@ -147,17 +148,21 @@
 </template>
 
 <script setup>
-import {ref, computed, watch, onMounted, toRef} from 'vue';
+import {ref, computed, watch, onMounted, toRef, inject} from 'vue';
 import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
+import { createGuideConcepts, getGuideConcepts, observacionesCategorias, saveConceptValue, saveObservation } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const { saveCaptures, getCategories, newVisit,categories} = storeCapturas
+const { saveCaptures, newVisit, categories} = storeCapturas
 
 const props = defineProps({
     service: Object
 })
+
+const offline = inject('statusOnLine')
+const currentUser = inject('currentUser')
 const categorias = ref([])
 const service = toRef(props,'service')
 
@@ -167,6 +172,7 @@ const tipo = ref('')
 const timeStamp = Date.now()
 const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref('')
+const conceptos = ref([])
 
 const fechas_visita = ref({
     from: formattedString,
@@ -174,6 +180,7 @@ const fechas_visita = ref({
 })
 
 watch(fechas_visita,(newVal) => {
+    //al seleccionar la visita se hace el set de las fechas que traiga
     if(newVal != undefined && service.value.id != undefined){        
         if(service.value.fechas == undefined){
             service.value.fechas = []
@@ -185,14 +192,19 @@ watch(fechas_visita,(newVal) => {
 })
 
 const setNoCumple = () => {
-    categorias.value.forEach(categoria => {
-        categoria.conceptos.forEach(concepto => {
-            if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
-        })
-    });
+    //se recorren los conceptos y si alguno incluye la opción no cumple, se guarda bandera para identificar puntos que no cumplen
+    return new Promise((resolve) => {
+        categorias.value.forEach(categoria => {
+            categoria.conceptos.forEach(concepto => {
+                if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
+            })
+        });
+        resolve()
+    })
 }
 
 const setService = (type) => {
+    //al seleccionar el servicio se buscan el total de visitas y se hace el set para mostrar el select de visitas
     if(service.value.id != undefined){
         visitas.value = []
         let visita = 0
@@ -204,7 +216,6 @@ const setService = (type) => {
         }
         visitSelected.value = visitas.value[0]
     }
-
     setLocal(type)
     setFechas()
 }
@@ -214,14 +225,108 @@ watch(service, (newVal) => {
     setFechas()
 })
 
+const changeValue = async (categoria, concepto) => {
+    //recibe los indices de cada uno
+    console.log('editar valor',  categorias.value[categoria].conceptos[concepto])
+    await saveConceptValue({
+        uid:categorias.value[categoria].conceptos[concepto].uid,
+        value:categorias.value[categoria].conceptos[concepto].value,
+        user_id:currentUser.value.id
+    })
+    setLocal('update')
+}
+
+const saveObservaciones = async (categoria) => {
+    //recibe los indices de cada uno
+    console.log('editar observaciones',  categorias.value[categoria])
+    await saveObservation({
+        uid:categorias.value[categoria].uid,
+        texto:categorias.value[categoria].observaciones,
+        user_id:currentUser.value.id
+    })
+    setLocal('update')
+}
+
 watch(visitSelected, async (fecha) => {
     if(service.value.id != undefined){
-        categorias.value = []
+        // categorias.value = []
         setFechas()
-        const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
-        if(getCategorias.status == 200){
-            categorias.value = categories.value.categorias
+        console.log(conceptos.value.length)
+        async function createConcepts(){
+            if(conceptos.value.length == 0){
+                // console.log('espera a que se complete la promesa?', conceptos.value)
+                //si no encuentra conceptos para el servicio, los crea
+                service.value.categorias.forEach(async (category) => {
+                    //maneja las observaciones de cada categoría
+                    const categoriasObservaciones =  await observacionesCategorias({
+                        categoria_id:category.id,
+                        user_id:currentUser.value.id,
+                        service_id:service.value.id,
+                        visita_id:visitSelected.value.valor,
+                        observaciones:category.observaciones
+                    })
+                    //hago el set de uid de la categoría
+                    if(categoriasObservaciones.length > 0){
+                        categoriasObservaciones.forEach((item) => {
+                            if(item.categoria_id == category.id && item.visita_id == visitSelected.value.valor) category.uid = item.uid
+                        })
+                    }
+
+                    category.conceptos.forEach(async (concepto) => {
+                        await createGuideConcepts({
+                            concepto_id:concepto.id,
+                            valor:concepto.value.length == 0 ? [] : concepto.value,
+                            categoria_id:concepto.categoria_id,
+                            user_id:currentUser.value.id,
+                            service_id:service.value.id,
+                            visita_id:visitSelected.value.valor,
+                            global:concepto.global
+                        })
+                    })
+                })
+                conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
+            }
+            // console.log('qué tiene?', conceptos.value.length)
+            //si ya existen los conceptos se iteran
+            
+            setTimeout(() => {
+                // console.log('por qué trae data?', conceptos.value)
+                if(conceptos.value.length>0){
+                    console.log('hace set')
+                    conceptos.value.forEach((concept) => {
+                        categorias.value.forEach((category) => {
+                            // console.log(category)
+                            category.conceptos.forEach((item) => {
+                                if(item.categoria_id == concept.categoria_id && concept.concepto_id == item.id){
+                                    item.value = concept.value
+                                    item.uid = concept.uid
+                                }
+                            })
+                        })
+                    })
+                    setLocal('update')
+                }
+            }, 3000);
         }
+    
+        //si no existe, es la primera vez y se hace el set de la data
+        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias`))
+
+        if(!offline.value) {
+            //si hay conexión a internet
+            if(data == null){
+                conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
+                
+                setTimeout(async () => {
+                    await createConcepts()
+                }, 2000);
+            }
+        }
+        
+        // const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
+        // if(getCategorias.status == 200){
+        //     categorias.value = categories.value.categorias
+        // }
     }
 })
 
@@ -237,8 +342,6 @@ const setFechas = (value) => {
             fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
             fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
         }
-        
-        
     }
 }
 
@@ -270,7 +373,7 @@ const fonts = ref({
 
 const autoSave = async (type) => {
     if(!serviceSelected()) return false     
-    setNoCumple()
+    await setNoCumple()
     setLocal('update')
     // dialog.value = true
     // tipo.value = type == 'manual' ? 'Guardando...' : 'Auto guardado'
@@ -284,6 +387,14 @@ const bloquearVisita = computed(() => {
 
 const addVisit = () => {
     if(!serviceSelected()) return false
+    if(offline.value){
+        $q.notify({
+            position:'top',
+            type:'warning',
+            message:'Para agregar una visita es necesario tener conexión a internet'
+        })
+        return false
+    }
     $q.dialog({
         title: '¿Deseas agregar otra visita?',
         message: 'Asegúrate de haber cerrado la visita anterior, la información guardada en este equipo se borrará',
@@ -326,8 +437,8 @@ const addVisit = () => {
 
 const setLocal = (type) => {
     if(type == 'load'){
-        const data = JSON.parse(localStorage.getItem('categorias'))
-
+        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias`))
+        console.log('encuentra data', data)
         if(data != null){
             categorias.value = data.categorias
             visitSelected.value = visitas.value[0]
@@ -336,12 +447,11 @@ const setLocal = (type) => {
         } 
         else categorias.value = service.value.categorias
     }
-
+    
     if(type == 'update'){
         const indice = visitas.value.indexOf(visitSelected.value)
 
-
-        localStorage.setItem('categorias', JSON.stringify({
+        localStorage.setItem(`service_${service.value.id}_categorias`, JSON.stringify({
             service_id:service.value.id,
             categorias:categorias.value,
             fechas:fechas_visita.value,
