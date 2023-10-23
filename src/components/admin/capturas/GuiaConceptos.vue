@@ -2,7 +2,7 @@
     <q-card>
         <q-card-section>
             <div class="row q-pa-sm">
-                <div class="col-xs-12 col-md-2">
+                <div class="col-xs-12 col-md-3">
                     <q-select 
                         class="q-mr-md" 
                         style="width: 200px;" 
@@ -12,21 +12,18 @@
                         label="Visita"
                     />
                 </div>
-                <div class="col-xs-12 col-md-2 offset-1">
-                    <q-btn class="q-mr-md q-mt-md" icon="add" color="primary" outline @click="addVisit" />
-                </div>
                 <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.from" filled type="date" hint="Fecha inicial" />
+                    <q-input v-model="fechas_visita.fecha_inicio" filled type="date" hint="Fecha inicial" />
                     
                 </div>
                 <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.to" filled type="date" hint="Fecha final" />
+                    <q-input v-model="fechas_visita.fecha_fin" filled type="date" hint="Fecha final" />
                 </div>
                 <div class="col-xs-12 col-md-1 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.inicio" filled type="time" hint="Hora inicio" />
+                    <q-input v-model="fechas_visita.hora_inicio" filled type="time" hint="Hora inicio" />
                 </div>
                 <div class="col-xs-12 col-md-1 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.fin" filled type="time" hint="Hora final" />
+                    <q-input v-model="fechas_visita.hora_final" filled type="time" hint="Hora final" />
                 </div>
             </div>
             <div class="row q-pa-md items-center justify-start ">
@@ -175,8 +172,10 @@ const visitSelected = ref('')
 const conceptos = ref([])
 
 const fechas_visita = ref({
-    from: formattedString,
-    to: formattedString
+    fecha_inicio: formattedString,
+    fecha_fin: formattedString,
+    hora_inicio: "00:00",
+    hora_final: "00:00",
 })
 
 watch(fechas_visita,(newVal) => {
@@ -238,7 +237,7 @@ const changeValue = async (categoria, concepto) => {
 
 const saveObservaciones = async (categoria) => {
     //recibe los indices de cada uno
-    console.log('editar observaciones',  categorias.value[categoria])
+    // console.log('editar observaciones',  categorias.value[categoria])
     await saveObservation({
         uid:categorias.value[categoria].uid,
         texto:categorias.value[categoria].observaciones,
@@ -251,7 +250,7 @@ watch(visitSelected, async (fecha) => {
     if(service.value.id != undefined){
         // categorias.value = []
         setFechas()
-        console.log(conceptos.value.length)
+        // console.log(conceptos.value.length)
         async function createConcepts(){
             if(conceptos.value.length == 0){
                 // console.log('espera a que se complete la promesa?', conceptos.value)
@@ -310,7 +309,7 @@ watch(visitSelected, async (fecha) => {
         }
     
         //si no existe, es la primera vez y se hace el set de la data
-        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias`))
+        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
 
         if(!offline.value) {
             //si hay conexión a internet
@@ -338,9 +337,10 @@ const setFechas = (value) => {
             visitSelected.value = visitas.value[0]
         } else {
             const indice = visitas.value.indexOf(visitSelected.value)
-            
-            fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
-            fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
+            //fecha    
+            // fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
+            // fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
+            fechas_visita.value = service.value.fechas[indice]
         }
     }
 }
@@ -385,65 +385,14 @@ const bloquearVisita = computed(() => {
     return new Date() < fecha_final
 })
 
-const addVisit = () => {
-    if(!serviceSelected()) return false
-    if(offline.value){
-        $q.notify({
-            position:'top',
-            type:'warning',
-            message:'Para agregar una visita es necesario tener conexión a internet'
-        })
-        return false
-    }
-    $q.dialog({
-        title: '¿Deseas agregar otra visita?',
-        message: 'Asegúrate de haber cerrado la visita anterior, la información guardada en este equipo se borrará',
-        ok: {
-        push: true,
-        label:'Continuar'
-        },
-        cancel: {
-        push: true,
-        color: 'dark',
-        label:'Cancelar'
-        },
-        persistent: true
-    }).onOk(async data => {
-        
-        // visitas.value.push({valor:visitas.value.length+1, texto:`Visita ${visitas.value.length+1}` })
-        const addVisit = await newVisit({service_id:service.value.id})
-        
-        if(addVisit.status == 200){
-            if(addVisit.data.msg){
-                $q.notify({
-                    position:'top',
-                    type:'warning',
-                    message:'No es necesario agregar una visita, todos los puntos cumplen'
-                })
-            } else {
-                localStorage.removeItem('categorias')
-                service.value.fechas = addVisit.data.fechas
-                setService()                    
-                $q.notify({
-                    position:'top',
-                    type:'positive',
-                    message:'Se agregó una nueva visita'
-                })
-            }
-        }
-
-    })        
-}
-
 const setLocal = (type) => {
     if(type == 'load'){
-        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias`))
-        console.log('encuentra data', data)
+        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
+        
         if(data != null){
             categorias.value = data.categorias
             visitSelected.value = visitas.value[0]
-            fechas_visita.value.from = data.fechas.from
-            fechas_visita.value.to = data.fechas.to
+            fechas_visita.value = data.fechas
         } 
         else categorias.value = service.value.categorias
     }
@@ -451,7 +400,7 @@ const setLocal = (type) => {
     if(type == 'update'){
         const indice = visitas.value.indexOf(visitSelected.value)
 
-        localStorage.setItem(`service_${service.value.id}_categorias`, JSON.stringify({
+        localStorage.setItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`, JSON.stringify({
             service_id:service.value.id,
             categorias:categorias.value,
             fechas:fechas_visita.value,
@@ -477,10 +426,18 @@ const closeVisit = () => {
         color: 'dark',
         label:'Cancelar'
         },
-        persistent: true
+        persistent: true,
+        // options: {
+        //   type: 'toggle',
+        //   model: [],
+        //   // inline: true,
+        //   items: [
+        //     { label: 'Cerrar servicio', value: 'cerrado', color: 'secondary' }
+        //   ]
+        // },
     }).onOk(async data => {
         
-        const info = JSON.parse(localStorage.getItem('categorias'))
+        const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
 
         if(info.finalizado == 1){
             $q.notify({
@@ -506,6 +463,9 @@ const closeVisit = () => {
                 type:'positive',
                 message:'Visita finalizada'
             })
+            localStorage.removeItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`)
+            localStorage.removeItem(`service_${service.value.id}_data`)
+            localStorage.removeItem('serviceList')
         }
 
     })

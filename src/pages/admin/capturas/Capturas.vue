@@ -57,8 +57,6 @@
 
 <script setup>
 import {onMounted, watch, ref, inject, defineAsyncComponent} from 'vue'
-import { useQuasar } from "quasar";
-
 
 import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'

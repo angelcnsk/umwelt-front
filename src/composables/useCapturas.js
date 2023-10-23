@@ -5,7 +5,7 @@ export const useCapturas = () => {
     const capturasStore = useCapturasStore()
     const { 
         getServiceList, saveCaptures, eventSave, setDateCapture,
-        saveSectionFile, getCategories, newVisit
+        saveSectionFile, getCategories
     } = capturasStore
     const { servicesList,currentService, categories
     } = storeToRefs(capturasStore)
@@ -14,6 +14,6 @@ export const useCapturas = () => {
     return {
         servicesList,currentService,categories,
         getServiceList, saveCaptures,  setDateCapture, saveSectionFile,
-        getCategories, newVisit
+        getCategories
     }
 }

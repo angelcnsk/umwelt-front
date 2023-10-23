@@ -95,18 +95,5 @@ export const useCapturasStore = defineStore('capturas', {
             }).catch((error) => { reject(error) })
           })
         },
-        async newVisit (payload){
-          const url = 'spa/addVisit'
-            
-          const options = {
-            params:{}
-          }
-          
-          return new Promise((resolve, reject) => {
-            api.post(url,payload).then((response) => {
-                resolve(response)
-            }).catch((error) => { reject(error) })
-          })
-        }
     }
 })

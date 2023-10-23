@@ -4,7 +4,7 @@ import { useServiciosStore } from '../stores/servicios'
 export const useServicios = () => {
     const serviciosStore = useServiciosStore()
     const { 
-        nuevoProducto, getProductos, newService, getServices, getService, generarNumDictamen, closeServiceStatus, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, 
+        nuevoProducto, getProductos, newService, getServices, getService, generarNumDictamen, closeServiceStatus, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, newVisit 
     } = serviciosStore
     const { productos,
         nuevoServicio,
@@ -32,6 +32,7 @@ export const useServicios = () => {
         asignados,
         secciones,
         archivos,
-        nuevoProducto, getProductos, newService, getServices, getService, generarNumDictamen, closeServiceStatus, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile, 
+        nuevoProducto, getProductos, newService, getServices, getService, generarNumDictamen, closeServiceStatus, getStaff, selectStaff, getFieldSheets, saveSectionFile, getSectionFile, getReport, getPdfFieldSheets, getSignatoryList, saveSignatory, removeFile,
+        newVisit
     }
 }

@@ -127,7 +127,7 @@ const autoSave = async (type) => {
             dialog.value = false
         }, 2000);
     } else {
-        localStorage.setItem('serviceData', JSON.stringify(currentService.value))
+        localStorage.setItem(`service_${currentService.value.id}_data`, JSON.stringify(currentService.value))
     }
     
 }
