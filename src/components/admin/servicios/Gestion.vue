@@ -71,7 +71,7 @@
                 <q-btn label="Dictamen" 
                     color="primary" 
                     class="q-mr-md" 
-                    @click="getDocument('dictamen')"
+                    @click="showDictamen=true"
                     :disable="data.visitas_en_curso==1"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
@@ -137,6 +137,27 @@
             </q-card-section>
         </q-card>
     </q-dialog>
+    <q-dialog v-model="showDictamen" ref="dictamenData">
+        <q-card style="min-width: 500px;">
+            <q-card-section>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-select :options="data.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emisor" label="Persona que emite dictamen"  />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataDictamen.resultado" label="Resultado del dictamen" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataDictamen.representante" label="Representante legal empresa" />
+                </div>
+                <div class="row q-pa-md justify-end">
+                    <q-btn label="Descargar" color="primary" @click="getDictamen('dictamen')"/>
+                </div>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
 </div>
 </template>
 
@@ -164,6 +185,8 @@ const nuevaVisita = ref(false)
 const visita = ref({})
 const owners = ref([])
 const status = ref(false)
+const showDictamen = ref(false)
+const dataDictamen = ref({})
 
 const notify = (msg, type) => {
     $q.notify({
@@ -184,6 +207,10 @@ watch(signatory, (value) => {
         signatario.value = JSON.parse(value)
     }
 })
+
+const getDictamen = () => {
+    getDocument('dictamen')
+}
 
 const addVisit = (type) => {
     if(type == 'init'){
@@ -304,7 +331,23 @@ const getDocument = (type) => {
             break;
     }
     // console.log(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`)
-    window.open(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`,'_blank')
+    let url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`
+    if(req==4){
+        if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''
+            || dataDictamen.value.emisor == undefined || dataDictamen.value.emisor == ''
+            || dataDictamen.value.resultado == undefined || dataDictamen.value.resultado == ''
+            || dataDictamen.value.representante == undefined || dataDictamen.value.representante == ''
+        ){
+            notify('Todos los campos son requeridos', 'negative')
+            return false
+        }
+        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&fecha_dictamen=${dataDictamen.value.fecha}&emite=${dataDictamen.value.emisor.id}&representante=${dataDictamen.value.representante}&resultado=${dataDictamen.value.resultado}`
+        showDictamen.value = false
+        dataDictamen.value = {}
+        dataDictamen.value.representante = props.data.representante
+    }
+
+    window.open(url,'_blank')
 }
 
 const generarFolio = () => {
@@ -340,9 +383,9 @@ const generarFolio = () => {
 watch(status, async (value) => {
     await closeServiceStatus({
         servicio_id:props.data.id,
-        status: status.value == false ? 'cerrado' : 'abierto'
+        status: status.value ? 'abierto' : 'cerrado'
     })
-    props.data.status =  status.value == false ? 'cerrado' : 'abierto'
+    props.data.status =  status.value ? 'abierto' : 'cerrado'
     $q.notify({
         position:'top',
         type:'positive',
@@ -354,6 +397,7 @@ watch(status, async (value) => {
 onMounted(async () => {
     await getStaff({owner_service:true})
     status.value = props.data.status == 'abierto'
+    dataDictamen.value.representante = props.data.representante
 })
     
 
