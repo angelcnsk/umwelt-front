@@ -225,7 +225,7 @@
                                 hide-selected
                                 fill-input
                                 input-debounce="0"
-                                label="Ciudad"
+                                label="Municipio"
                                 :options="ciudades"
                                 option-label="ciudad"
                                 option-value="id"

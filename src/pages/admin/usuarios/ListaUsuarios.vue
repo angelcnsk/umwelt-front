@@ -77,96 +77,75 @@
     </q-page>
 </template>
   
-<script>
+<script setup>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
+  import {defineComponent, computed, onMounted, watch, ref} from 'vue'
   import { useUsers } from 'src/composables/useUsers.js'
   import { useQuasar } from "quasar";
   import { useRoute, useRouter } from 'vue-router';
 
-  export default defineComponent({
-    name: 'usuariosPage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
-    setup() {
-        const $store = useUsers();
-        const $q = useQuasar();
-        const router = useRouter()
+const $store = useUsers();
+const $q = useQuasar();
+const router = useRouter()
 
-        const {AppActiveUser, createUser, fetchUsers, users} = $store
-        const agregar_usuario = ref(false)    
-        const showNewUser = ref(false)
-        const newUser = ref({})
-        const filter = ref('')
-        const columns = ref([
-            {name: 'id', label: 'Id',field: 'id', align:'center'},
-            {name: 'name', label: 'Nombre', field: 'name', align:'center'},
-            {name: 'email', label: 'Email', field: 'email', align:'center'},
-            {name: 'role', label: 'Role', field: 'role', align:'center'},
-            {name: 'active', label: 'Status', field: 'active', align:'center'}
-        ])
+const {AppActiveUser, createUser, fetchUsers, users} = $store
+const agregar_usuario = ref(false)    
+const showNewUser = ref(false)
+const newUser = ref({})
+const filter = ref('')
+const columns = ref([
+    {name: 'id', label: 'Id',field: 'id', align:'center'},
+    {name: 'name', label: 'Nombre', field: 'name', align:'center'},
+    {name: 'email', label: 'Email', field: 'email', align:'center'},
+    {name: 'role', label: 'Role', field: 'role', align:'center'},
+    {name: 'active', label: 'Status', field: 'active', align:'center'}
+])
 
-        const permisos = computed(async () => {
-            return await AppActiveUser.value.permissions
+const permisos = computed(async () => {
+    return await AppActiveUser.value.permissions
+})
+
+watch(permisos, async (newVal) => {
+    const find = await newVal
+    agregar_usuario.value = find.find((permiso) => permiso === 'agregar_usuario')
+})
+
+const cancelNewuSER = () => {
+    showNewUser.value = !showNewUser.value
+    newUser.value = {}
+}
+
+const addNewUser =  async() => {
+    const responseUser = await createUser(newUser.value)
+    console.log(responseUser)
+    if (responseUser.msg === 'success') {
+        await fetchUsers()
+        $q.notify({
+            position:'top',
+            type: 'positive',
+            message: 'Se creó el usuario con éxito'
         })
         
-        watch(permisos, async (newVal) => {
-            const find = await newVal
-            agregar_usuario.value = find.find((permiso) => permiso === 'agregar_usuario')
-        })
-
-        const cancelNewuSER = () => {
-            showNewUser.value = !showNewUser.value
-            newUser.value = {}
-        }
-
-        const addNewUser =  async() => {
-            const responseUser = await createUser(newUser.value)
-            console.log(responseUser)
-            if (responseUser.msg === 'success') {
-                await fetchUsers()
-                $q.notify({
-                    position:'top',
-                    type: 'positive',
-                    message: 'Se creó el usuario con éxito'
-                })
-                
-                newUser.value = {}
-                
-            } else {
-                $q.notify({
-                    position:'top',
-                    type: 'negative',
-                    message: 'Hubo un problema contacta al administrador'
-                })
-            }
-        }
-
-        const goToUser = (e,value) => {
-            router.push({name:'editar-usuario', params:{id:value.id}})
-        }
-
-        onMounted(async () => {
-            if(AppActiveUser.value.permissions){
-                agregar_usuario.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_usuario')
-            }
-            await fetchUsers()
-        })
+        newUser.value = {}
         
-        return {
-            agregar_usuario,
-            showNewUser,
-            newUser,
-            users,
-            columns,
-            filter,
-            cancelNewuSER,
-            addNewUser,
-            goToUser
-        }
-    },
-  
-  })
-  </script>
+    } else {
+        $q.notify({
+            position:'top',
+            type: 'negative',
+            message: 'Hubo un problema contacta al administrador'
+        })
+    }
+}
+
+const goToUser = (e,value) => {
+    router.push({name:'editar-usuario', params:{id:value.id}})
+}
+
+onMounted(async () => {
+    if(AppActiveUser.value.permissions){
+        agregar_usuario.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_usuario')
+    }
+    await fetchUsers()
+})
+</script>
   
