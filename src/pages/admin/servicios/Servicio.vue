@@ -64,7 +64,7 @@
     </q-card>
 </div>
 <!-- <logistica :servicio="servicio" :id="$route.params.id" /> -->
-<gestion :servicio_id="$route.params.id" :data="servicio" />
+<!-- <gestion :servicio_id="$route.params.id" :data="servicio" /> -->
 
 </q-page>
 </template>
@@ -170,7 +170,6 @@ const update = async () => {
 }
 
 onMounted(async () => {
-    console.log(incognit.value)
     permisos.value = AppActiveUser.value.permissions
     // await getStaff()
     await getService($router.params.id)
