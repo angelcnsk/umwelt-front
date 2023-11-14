@@ -29,7 +29,7 @@ module.exports = configure(function (/* ctx */) {
       'axios',
       'signature',
       'firebase',
-      'bootSw'
+      // 'bootSw'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -176,18 +176,18 @@ module.exports = configure(function (/* ctx */) {
     },
 
     // https://v2.quasar.dev/quasar-cli/developing-pwa/configuring-pwa
-    pwa: {
-      // workboxPluginMode: "GenerateSW",
-      workboxMode: 'injectManifest', // 'GenerateSW' or 'InjectManifest'
-      workboxOptions: {
-        swSrc: 'src-pwa/custom-service-worker.js',
-        swDest: 'sw.js',
-        globPatterns: [
-          // 'index.html', // Asegúrate de que esta línea esté presente
-          // '**/*.png',
-        ],
-      },
-    },
+    // pwa: {
+    //   // workboxPluginMode: "GenerateSW",
+    //   workboxMode: 'injectManifest', // 'GenerateSW' or 'InjectManifest'
+    //   workboxOptions: {
+    //     swSrc: 'src-pwa/custom-service-worker.js',
+    //     swDest: 'sw.js',
+    //     globPatterns: [
+    //       // 'index.html', // Asegúrate de que esta línea esté presente
+    //       // '**/*.png',
+    //     ],
+    //   },
+    // },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli/developing-cordova-apps/configuring-cordova
     cordova: {
