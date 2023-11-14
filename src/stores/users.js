@@ -142,7 +142,6 @@ export const useUsersStore = defineStore('users', {
           if (userId === undefined || userId === null) {
             this.AppActiveUser = response.data.userData
             this.menus = response.data.userData.menus
-            // this.AppActiveUser.avatar = infoUser.avatar != null ? infoUser.avatar : '/src/assets/avatars/avatar-s-11.png'
             
             infoUser.rules = []
             
@@ -162,7 +161,6 @@ export const useUsersStore = defineStore('users', {
               this.AppActiveUser.role = infoUser.role === null ? 'user' : infoUser.role.toLowerCase()
               this.AppActiveUser.owner = infoUser.owner
               this.AppActiveUser.signature = infoUser.signature
-              // this.AppActiveUser.avatar = infoUser.avatar != null ? infoUser.avatar : '/src/assets/avatars/avatar-s-11.png'
               
               // console.log('antes de guardar en localstorage', infoUser)
               localStorage.setItem('userInfo', JSON.stringify(infoUser))

@@ -38,14 +38,16 @@
                     <div class="col-md-3 col-sm-12">
                         <span class="label">Solicitante</span><br>
                         <q-avatar class="q-mr-sm q-mt-sm" size="30px">
-                            <img :src="servicio.requester_avatar" alt="">
+                            <img v-if="servicio.requester_avatar != null" :src="servicio.requester_avatar">
+                            <img v-else :src="incognit">
                         </q-avatar>
                         <span class="user-name-label">{{servicio.requester}}</span>
                     </div>
                     <div class="col-md-3 col-sm-12">
                         <span class="label q-mt-sm">Responsable</span><br>
                         <q-avatar class="q-mr-sm q-mt-sm" size="30px">
-                            <img :src="servicio.owner_avatar" alt="">
+                            <img v-if="servicio.owner_avatar != null" :src="servicio.owner_avatar">
+                            <img v-else :src="incognit">
                         </q-avatar>
                         <span class="user-name-label">{{servicio.owner}}</span>
                     </div>
@@ -69,7 +71,7 @@
 
 
 <script setup>
-import {computed, onMounted, watch, ref} from 'vue'
+import {computed, onMounted, watch, ref, inject} from 'vue'
 import { useQuasar, date } from "quasar";
 import { useRoute } from "vue-router";
 
@@ -92,6 +94,7 @@ const cambiar_fechas_servicio = ref(false)
 const agregar_signatarios = ref(false)
 const logistica = ref(false)
 const llenar_rec = ref(false)
+const incognit = inject('incognit')
 
 const notify = (msg, type) => {
     $q.notify({
@@ -167,6 +170,7 @@ const update = async () => {
 }
 
 onMounted(async () => {
+    console.log(incognit.value)
     permisos.value = AppActiveUser.value.permissions
     // await getStaff()
     await getService($router.params.id)

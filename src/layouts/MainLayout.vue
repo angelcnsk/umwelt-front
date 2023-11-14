@@ -61,7 +61,7 @@
             <q-avatar size="56px" @click="$router.push('/admin/profile')">
               <!-- <img src="https://cdn.quasar.dev/img/boy-avatar.png"> -->
               <img :src="AppActiveUser.avatar" v-if="AppActiveUser.avatar != null">
-              <img v-else :src="uknow" >
+              <img v-else :src="incognit" >
             </q-avatar>
             <q-menu class="text-green text-center"
             >
@@ -116,7 +116,7 @@ const $q = useQuasar()
 const $store = useUsers();
 const {fetchUser, menus, AppActiveUser} = $store
 
-const uknow = ref("https://firebasestorage.googleapis.com/v0/b/umwelt-4afa1.appspot.com/o/assets%2Favatar-s-11.png?alt=media&token=1d9c1292-75e8-4f8e-a8b4-64e80ce42087&_gl=1*52kp9q*_ga*NzAyNDQwMzI5LjE2OTQ4MjY4Mzg.*_ga_CW55HF8NVT*MTY5NjQ3NDY0OC41MC4xLjE2OTY0NzYyMDUuMTYuMC4w")
+const incognit = ref("https://firebasestorage.googleapis.com/v0/b/umwelt-4afa1.appspot.com/o/assets%2Favatar-s-11.png?alt=media&token=1d9c1292-75e8-4f8e-a8b4-64e80ce42087&_gl=1*52kp9q*_ga*NzAyNDQwMzI5LjE2OTQ4MjY4Mzg.*_ga_CW55HF8NVT*MTY5NjQ3NDY0OC41MC4xLjE2OTY0NzYyMDUuMTYuMC4w")
 
 const notifications = ref([])
 const icon = ref('')
@@ -151,6 +151,7 @@ const offline = ref(false)
 
 provide('statusOnLine', offline);
 provide('currentUser', AppActiveUser)
+provide('incognit', incognit)
 
 onMounted(async() => {
   notifications.value = await getNotify()

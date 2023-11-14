@@ -74,8 +74,8 @@ export const useServiciosStore = defineStore('servicios', {
             return new Promise((resolve, reject) => {
               api.get(url, options).then((response) => {
                 this.serviceItem = response.data.dataService
-                this.serviceItem.requester_avatar = response.data.dataService.requester_avatar == null ? "/assets/avatar-s-11.png" : this.serviceItem.requester_avatar
-                this.serviceItem.owner_avatar = response.data.dataService.owner_avatar === null ? "/assets/avatar-s-11.png" : this.serviceItem.owner_avatar
+                this.serviceItem.requester_avatar = this.serviceItem.requester_avatar
+                this.serviceItem.owner_avatar = this.serviceItem.owner_avatar
                 resolve()
               }).catch((error) => { reject(error) })
             })
@@ -114,7 +114,6 @@ export const useServiciosStore = defineStore('servicios', {
               api.get(url, options).then((response) => {
                 const staff = response.data.staff
                 staff.forEach((item) => {
-                  item.avatar === null ? '/assets/avatar-s-11.png' : item.avatar
                   item.select = false
                 })
                 this.staff = staff
