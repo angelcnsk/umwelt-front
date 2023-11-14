@@ -88,7 +88,7 @@ export const useServiciosStore = defineStore('servicios', {
         
             return new Promise((resolve, reject) => {
               api.post(url, payload, options).then((response) => {
-                this.serviceItem.num_dictamen = response.data.num_dictamen
+                this.serviceItem.folio = response.data.folio
                 resolve(response)
               }).catch((error) => { reject(error) })
             })

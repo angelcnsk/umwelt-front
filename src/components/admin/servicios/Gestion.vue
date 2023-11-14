@@ -28,10 +28,10 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="generarFolio"
-                    :disable="data.num_dictamen !== 'Sin número dictamen'"
+                    :disable="data.folio !== 'Sin número dictamen'"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="data.num_dictamen == 'Sin número dictamen'">Genera número de dictamen </span>
+                        <span v-if="data.folio == 'Sin número dictamen'">Genera número de dictamen </span>
                         <span v-else>Ya tiene número de dictamen</span>
                     </q-tooltip>
                 </q-btn>
@@ -60,7 +60,7 @@
                 <q-btn label="Acta" 
                     color="primary" 
                     class="q-mr-md" 
-                    @click="getDocument('acta')"
+                    @click="showActa=true"
                     :disable="data.visitas_en_curso==1"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
@@ -144,7 +144,7 @@
                     <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-select :options="data.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emisor" label="Persona que emite dictamen"  />
+                    <q-select :options="data.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
                 </div>
                 <div class="col-xs-12 col-md-4">
                     <q-input class="q-pa-sm" v-model="dataDictamen.resultado" label="Resultado del dictamen" />
@@ -153,7 +153,41 @@
                     <q-input class="q-pa-sm" v-model="dataDictamen.representante" label="Representante legal empresa" />
                 </div>
                 <div class="row q-pa-md justify-end">
-                    <q-btn label="Descargar" color="primary" @click="getDictamen('dictamen')"/>
+                    <q-btn label="Descargar" color="primary" @click="getDocument('dictamen')"/>
+                </div>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
+    <q-dialog v-model="showActa" ref="actaEvaluacion">
+        <q-card style="min-width: 500px;">
+            <q-card-section>
+                <span class="text-title">Personas que atienden la visita</span>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.persona1" label="Nombre persona 1" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.cargo1" label="Cargo persona 1" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.persona2" label="Nombre persona 2" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.cargo2" label="Cargo persona 2" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo1" label="Nombre testigo 1" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo1" label="Cargo testigo 1" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo2" label="Nombre testigo 2" />
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo2" label="Cargo testigo 2" />
+                </div>
+                <div class="row q-pa-md justify-end">
+                    <q-btn label="Descargar" color="primary" @click="getDocument('acta')"/>
                 </div>
             </q-card-section>
         </q-card>
@@ -187,6 +221,8 @@ const owners = ref([])
 const status = ref(false)
 const showDictamen = ref(false)
 const dataDictamen = ref({})
+const showActa = ref(false)
+const dataActa = ref({})
 
 const notify = (msg, type) => {
     $q.notify({
@@ -207,10 +243,6 @@ watch(signatory, (value) => {
         signatario.value = JSON.parse(value)
     }
 })
-
-const getDictamen = () => {
-    getDocument('dictamen')
-}
 
 const addVisit = (type) => {
     if(type == 'init'){
@@ -327,6 +359,7 @@ const getDocument = (type) => {
             req = 2;
             break;
         default:
+            //dictamen
             req = 4;
             break;
     }
@@ -334,17 +367,53 @@ const getDocument = (type) => {
     let url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`
     if(req==4){
         if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''
-            || dataDictamen.value.emisor == undefined || dataDictamen.value.emisor == ''
+            || dataDictamen.value.emite == undefined || dataDictamen.value.emite == ''
             || dataDictamen.value.resultado == undefined || dataDictamen.value.resultado == ''
             || dataDictamen.value.representante == undefined || dataDictamen.value.representante == ''
         ){
             notify('Todos los campos son requeridos', 'negative')
             return false
         }
-        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&fecha_dictamen=${dataDictamen.value.fecha}&emite=${dataDictamen.value.emisor.id}&representante=${dataDictamen.value.representante}&resultado=${dataDictamen.value.resultado}`
+        const queryString = Object.keys(dataDictamen.value)
+            .map(key => {
+                let value = dataDictamen.value[key];
+
+            // Verificar si el valor es un objeto y extraer un valor específico
+            if (typeof value === 'object' && value !== null) {
+            // Supongamos que quieres extraer el valor de la propiedad 'subpropiedad'
+            value = value.id || '';
+            }
+
+            return encodeURIComponent(key) + '=' + encodeURIComponent(value);
+        }).join('&');
+
+        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}`
         showDictamen.value = false
         dataDictamen.value = {}
         dataDictamen.value.representante = props.data.representante
+    }
+
+    if(req==2){
+        if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
+            || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
+            || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
+            || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
+            || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
+            || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
+            || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
+            || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
+            
+        ){
+            notify('Todos los campos son requeridos', 'negative')
+            return false
+        }
+        const queryString = Object.keys(dataActa.value)
+            .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
+            .join('&');
+            
+        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}`
+        showActa.value = false
+        dataActa.value = {}
     }
 
     window.open(url,'_blank')

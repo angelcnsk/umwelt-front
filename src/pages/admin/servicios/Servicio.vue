@@ -16,17 +16,6 @@
                     <span class="text-subtitle1 q-ml-sm block"> Producto: {{servicio.producto}}</span>
                 </div>
                 <div class="row q-mt-md q-mb-md q-ma-sm">
-                    <!-- <div class="col-md-4 col-xs-12">
-                        <span class="block label q-mb-sm">Orden de trabajo:</span>
-                        <div class="row">
-                        <q-badge transparent 
-                            :color="servicio.ot === 'Sin OT asignada' ? 'negative' : 'primary' " 
-                            outline
-                            class="uppercase"
-                            :label="servicio.ot"
-                        />
-                        </div>
-                    </div> -->
                     <div class="col-lg-4 col-md-4 col-sm-12">
                         <span class="label block q-mb-sm">Estatus:</span>
                         <q-badge 
@@ -35,6 +24,13 @@
                             class="uppercase"
                             :label="servicio.status"
                         />
+                    </div>
+                    <div class="col-md-2 col-xs-12">
+                        <q-input label="Registro STPS" v-model="servicio.reg_stps">
+                            <template v-slot:after>
+                                <q-btn round dense flat color="primary" icon="check" @click="update" />
+                            </template>
+                        </q-input>
                     </div>
                     
                 </div>
@@ -59,70 +55,9 @@
                     </div>
                     <div class="col-md-3 col-sm-12">
                         <span class="label q-mt-sm">Número dictamen</span><br>
-                        <q-badge outline color="grey-7" :label="servicio.num_dictamen" class="q-mt-md" />
+                        <q-badge outline color="grey-7" :label="servicio.folio" class="q-mt-md" />
                     </div>
                 </div>
-
-                <!-- <div class="row q-mt-md q-mb-md ">
-                    <div class="col-md-4 col-xs-12 q-mt-sm">
-                        <span class="label q-ml-sm">Inicio reconocimiento:</span>
-                        <q-input 
-                            class="q-mt-sm q-ml-sm"
-                            filled 
-                            v-model="fecha1" 
-                            mask="date" 
-                            :readonly="!cambiar_fechas_servicio"
-                            style="max-width: 180px;"
-                        >
-                            <template v-slot:append>
-                                <q-icon name="event" class="cursor-pointer">
-                                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                    <q-date v-model="fecha1" :readonly="!cambiar_fechas_servicio">
-                                    <div class="row items-center justify-end">
-                                        <q-btn v-close-popup label="Close" color="primary" flat />
-                                    </div>
-                                    </q-date>
-                                </q-popup-proxy>
-                                </q-icon>
-                            </template>
-                        </q-input>
-                    </div>
-                    <div class="col-md-4 col-xs-12 q-mt-sm">
-                        <span class="label q-mr-sm">Inicio ejecución:</span>
-                        <q-input class="q-mt-sm" filled v-model="fecha2" mask="date" :rules="['date']" style="max-width: 180px;">
-                            <template v-slot:append>
-                                <q-icon name="event" class="cursor-pointer">
-                                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                    <q-date v-model="fecha2" :readonly="!cambiar_fechas_servicio">
-                                    <div class="row items-center justify-end">
-                                        <q-btn v-close-popup label="Close" color="primary" flat />
-                                    </div>
-                                    </q-date>
-                                </q-popup-proxy>
-                                </q-icon>
-                            </template>
-                        </q-input>
-                    </div>
-                    <div class="col-md-4 col-xs-12 q-mt-sm">
-                        <span class="label q-mr-sm">Fin ejecución:</span>
-                        <q-input class="q-mt-sm" filled v-model="fecha3" mask="date" :rules="['date']" style="max-width: 180px;">
-                            <template v-slot:append>
-                                <q-icon name="event" class="cursor-pointer">
-                                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                    <q-date v-model="fecha3" :readonly="!cambiar_fechas_servicio">
-                                    <div class="row items-center justify-end">
-                                        <q-btn v-close-popup label="Close" color="primary" flat />
-                                    </div>
-                                    </q-date>
-                                </q-popup-proxy>
-                                </q-icon>
-                            </template>
-                        </q-input>
-                    </div>
-                </div> -->
-                <!-- <div class="row q-mr-md justify-end q-mt-sm">
-                    <q-btn v-if="cambiar_fechas_servicio" color="primary" @click="update" label="Guardar" />
-                </div> -->
             </q-card-section>
     </q-card>
 </div>
@@ -149,7 +84,7 @@ const $q = useQuasar();
 const $router = useRoute()
 
 const { AppActiveUser } = storeUsers
-const { getService, serviceItem, saveCaratulaPayload } = storeServicios
+const { getService, serviceItem, closeServiceStatus } = storeServicios
 
 const generar_ot = ref(false)
 
@@ -210,7 +145,7 @@ const update = async () => {
     
     $q.dialog({
         title: '¿Estás seguro?',
-        message: 'Se guardarán las fechas seleccionadas',
+        message: 'Se guardará el registro STPS ingresado',
         ok: {
             push: true,
             label:'Aceptar'
@@ -222,15 +157,10 @@ const update = async () => {
         },
         persistent: true
     }).onOk(async data => {
-        const dates = {
-            recognition_date: date.formatDate(fecha1.value, 'YYYY-MM-DD'),
-            start_date: date.formatDate(fecha2.value, 'YYYY-MM-DD'),
-            end_date: date.formatDate(fecha3.value, 'YYYY-MM-DD')
-        }
+        const registro = await closeServiceStatus({servicio_id: servicio.value.id, reg_stps:servicio.value.reg_stps})
 
-        const payload = await saveCaratulaPayload({data:dates, servicio_id: $router.params.id, dates:true})
-        if(payload.status === 200) notify('Se actualizó la información correctamente', 'positive') 
-        else notify('Hubo un problema al guardar la información','negative')                       
+        if(registro.status == 200) notify('Se guardo el registro correctamente','positive')
+        else notify('Por favor contacta al administrador','negative')
     })
             
     
