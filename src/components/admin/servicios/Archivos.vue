@@ -92,7 +92,6 @@ const notify = (msg, type) => {
 
 watch(AppActiveUser, (valor) => {
     permisos.value = valor.permissions
-    console.log('set permisos')
 })
 
 const permisos = ref([])
@@ -100,7 +99,6 @@ const permisos = ref([])
 watch(permisos, (newVal) => {
     if(newVal != undefined){
         const find = newVal
-        console.log('permisos_usuario', newVal)
         cargar_archivos.value = find.find((permiso) => permiso === 'cargar_archivo')
         borrar_archivos.value = find.find((permiso) => permiso === 'borrar_archivo')
     }

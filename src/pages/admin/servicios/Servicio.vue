@@ -64,7 +64,7 @@
     </q-card>
 </div>
 <!-- <logistica :servicio="servicio" :id="$route.params.id" /> -->
-<!-- <gestion :servicio_id="$route.params.id" :data="servicio" /> -->
+<gestion :servicio_id="$route.params.id" :data="servicio" />
 
 </q-page>
 </template>
