@@ -395,6 +395,12 @@ const setLocal = (type) => {
             fechas_visita.value = data.fechas
         } 
         else categorias.value = service.value.categorias
+
+        categorias.value.forEach((categoria) => {
+            if(categoria.observaciones == ""){
+                categoria.observaciones = "[documental] <br> [fisica] <br> [visitas]"
+            }
+        })
     }
     
     if(type == 'update'){
