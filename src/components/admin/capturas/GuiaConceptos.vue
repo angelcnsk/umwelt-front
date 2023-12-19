@@ -20,10 +20,10 @@
                     <q-input v-model="fechas_visita.fecha_fin" filled type="date" hint="Fecha final" />
                 </div>
                 <div class="col-xs-12 col-md-1 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.hora_inicio" filled type="time" hint="Hora inicio" />
+                    <q-input v-model="fechas_visita.hora_inicio" filled type="text" hint="Hora inicio" />
                 </div>
                 <div class="col-xs-12 col-md-1 d-inline-block q-mt-lg q-ml-sm">
-                    <q-input v-model="fechas_visita.hora_final" filled type="time" hint="Hora final" />
+                    <q-input v-model="fechas_visita.hora_final" filled type="text" hint="Hora final" />
                 </div>
             </div>
             <div class="row q-pa-md items-center justify-start ">
@@ -398,7 +398,7 @@ const setLocal = (type) => {
 
         categorias.value.forEach((categoria) => {
             if(categoria.observaciones == ""){
-                categoria.observaciones = "[documental] <br> [fisica] <br> [visitas]"
+                categoria.observaciones = "[documental] <br> [fisica] <br> [entrevista]"
             }
         })
     }
