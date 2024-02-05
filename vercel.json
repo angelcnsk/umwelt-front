@@ -2,5 +2,12 @@
     "routes": [
         { "handle": "filesystem" },
         { "src": "/.*", "dest": "/index.html" }
-    ]
+    ],
+    "functions": {
+        "api/**": {
+            "memory": 128,
+            "maxDuration": 10,
+            "runtime": "vercel-node-18"
+        }
+    }
   }
