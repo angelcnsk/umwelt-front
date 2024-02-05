@@ -1,5 +1,6 @@
 {
     "routes": [
+        { "src": "/api/.*", "dest": "/api/saludo.js" },
         { "handle": "filesystem" },
         { "src": "/.*", "dest": "/index.html" }
     ],
