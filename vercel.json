@@ -3,7 +3,7 @@
       { "src": "/api/saludo", "dest": "/api/saludo.js" },
       { "src": "/api/.*", "dest": "/functions/api/index.js" },
       { "handle": "filesystem" },
-      { "src": "/.*", "dest": "/index.html" }
+      { "src": "/{!(api)/**}", "dest": "/index.html" }
     ],
     "functions": {
         "api/**": {
