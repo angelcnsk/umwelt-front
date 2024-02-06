@@ -5,9 +5,9 @@
       { "src": "/.*", "dest": "/index.html" }
     ],
     "functions": {
-      "api/saludo": {
-        "memory": 128,
-        "maxDuration": 10
-      }
+        "api/**": {
+            "memory": 128,
+            "maxDuration": 10
+        }
     }
   }
