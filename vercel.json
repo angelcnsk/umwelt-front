@@ -6,7 +6,7 @@
       { "src": "/.*", "dest": "/index.html" }
     ],
     "functions": {
-        "functions/api/saludo": {
+        "functions/api/saludo.js": {
             "memory": 128,
             "maxDuration": 10
         }
