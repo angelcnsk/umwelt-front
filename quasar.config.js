@@ -66,8 +66,6 @@ module.exports = configure(function (/* ctx */) {
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
-
-      // publicPath: '/',
       // analyze: true,
       // env: {},
       // rawDefine: {}
@@ -83,40 +81,40 @@ module.exports = configure(function (/* ctx */) {
         
       ]
     },
-    // server: {
-    //   // ...
-    //   middleware: [
-    //     function (req, res, next) {
-    //       const parsedUrl = url.parse(req.url, true);
-    //       const { pathname } = parsedUrl;
+    server: {
+      // ...
+      middleware: [
+        function (req, res, next) {
+          const parsedUrl = url.parse(req.url, true);
+          const { pathname } = parsedUrl;
 
-    //       if (pathname.startsWith('/api/')) {
-    //         const filePath = path.join(__dirname, `api${pathname}`);
-    //         const { method } = req;
-    //         const { headers } = req;
+          if (pathname.startsWith('/api/')) {
+            const filePath = path.join(__dirname, `api${pathname}`);
+            const { method } = req;
+            const { headers } = req;
 
-    //         delete headers.host;
+            delete headers.host;
 
-    //         const lambda = new AWS.Lambda();
-    //         const lambdaParams = {
-    //           FunctionName: 'my-lambda',
-    //           InvocationType: 'RequestResponse',
-    //           Payload: JSON.stringify({ method, headers, path: pathname })
-    //         };
+            const lambda = new AWS.Lambda();
+            const lambdaParams = {
+              FunctionName: 'my-lambda',
+              InvocationType: 'RequestResponse',
+              Payload: JSON.stringify({ method, headers, path: pathname })
+            };
 
-    //         lambda.invoke(lambdaParams, (err, data) => {
-    //           if (err) {
-    //             res.status(500).send(err);
-    //           } else {
-    //             res.status(200).send(data.Payload);
-    //           }
-    //         });
-    //       } else {
-    //         next();
-    //       }
-    //     }
-    //   ]
-    // },
+            lambda.invoke(lambdaParams, (err, data) => {
+              if (err) {
+                res.status(500).send(err);
+              } else {
+                res.status(200).send(data.Payload);
+              }
+            });
+          } else {
+            next();
+          }
+        }
+      ]
+    },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
