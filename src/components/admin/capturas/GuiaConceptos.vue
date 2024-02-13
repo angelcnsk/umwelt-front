@@ -77,6 +77,30 @@
                                 />
                             </div>
                 </q-expansion-item>
+                <q-expansion-item
+                    group="declaracion"
+                    expand-separator
+                    icon="ads_click"
+                    header-class="text-primary"
+                    label='Declaración del visitado, si quisiera hacerla:'
+                    style="border: .2px solid gray"
+                >
+                <q-separator />       
+                <div class="col-md-12">
+                    <q-editor
+                        class="q-editor-mb"
+                        v-model="textoDeclaracion"
+                        :dense="$q.screen.lt.md"
+                        :toolbar="toolbar"
+                        :fonts="fonts"
+                        filled
+                        clearable
+                        color="red-12"
+                        @blur="saveObservaciones(index)"
+                    />
+                </div>
+                </q-expansion-item>
+                <contentActa :service="service"  />
             </q-list>
             <div class="q-pa-md" v-else>
                 <q-item style="max-width: 300px">
@@ -124,7 +148,9 @@
                 </q-item-section>
                 </q-item>
             </div>
+            
         </q-card-section>
+        
     </q-card>
         <q-dialog v-model="dialog" position="bottom">
         <q-card style="width: 350px">
@@ -142,17 +168,21 @@
             </q-card-section>
         </q-card>
         </q-dialog>
+
 </template>
 
 <script setup>
-import {ref, computed, watch, onMounted, toRef, inject} from 'vue';
+import {ref, computed, watch, onMounted, toRef, inject, provide, defineAsyncComponent} from 'vue';
 import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { createGuideConcepts, getGuideConcepts, observacionesCategorias, saveConceptValue, saveObservation } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
+import { storeActa } from "src/composables/firebase/storage";
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const { saveCaptures, newVisit, categories} = storeCapturas
+const { saveCaptures, newVisit, listenerObservations} = storeCapturas
+
+const contentActa = defineAsyncComponent(() => import('src/components/admin/capturas/Acta.vue'))
 
 const props = defineProps({
     service: Object
@@ -170,6 +200,10 @@ const timeStamp = Date.now()
 const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref('')
 const conceptos = ref([])
+const textoDeclaracion = ref('<p><strong>Declaración del visitado, si quisiera hacerla:</strong></p>')
+
+
+provide('currentVisit', visitSelected);
 
 const fechas_visita = ref({
     fecha_inicio: formattedString,
@@ -226,23 +260,30 @@ watch(service, (newVal) => {
 
 const changeValue = async (categoria, concepto) => {
     //recibe los indices de cada uno
-    console.log('editar valor',  categorias.value[categoria].conceptos[concepto])
-    await saveConceptValue({
-        uid:categorias.value[categoria].conceptos[concepto].uid,
-        value:categorias.value[categoria].conceptos[concepto].value,
-        user_id:currentUser.value.id
+    const concept = categorias.value[categoria].conceptos[concepto]
+    
+    //se busca el concepto en todas las categorias y se actualiza el valor
+    categorias.value.forEach((categoria) => {
+        categoria.conceptos.forEach((concepto) => {
+            if(concept.id == concepto.id) concepto.value = concept.value
+        })
     })
+    // await saveConceptValue({
+    //     uid:categorias.value[categoria].conceptos[concepto].uid,
+    //     value:categorias.value[categoria].conceptos[concepto].value,
+    //     user_id:currentUser.value.id
+    // })
     setLocal('update')
 }
 
 const saveObservaciones = async (categoria) => {
     //recibe los indices de cada uno
-    // console.log('editar observaciones',  categorias.value[categoria])
-    await saveObservation({
+    console.log('editar observaciones',  categorias.value[categoria])
+    /*await saveObservation({
         uid:categorias.value[categoria].uid,
         texto:categorias.value[categoria].observaciones,
         user_id:currentUser.value.id
-    })
+    })*/
     setLocal('update')
 }
 
@@ -250,12 +291,13 @@ watch(visitSelected, async (fecha) => {
     if(service.value.id != undefined){
         // categorias.value = []
         setFechas()
-        // console.log(conceptos.value.length)
+        console.log("trae conceptos", conceptos.value.length)
         async function createConcepts(){
             if(conceptos.value.length == 0){
-                // console.log('espera a que se complete la promesa?', conceptos.value)
+                console.log('espera a que se complete la promesa?', conceptos.value)
                 //si no encuentra conceptos para el servicio, los crea
                 service.value.categorias.forEach(async (category) => {
+                    console.log("recorre categorías")
                     //maneja las observaciones de cada categoría
                     const categoriasObservaciones =  await observacionesCategorias({
                         categoria_id:category.id,
@@ -284,6 +326,7 @@ watch(visitSelected, async (fecha) => {
                     })
                 })
                 conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
+                console.log('get Concepts', conceptos.value)
             }
             // console.log('qué tiene?', conceptos.value.length)
             //si ya existen los conceptos se iteran
@@ -291,12 +334,12 @@ watch(visitSelected, async (fecha) => {
             setTimeout(() => {
                 // console.log('por qué trae data?', conceptos.value)
                 if(conceptos.value.length>0){
-                    console.log('hace set')
+                    //console.log('hace set')
                     conceptos.value.forEach((concept) => {
+                        console.log("se ejecuta set de conceptos")
                         categorias.value.forEach((category) => {
-                            // console.log(category)
                             category.conceptos.forEach((item) => {
-                                if(item.categoria_id == concept.categoria_id && concept.concepto_id == item.id){
+                                if(item.categoria_vista_id == concept.categoria_id && concept.concepto_id == item.id){
                                     item.value = concept.value
                                     item.uid = concept.uid
                                 }
@@ -310,15 +353,16 @@ watch(visitSelected, async (fecha) => {
     
         //si no existe, es la primera vez y se hace el set de la data
         const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
-
+        
         if(!offline.value) {
             //si hay conexión a internet
             if(data == null){
-                conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
+                //obtiene los conceptos desde firebase
+                // conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
                 
-                setTimeout(async () => {
-                    await createConcepts()
-                }, 2000);
+                // setTimeout(async () => {
+                //     await createConcepts()
+                // }, 2000);
             }
         }
         
@@ -345,32 +389,6 @@ const setFechas = (value) => {
     }
 }
 
-const toolbar = ref([
-    [
-        {
-            icon: $q.iconSet.editor.align,
-            fixedLabel: true,
-            list: 'only-icons',
-            options: ['left', 'center', 'right', 'justify']
-        },
-        
-    ],
-    ['removeFormat'],
-    ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
-    ['undo', 'redo'],
-])
-const fonts = ref({
-    arial: 'Arial',
-    arial_black: 'Arial Black',
-    comic_sans: 'Comic Sans MS',
-    courier_new: 'Courier New',
-    impact: 'Impact',
-    lucida_grande: 'Lucida Grande',
-    times_new_roman: 'Times New Roman',
-    verdana: 'Verdana'
-})    
-                                            
-
 const autoSave = async (type) => {
     if(!serviceSelected()) return false     
     await setNoCumple()
@@ -396,11 +414,11 @@ const setLocal = (type) => {
         } 
         else categorias.value = service.value.categorias
 
-        categorias.value.forEach((categoria) => {
-            if(categoria.observaciones == ""){
-                categoria.observaciones = "[documental] <br> [fisica] <br> [entrevista]"
-            }
-        })
+        // categorias.value.forEach((categoria) => {
+        //     if(categoria.observaciones == ""){
+        //         categoria.observaciones = "[documental] <br> [fisica] <br> [entrevista]"
+        //     }
+        // })
     }
     
     if(type == 'update'){
@@ -411,9 +429,14 @@ const setLocal = (type) => {
             categorias:categorias.value,
             fechas:fechas_visita.value,
             visita:visitSelected.value.valor,
-            finalizado: service.value.fechas[indice].finalizado
+            finalizado: service.value.fechas[indice].finalizado,
+            declaracion:textoDeclaracion.value
         }))
+        setTimeout(() => {
+            listenerObservations()
+        }, 1000);
     }
+    
 }
 
 const closeVisit = () => {
@@ -454,12 +477,22 @@ const closeVisit = () => {
             return false
         }
 
+        const blob = new Blob([info.acta], { type: 'text/plain' });
+
+        const actaStore = await storeActa({ 
+            file:blob,
+            service_id: info.service_id,
+            visita: visitSelected.value.valor
+        })
+        
         const saveData = await saveCaptures({
             service_id: info.service_id, 
             categorias:info.categorias, 
             type:"conceptos",
             fechas:info.fechas,
             visita: visitSelected.value.valor,
+            acta:actaStore.path,
+            storageId:actaStore.storageId,
             finalizado:1
         })
         
@@ -502,6 +535,31 @@ const disableOptions = computed(() => {
         }
     }
 })
+
+const toolbar = ref([
+    [
+        {
+            icon: $q.iconSet.editor.align,
+            fixedLabel: true,
+            list: 'only-icons',
+            options: ['left', 'center', 'right', 'justify']
+        },
+        
+    ],
+    ['removeFormat'],
+    ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
+    ['undo', 'redo'],
+])
+const fonts = ref({
+    arial: 'Arial',
+    arial_black: 'Arial Black',
+    comic_sans: 'Comic Sans MS',
+    courier_new: 'Courier New',
+    impact: 'Impact',
+    lucida_grande: 'Lucida Grande',
+    times_new_roman: 'Times New Roman',
+    verdana: 'Verdana'
+})   
 
 onMounted( async () => {
     setService('load')

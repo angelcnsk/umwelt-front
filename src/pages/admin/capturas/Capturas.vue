@@ -20,7 +20,7 @@
             mobile-arrows
             class="bg-primary text-white shadow-2"
         >
-            <q-tab name="documentacion" label="Documentación" />
+            <!-- <q-tab name="documentacion" label="Documentación" /> -->
             <q-tab name="inspeccion" label="Inspección" />
             <q-tab name="archivos" label="Archivos" />
             <q-tab name="gestion" label="Gestión" />
@@ -34,9 +34,9 @@
           transition-prev="jump-up"
           transition-next="jump-up"
         >
-          <q-tab-panel name="documentacion">
+          <!-- <q-tab-panel name="documentacion">
             <documentacion :secciones="secciones" :service="currentService" />
-          </q-tab-panel>
+          </q-tab-panel> -->
 
           <q-tab-panel name="inspeccion">
             <guia-conceptos :service="currentService" />
@@ -56,13 +56,13 @@
 </template>
 
 <script setup>
-import {onMounted, watch, ref, inject, defineAsyncComponent} from 'vue'
+import {onMounted, watch, ref, inject, defineAsyncComponent, provide} from 'vue'
 
 import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { searchDocuments, createDocument } from "src/composables/firebase/capturas/nom02/documentos.js";
 
-const documentacion = defineAsyncComponent(() => import('src/components/admin/capturas/Documentacion.vue'))
+// const documentacion = defineAsyncComponent(() => import('src/components/admin/capturas/Documentacion.vue'))
 
 const guiaConceptos = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaConceptos.vue'))
 
@@ -80,7 +80,7 @@ const offline = inject('statusOnLine')
 const secciones = ref([])
 const guiaconceptos = ref([])
 
-const tab = ref('documentacion')
+const tab = ref('inspeccion')
 
 const formDate =  (date) => {
     const year = date.getFullYear().toString()
@@ -112,45 +112,45 @@ const setDataService = async (type) => {
     //obtengo los documentos del servicio
     if(!offline.value){
         if(type == 'remote'){
-            let documents = await searchDocuments({
-                service_id: currentService.value.id
-            })
+            // let documents = await searchDocuments({
+            //     service_id: currentService.value.id
+            // })
 
-            if(documents == undefined){
-                empty = true
-                //si no existen documentos se crean
-                secciones.value.forEach(async (seccion) => {
-                    seccion.documents.forEach(async (document) => {
-                        await createDocument({
-                            global:document.global,
-                            seccion_id:seccion.id,
-                            doc_id:document.id,
-                            service_id:currentService.value.id,
-                            value:'',
-                            user_id:AppActiveUser.value.id,
-                        })
-                    })
-                })
-            }
-            if(empty){
-            //si no había documentos y se crearon, los recupero
-                documents = await searchDocuments({
-                    service_id: currentService.value.id
-                })
-            }
+            // if(documents == undefined){
+            //     empty = true
+            //     //si no existen documentos se crean
+            //     secciones.value.forEach(async (seccion) => {
+            //         seccion.documents.forEach(async (document) => {
+            //             await createDocument({
+            //                 global:document.global,
+            //                 seccion_id:seccion.id,
+            //                 doc_id:document.id,
+            //                 service_id:currentService.value.id,
+            //                 value:'',
+            //                 user_id:AppActiveUser.value.id,
+            //             })
+            //         })
+            //     })
+            // }
+            // if(empty){
+            // //si no había documentos y se crearon, los recupero
+            //     documents = await searchDocuments({
+            //         service_id: currentService.value.id
+            //     })
+            // }
             
-            if(documents != undefined){
-                documents.forEach((document) => {
-                    currentService.value.secciones.forEach((seccion) => {
-                        seccion.documents.forEach((doc) => {
-                            if(doc.id === document.doc_id){
-                                doc.filled_i = document.value
-                                doc.uid = document.uid
-                            }
-                        })
-                    })
-                })
-            }
+            // if(documents != undefined){
+            //     documents.forEach((document) => {
+            //         currentService.value.secciones.forEach((seccion) => {
+            //             seccion.documents.forEach((doc) => {
+            //                 if(doc.id === document.doc_id){
+            //                     doc.filled_i = document.value
+            //                     doc.uid = document.uid
+            //                 }
+            //             })
+            //         })
+            //     })
+            // }
         } 
         
         //se actualiza el localstorage con la data
@@ -158,13 +158,13 @@ const setDataService = async (type) => {
     } else {
         //si al seleccionar servicio no hay internet o se busca en local
         //se agrega el valor en vacío para que se pueda llenar el form
-        if(type == 'remote'){
-            currentService.value.secciones.forEach((seccion) => {
-                seccion.documents.forEach((doc) => {
-                    doc.filled_i = ''
-                })
-            })
-        }
+        // if(type == 'remote'){
+        //     currentService.value.secciones.forEach((seccion) => {
+        //         seccion.documents.forEach((doc) => {
+        //             doc.filled_i = ''
+        //         })
+        //     })
+        // }
     }
     guiaconceptos.value = currentService.value.categorias
 }

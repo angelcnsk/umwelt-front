@@ -6,10 +6,14 @@ export const useCapturasStore = defineStore('capturas', {
         return { 
             servicesList:[],
             currentService:{},
-            categories:[]
+            categories:[],
+            listener:false
         }
     },
     actions:{
+        listenerObservations() {
+          this.listener = !this.listener
+        },
         getServiceList (payload) {
             const url = 'spa/getServiceStaff'
             

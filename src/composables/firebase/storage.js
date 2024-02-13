@@ -46,3 +46,22 @@ export async function destroyFile(params) {
         return {data:{error:true}}
     }
 }
+
+export async function storeActa(params) {
+    const storage = getStorage();
+    let folderPath = `services/service_${params.service_id}/actas/acta_visita${params.visita}.txt`
+    
+    // Create a storage reference from our storage service
+    const storageRef = ref(storage,`${folderPath}`);
+
+    let error = false
+    const upload = await uploadBytes(storageRef, params.file)
+    console.log(upload)
+    
+    if(upload.metadata != undefined){
+        return {path:`${import.meta.env.VITE_bucket}${upload.metadata.fullPath}`, storageId:upload.metadata.md5Hash}
+    } else {
+        if (upload.error != undefined || upload.code != undefined) 
+        return {data:{error:true}}
+    }
+}
