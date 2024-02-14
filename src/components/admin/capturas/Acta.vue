@@ -29,8 +29,8 @@ const props = defineProps({
 const visita = inject('currentVisit')
 const service = toRef(props,'service')
 
-const textoDocumental = ref('')
-const textoFisica = ref('')
+const textoDocumental = ref('<h6> VERIFICACIÓN DOCUMENTAL</h6>')
+const textoFisica = ref('<h6>INSPECCIÓN FÍSICA</h6>')
 const texto = ref('')
 const localData = ref(null)
 
@@ -130,8 +130,8 @@ const configText = () => {
     }).onOk(async data => {
         //console.log('se ejecuta acción de escribir acta')
         getLocalData()
-        textoDocumental.value = ''
-        textoFisica.value = ''
+        textoDocumental.value = '<h6> VERIFICACIÓN DOCUMENTAL</h6>'
+        textoFisica.value = '<h6>INSPECCIÓN FÍSICA</h6>'
         if(localData.value != null){
             localData.value.categorias.forEach((categoria) => {
                 if(categoria.documental == 1 ){
@@ -139,9 +139,10 @@ const configText = () => {
                     textoDocumental.value+= categoria.observaciones
                 } else {
                     //console.log('es fisica')
-                    if(categoria.texto == 'Entrevistas'){
-                        textoFisica.value += "<h5>Sección Entrevistas</h5><br>"
+                    if(categoria.texto === 'En caso de ser de riesgo de incendio alto ¿Se cuenta con algunos de los siguientes documentos?'){
+                        
                         textoFisica.value += categoria.observaciones
+                        textoFisica.value+= localData.value.entrevistas
                         textoFisica.value+= localData.value.declaracion
                         
                     } else {

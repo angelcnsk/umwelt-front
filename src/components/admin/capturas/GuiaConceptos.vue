@@ -78,6 +78,29 @@
                             </div>
                 </q-expansion-item>
                 <q-expansion-item
+                    group="entrevistas"
+                    expand-separator
+                    icon="ads_click"
+                    header-class="text-primary"
+                    label='Entrevistas'
+                    style="border: .2px solid gray"
+                >
+                <q-separator />       
+                <div class="col-md-12">
+                    <q-editor
+                        class="q-editor-mb"
+                        v-model="textoEntrevistas"
+                        :dense="$q.screen.lt.md"
+                        :toolbar="toolbar"
+                        :fonts="fonts"
+                        filled
+                        clearable
+                        color="red-12"
+                        @blur="saveObservaciones(index)"
+                    />
+                </div>
+                </q-expansion-item>
+                <q-expansion-item
                     group="declaracion"
                     expand-separator
                     icon="ads_click"
@@ -200,6 +223,7 @@ const timeStamp = Date.now()
 const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref('')
 const conceptos = ref([])
+const textoEntrevistas = ref('<h6>SECCIÓN ENTREVISTAS</h6>')
 const textoDeclaracion = ref('<p><strong>Declaración del visitado, si quisiera hacerla:</strong></p>')
 
 
@@ -430,6 +454,7 @@ const setLocal = (type) => {
             fechas:fechas_visita.value,
             visita:visitSelected.value.valor,
             finalizado: service.value.fechas[indice].finalizado,
+            entrevistas:textoEntrevistas.value,
             declaracion:textoDeclaracion.value
         }))
         setTimeout(() => {
@@ -468,14 +493,15 @@ const closeVisit = () => {
         
         const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
 
-        if(info.finalizado == 1){
-            $q.notify({
-                position:'top',
-                type:'negative',
-                message:'La visita está finalizada, no es posible continuar'
-            })
-            return false
-        }
+        //candado cerrar visita
+        // if(info.finalizado == 1){
+        //     $q.notify({
+        //         position:'top',
+        //         type:'negative',
+        //         message:'La visita está finalizada, no es posible continuar'
+        //     })
+        //     return false
+        // }
 
         const blob = new Blob([info.acta], { type: 'text/plain' });
 
