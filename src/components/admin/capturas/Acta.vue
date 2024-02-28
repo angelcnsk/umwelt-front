@@ -9,6 +9,8 @@
         filled
         clearable
         color="red-12"
+        min-height="10rem"
+        max-height="20rem"
         
     />
 </template>
