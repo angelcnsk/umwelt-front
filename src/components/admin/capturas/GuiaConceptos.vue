@@ -450,6 +450,8 @@ const setLocal = (type) => {
     if(type == 'update'){
         const indice = visitas.value.indexOf(visitSelected.value)
 
+        const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
+        
         localStorage.setItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`, JSON.stringify({
             service_id:service.value.id,
             categorias:categorias.value,
@@ -457,7 +459,8 @@ const setLocal = (type) => {
             visita:visitSelected.value.valor,
             finalizado: service.value.fechas[indice].finalizado,
             entrevistas:textoEntrevistas.value,
-            declaracion:textoDeclaracion.value
+            declaracion:textoDeclaracion.value,
+            acta:info.acta ? info.acta : ''
         }))
         setTimeout(() => {
             listenerObservations()
