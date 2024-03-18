@@ -154,7 +154,7 @@ provide('currentUser', AppActiveUser)
 provide('incognit', incognit)
 
 onMounted(async() => {
-  notifications.value = await getNotify()
+  notifications.value = await getNotify(user)
   
   window.addEventListener('offline',() => {
     offline.value = true

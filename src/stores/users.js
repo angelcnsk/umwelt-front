@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { api } from 'boot/axios'
 import { auth } from "boot/firebase";
-import {onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, updateProfile, setPersistence, browserLocalPersistence } from "firebase/auth"
+import {signInWithCredential, GoogleAuthProvider } from "firebase/auth"
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 export const useUsersStore = defineStore('users', {
@@ -23,21 +23,6 @@ export const useUsersStore = defineStore('users', {
       const user = auth.currentUser
       return new Promise(async (resolve, reject) => {
         
-        if(payload.type == 'name'){
-          await updateProfile(user,{
-            displayName:payload.name
-          })
-        } 
-        
-        if(payload.type == 'email'){
-          await updateEmail(user,payload.email)
-        }
-  
-        if (payload.type == 'password') {
-          await updatePassword(user,payload.password).catch((e) => {
-            if(e.error || e.code) resolve({data:{error:true}})
-          })
-        }
         const url = 'spa/updateUser'
         const token = JSON.parse(localStorage.getItem('backendToken'))
         const options = {
@@ -54,27 +39,26 @@ export const useUsersStore = defineStore('users', {
           if(response.data.error){
             resolve(response)
           } else {
-            const token = JSON.stringify(response.data)
-            localStorage.setItem('backendToken', token)   
-            await this.fetchUser()
-            // resolve(response)
-            signInWithEmailAndPassword(auth, payload.email, payload.password).then((user) => {
-              // onAuthStateChanged(auth,(currentUser) => {
-              //   console.log('login firebase',currentUser)
-              // })
-              localStorage.setItem('firebase_id', user.user.uid)
-              // if(!user.emailVerified){
-              //   console.log('se manda verificación')
-              //   sendEmailVerification(user)
-              // }
-            }).catch(async (e) => {
-              //si llega a este punto existe el usuario en el backend pero no en firebase, se crea el usuario en firebase
-              if(e.code === 'auth/invalid-login-credentials'){
-                const newUser = await createUserWithEmailAndPassword(auth, payload.email, payload.password);
-              }
+              const token = JSON.stringify(response.data)
+              localStorage.setItem('backendToken', token)
+              const provider = new GoogleAuthProvider();
               
-            });
-            resolve(response)
+              try {
+                const credential = GoogleAuthProvider.credential(null, response.data.googleToken);
+
+                const userCredential = await signInWithCredential(auth, credential);
+    
+                // Acceso al usuario autenticado
+                const user = userCredential.user;
+    
+                // Aquí puedes manejar la respuesta del inicio de sesión exitoso
+                console.log("Inicio de sesión exitoso:", user);
+                await this.fetchUser()
+              } catch (error) {
+                console.log(error)
+              }
+
+              resolve(response)
           }
       })
     },
@@ -132,8 +116,8 @@ export const useUsersStore = defineStore('users', {
         const token = JSON.parse(localStorage.getItem('backendToken'))
         const options = {
           headers:{'Authorization': `Bearer ${token.accessToken}`},
-          params:{id: userId,
-            firebase_id: localStorage.getItem('firebase_id')
+          params:{
+            id: userId
           },
         }
         api.get('spa/getUser', options).then((response) => {

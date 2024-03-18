@@ -19,12 +19,12 @@ export async function launchNotify(req) {
     return true
 }
 
-export async function getNotify () {
+export async function getNotify (activeUser) {
    return new Promise((resolve) => {
         onAuthStateChanged(auth, (user) => {
             if(user){
                 const q = query(collection(db, 'notificaciones'), 
-                    where ("firebase_id", "==", auth.currentUser.uid),
+                    where ("email", "==", activeUser.email),
                     where ("view", "==", false))
                 
                 onSnapshot(q, (snapShot) => {
@@ -36,18 +36,13 @@ export async function getNotify () {
                             mensajes.value.push(obj)
                         }
                         if(change.type == 'removed'){
-                            if(obj.view){
-                                console.log('set view')
-                                let index = this.notifications.findIndex(objeto => objeto.id === obj.id);
-                                mensajes.value.splice(index, 1);
-                            }
+                            let index = mensajes.value.findIndex(objeto => objeto.id === obj.id);
+                            mensajes.value.splice(index, 1);
                         }
                     });
                 })
-            } else {
-                location.replace('/logout')
             }
-            })
+        })
         resolve(mensajes.value)
     })
 }
