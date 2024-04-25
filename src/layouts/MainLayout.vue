@@ -23,18 +23,27 @@
           </q-icon>
           <q-btn round dense flat color="primary" icon="notifications">
             <q-badge color="red" text-color="white" floating>
-              {{notifications.length}}
+              {{notifications.unread}}
             </q-badge>
             <q-menu
             >
               <q-list style="min-width: 100px">
                 <q-item clickable 
                   v-ripple 
-                  v-for="(notify, i) in notifications" 
+                  v-for="(notify, i) in notifications.items" 
                   :key="i"
                   @click="viewNotify(notify)"
                 >
-                  <q-item-section v-if="!notify.view">{{notify.notify}}</q-item-section>
+                  <q-item-section>
+                    <div>
+                      <q-badge color="red-5" v-if="!notify.view">No leído</q-badge>
+                      <q-badge color="green-3" v-else>Leído</q-badge>
+                    </div>
+                    <div class="q-pa-sm ">
+                      {{notify.notify}}
+                    </div>
+                    
+                  </q-item-section>
                 </q-item>
                 <q-card class="text-center no-shadow no-border">
                   <q-btn label="View All" style="max-width: 120px !important;" flat dense

@@ -9,7 +9,7 @@
                   <q-separator  inset />
                   <q-card-section ripple>
                     <q-list>
-                      <q-item v-for="notify,i in notifications" :key="i">
+                      <q-item v-for="notify,i in notifications.items" :key="i">
                         <q-item-section>{{notify.notify}} - {{ notify.planta }}</q-item-section>
                       </q-item>
                     </q-list>
