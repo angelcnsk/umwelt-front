@@ -48,7 +48,7 @@
                     style="border: .2px solid gray"
                 >
                 <q-separator />
-                <div style="height: 150px; overflow-y: scroll; border:1px solid">
+                <div style="height: 150px; overflow-y: scroll; border:1px solid" v-if="categoria.conceptos.length>0">
                     <div class="q-pa-md" v-for="(concepto,i) in categoria.conceptos" :key="i">
                         <div class="row wrap q-pa-sm">
                             <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
@@ -64,32 +64,9 @@
                     </div>
                 </div>
                 <div class="col-md-12">
-                                <q-editor
-                                    class="q-editor-mb"
-                                    v-model="categoria.observaciones"
-                                    :dense="$q.screen.lt.md"
-                                    :toolbar="toolbar"
-                                    :fonts="fonts"
-                                    filled
-                                    clearable
-                                    color="red-12"
-                                    @blur="saveObservaciones(index)"
-                                />
-                            </div>
-                </q-expansion-item>
-                <q-expansion-item
-                    group="entrevistas"
-                    expand-separator
-                    icon="ads_click"
-                    header-class="text-primary"
-                    label='Entrevistas'
-                    style="border: .2px solid gray"
-                >
-                <q-separator />       
-                <div class="col-md-12">
                     <q-editor
                         class="q-editor-mb"
-                        v-model="textoEntrevistas"
+                        v-model="categoria.observaciones"
                         :dense="$q.screen.lt.md"
                         :toolbar="toolbar"
                         :fonts="fonts"
@@ -100,31 +77,7 @@
                     />
                 </div>
                 </q-expansion-item>
-                <q-expansion-item
-                    group="declaracion"
-                    expand-separator
-                    icon="ads_click"
-                    header-class="text-primary"
-                    label='Declaración del visitado, si quisiera hacerla:'
-                    style="border: .2px solid gray"
-                >
-                <q-separator />       
-                <div class="col-md-12">
-                    <q-editor
-                        class="q-editor-mb"
-                        v-model="textoDeclaracion"
-                        :dense="$q.screen.lt.md"
-                        :toolbar="toolbar"
-                        :fonts="fonts"
-                        filled
-                        clearable
-                        color="red-12"
-                        min-height="10rem"
-                        max-height="20rem"
-                        @blur="saveObservaciones(index)"
-                    />
-                </div>
-                </q-expansion-item>
+                
                 <contentActa :service="service"  />
             </q-list>
             <div class="q-pa-md" v-else>
@@ -225,8 +178,14 @@ const timeStamp = Date.now()
 const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref('')
 const conceptos = ref([])
-const textoEntrevistas = ref('<h6>SECCIÓN ENTREVISTAS</h6>')
-const textoDeclaracion = ref('<p><strong>Declaración del visitado, si quisiera hacerla:</strong></p>')
+
+// const textoEntrevistas = ref('')
+// const textoDeclaracion = ref('')
+
+// const extraCat = [
+//     {texto:'Sección Entrevistas', observaciones:textoEntrevistas.value, entrevistas:true},
+//     {texto:'Declaración del visitado, si quisiera hacerla', observaciones:textoDeclaracion.value, declaracion:true}
+// ]
 
 
 provide('currentVisit', visitSelected);
@@ -254,9 +213,11 @@ const setNoCumple = () => {
     //se recorren los conceptos y si alguno incluye la opción no cumple, se guarda bandera para identificar puntos que no cumplen
     return new Promise((resolve) => {
         categorias.value.forEach(categoria => {
-            categoria.conceptos.forEach(concepto => {
-                if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
-            })
+            if(categorias.value.conceptos){
+                categoria.conceptos.forEach(concepto => {
+                    if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
+                })
+            }
         });
         resolve()
     })
@@ -304,7 +265,7 @@ const changeValue = async (categoria, concepto) => {
 
 const saveObservaciones = async (categoria) => {
     //recibe los indices de cada uno
-    console.log('editar observaciones',  categorias.value[categoria])
+    console.log('editar observaciones',  categorias.value[30])
     /*await saveObservation({
         uid:categorias.value[categoria].uid,
         texto:categorias.value[categoria].observaciones,
@@ -430,21 +391,19 @@ const bloquearVisita = computed(() => {
 })
 
 const setLocal = (type) => {
-    if(type == 'load'){
+    if(service.value.categorias != undefined){
+        if(type == 'load'){
         const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
         
-        if(data != null){
-            categorias.value = data.categorias
-            visitSelected.value = visitas.value[0]
-            fechas_visita.value = data.fechas
-        } 
-        else categorias.value = service.value.categorias
-
-        // categorias.value.forEach((categoria) => {
-        //     if(categoria.observaciones == ""){
-        //         categoria.observaciones = "[documental] <br> [fisica] <br> [entrevista]"
-        //     }
-        // })
+            if(data != null){
+                categorias.value = data.categorias
+                visitSelected.value = visitas.value[0]
+                fechas_visita.value = data.fechas
+            } 
+            else {
+                categorias.value = service.value.categorias
+            }
+        }   
     }
     
     if(type == 'update'){
@@ -458,9 +417,7 @@ const setLocal = (type) => {
             fechas:fechas_visita.value,
             visita:visitSelected.value.valor,
             finalizado: service.value.fechas[indice].finalizado,
-            entrevistas:textoEntrevistas.value,
-            declaracion:textoDeclaracion.value,
-            acta:info.acta ? info.acta : ''
+            acta: (info && info.acta) ? info.acta : ''
         }))
         setTimeout(() => {
             listenerObservations()
