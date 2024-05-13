@@ -31,8 +31,13 @@ const props = defineProps({
 const visita = inject('currentVisit')
 const service = toRef(props,'service')
 
-const textoDocumental = ref('<span><strong> VERIFICACIÓN DOCUMENTAL</strong></span>')
-const textoFisica = ref('<span><strong>INSPECCIÓN FÍSICA</span></strong>')
+// const textoDocumental = ref('<br><span><strong> VERIFICACIÓN DOCUMENTAL</strong></span><br>')
+// const textoFisica = ref('<br><span><strong>INSPECCIÓN FÍSICA</span></strong><br>')
+
+const textoDocumental = ref('')
+const textoFisica = ref('')
+
+
 const textoExtra = ref('')
 const texto = ref('')
 const localData = ref(null)
@@ -133,31 +138,31 @@ const configText = () => {
     }).onOk(async data => {
         //console.log('se ejecuta acción de escribir acta')
         getLocalData()
-        textoDocumental.value = '<span><strong> VERIFICACIÓN DOCUMENTAL</span></strong>'
-        textoFisica.value = '<span><strong>INSPECCIÓN FÍSICA</span></strong>'
+        textoDocumental.value = '<br><span><strong> VERIFICACIÓN DOCUMENTAL</span></strong><br>'
+        textoFisica.value = '<br><span><strong>INSPECCIÓN FÍSICA</span></strong><br>'
         if(localData.value != null){
             localData.value.categorias.forEach((categoria) => {
                 console.log(categoria)
                 if(categoria.documental == 1 ){
                     //console.log('es documental')
-                    textoDocumental.value+= '<span><strong>'+categoria.texto+'</strong></span> <br>'
+                    textoDocumental.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                     textoDocumental.value+= categoria.observaciones
                 } else {
                     //console.log('es fisica')
                     if(categoria.texto === 'En caso de ser de riesgo de incendio alto ¿Se cuenta con algunos de los siguientes documentos?'){
-                        textoFisica.value+= '<span><strong>'+categoria.texto+'</strong></span> <br>'
+                        textoFisica.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                         textoFisica.value += categoria.observaciones    
                     } else if(categoria.extra == 'entrevista'){
-                        textoExtra.value+= '<span><strong>'+categoria.texto+'</strong></span> <br>'
+                        textoExtra.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                         textoExtra.value+= categoria.observaciones
                     }
                     else if(categoria.extra == 'declaracion'){
-                        textoExtra.value+= '<span><strong>'+categoria.texto+'</strong></span> <br>'
+                        textoExtra.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                         textoExtra.value+= categoria.observaciones
                     } 
                     
                     else {
-                        textoFisica.value+= '<span><strong>'+categoria.texto+'</strong></span> <br>'
+                        textoFisica.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                         textoFisica.value += categoria.observaciones
                     }
                     

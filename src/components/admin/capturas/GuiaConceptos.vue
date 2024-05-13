@@ -158,7 +158,7 @@ import { storeActa } from "src/composables/firebase/storage";
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const { saveCaptures, newVisit, listenerObservations} = storeCapturas
+const { saveCaptures, newVisit, listenerObservations, getCategories} = storeCapturas
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/capturas/Acta.vue'))
 
@@ -341,22 +341,22 @@ watch(visitSelected, async (fecha) => {
         //si no existe, es la primera vez y se hace el set de la data
         const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
         
-        if(!offline.value) {
-            //si hay conexión a internet
-            if(data == null){
-                //obtiene los conceptos desde firebase
-                // conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
+        // if(!offline.value) {
+        //     //si hay conexión a internet
+        //     if(data == null){
+        //         //obtiene los conceptos desde firebase
+        //         // conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
                 
-                // setTimeout(async () => {
-                //     await createConcepts()
-                // }, 2000);
-            }
-        }
-        
-        // const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
-        // if(getCategorias.status == 200){
-        //     categorias.value = categories.value.categorias
+        //         // setTimeout(async () => {
+        //         //     await createConcepts()
+        //         // }, 2000);
+        //     }
         // }
+        
+        const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
+        if(getCategorias.status == 200){
+            categorias.value = getCategorias.data.categorias
+        }
     }
 })
 
