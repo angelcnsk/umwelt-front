@@ -318,7 +318,7 @@ const addVisit = (type) => {
                     })
                 } else {
                     localStorage.removeItem('categorias')
-                    service.value.fechas = addVisit.data.fechas
+                    servicio.value.fechas = addVisit.data.fechas
                     setService()                    
                     $q.notify({
                         position:'top',
