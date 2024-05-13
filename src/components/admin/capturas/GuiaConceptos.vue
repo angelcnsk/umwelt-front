@@ -179,7 +179,7 @@ const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref('')
 const conceptos = ref([])
 
-const textoEntrevistas = ref('<p>De la información arriba mencionada, la organización deberá presentar el requisito asentado y se da por enterada que cuenta con 60 días naturales para dar cumplimiento a la información solicitada en la presente minuta, contando que todo el proceso no excederá 90 días naturales, si en el último caso no se presenta dicha información se procede a cancelar el servicio. </p> <br> <p>La empresa declara que toda la información presentada durante el proceso de inspección es verídica y actualizada.</p>')
+// const textoEntrevistas = ref('')
 // const textoDeclaracion = ref('')
 
 // const extraCat = [
@@ -401,15 +401,7 @@ const setLocal = (type) => {
                 fechas_visita.value = data.fechas
             } 
             else {
-                console.log('inicia cat', categorias.value)
                 categorias.value = service.value.categorias
-                console.log('set cat', categorias.value)
-                
-                categorias.value.forEach((category) => {
-                    if(category.extra && category.extra == 'entrevista'){
-                        category.observaciones += textoEntrevistas.value
-                    }
-                })
             }
         }   
     }
