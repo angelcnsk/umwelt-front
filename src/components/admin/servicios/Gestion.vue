@@ -317,9 +317,7 @@ const addVisit = (type) => {
                         message:'No es necesario agregar una visita, todos los puntos cumplen'
                     })
                 } else {
-                    localStorage.removeItem('categorias')
-                    servicio.value.fechas = addVisit.data.fechas
-                    setService()                    
+                    
                     $q.notify({
                         position:'top',
                         type:'positive',
