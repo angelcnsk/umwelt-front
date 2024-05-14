@@ -42,6 +42,8 @@ const textoExtra = ref('')
 const texto = ref('')
 const localData = ref(null)
 
+const textoEntrevistas = '<p>De la información arriba mencionada, la organización deberá presentar el requisito asentado y se da por enterada que cuenta con 60 días naturales para dar cumplimiento a la información solicitada en la presente minuta, contando que todo el proceso no excederá 90 días naturales, si en el último caso no se presenta dicha información se procede a cancelar el servicio. </p> <p>La empresa declara que toda la información presentada durante el proceso de inspección es verídica y actualizada.</p>'
+
 const toolbar = ref([
     [
         {
@@ -105,7 +107,7 @@ const fonts = ref({
 
 const getLocalData = () => {
     localData.value = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visita.value.valor}`))
-    //console.log('hace el get de la información', localData.value)
+    // console.log('hace el get de la información', localData.value)
 }
 
 const setLocalData = () => {
@@ -141,8 +143,10 @@ const configText = () => {
         textoDocumental.value = '<br><span><strong> VERIFICACIÓN DOCUMENTAL</span></strong><br>'
         textoFisica.value = '<br><span><strong>INSPECCIÓN FÍSICA</span></strong><br>'
         if(localData.value != null){
+            texto.value = ''
+            textoExtra.value = ''
+            
             localData.value.categorias.forEach((categoria) => {
-                console.log(categoria)
                 if(categoria.documental == 1 ){
                     //console.log('es documental')
                     textoDocumental.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
@@ -155,8 +159,10 @@ const configText = () => {
                     } else if(categoria.extra == 'entrevista'){
                         textoExtra.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                         textoExtra.value+= categoria.observaciones
+                        textoExtra.value+= textoEntrevistas
                     }
                     else if(categoria.extra == 'declaracion'){
+                        console.log('entra cuantas veces', categoria)
                         textoExtra.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                         textoExtra.value+= categoria.observaciones
                     } 
@@ -168,6 +174,7 @@ const configText = () => {
                     
                 }
             })
+
             texto.value = textoDocumental.value
             texto.value+= textoFisica.value
             texto.value+= textoExtra.value
