@@ -29,17 +29,20 @@ export async function getNotify (activeUser) {
                 onValue(notifications, (snapshot) => {
             
                     const data = snapshot.val();
-                    const a_notify = Object.entries(data)
-                    const items = []
-                    let unread = 0
-                    a_notify.map((item) => {
-                        const uid = item[0]
-                        item[1].uid = uid
-                        if(!item[1].view) unread++
-                        items.push(item[1])
-                    })
-                    mensajes.value.unread = unread
-                    mensajes.value.items = items
+                    if(data != null){
+                        const a_notify = Object.entries(data)
+                        const items = []
+                        let unread = 0
+                        a_notify.map((item) => {
+                            const uid = item[0]
+                            item[1].uid = uid
+                            if(!item[1].view) unread++
+                            items.push(item[1])
+                        })
+                        mensajes.value.unread = unread
+                        mensajes.value.items = items
+                    }
+                    
                     
                     resolve(mensajes.value)
                 });
