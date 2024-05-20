@@ -12,6 +12,16 @@
             <div class="text-subtitle text-grey-8">Gestión de visitas</div>
             <q-separator spaced />
             <div class="row q-pa-md">
+                <div class="col-xs-12 col-md-3">
+                    <q-select 
+                        class="q-mr-md" 
+                        style="width: 200px;" 
+                        :options="visitas"
+                        option-label="texto"
+                        v-model="visitSelected"
+                        label="Visita"
+                    />
+                </div>
                 <div class="col-xs-12 col-md-2">
                     <q-btn class="q-mr-md q-mt-md" label="visita" icon-right="add" color="primary" @click="addVisit('init')" />
             </div>
@@ -39,32 +49,32 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('documental')"
-                    :disable="data.visitas_en_curso ==1"
+                    :disable="!validateVisit"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="!data.visitas_en_curso">Descarga guía documental</span>
-                        <span>Para continuar finaliza la visita</span>
+                        <span v-if="validateVisit">Descarga guía documental</span>
+                        <span v-else>Para continuar finaliza la visita</span>
                     </q-tooltip>
                 </q-btn>
                 <q-btn label="Guía Inspección" 
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('inspeccion')"
-                    :disable="data.visitas_en_curso==1"
+                    :disable="!validateVisit"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="!data.visitas_en_curso">Descarga guía de inspección</span>
-                        <span>Para continuar finaliza la visita</span>
+                        <span v-if="validateVisit">Descarga guía de inspección</span>
+                        <span v-else>Para continuar finaliza la visita</span>
                     </q-tooltip>
                 </q-btn>
                 <q-btn label="Acta" 
                     color="primary" 
                     class="q-mr-md" 
                     @click="showActa=true"
-                    :disable="data.visitas_en_curso==1"
+                    :disable="!validateVisit"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="!data.visitas_en_curso">Descarga acta</span>
+                        <span v-if="validateVisit">Descarga acta</span>
                         <span>Para continuar finaliza la visita</span>
                     </q-tooltip>
                 </q-btn>
@@ -72,10 +82,10 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="showDictamen=true"
-                    :disable="data.visitas_en_curso==1"
+                    :disable="!validateVisit"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="!data.visitas_en_curso">Descarga dictamen</span>
+                        <span v-if="validateVisit">Descarga dictamen</span>
                         <span>Para continuar finaliza la visita</span>
                     </q-tooltip>
                 </q-btn>
@@ -197,7 +207,7 @@
 
 
 <script setup>
-import {ref, computed, watch, onMounted, defineAsyncComponent, inject} from 'vue';
+import {ref, computed, watch, onMounted, defineAsyncComponent, inject, toRef} from 'vue';
 import { useQuasar } from "quasar";
 import { useServicios } from 'src/composables/useServicios.js'
 
@@ -215,7 +225,10 @@ const $q = useQuasar();
 const storeServicios = useServicios();
 const { generarNumDictamen, newVisit, getStaff, staff, closeServiceStatus } = storeServicios
 const offline = inject('statusOnLine')
+const visitas = ref(null)
+const visitSelected = ref(null)
 const nuevaVisita = ref(false)
+const currentVisit = ref(false)
 const visita = ref({})
 const owners = ref([])
 const status = ref(false)
@@ -223,6 +236,8 @@ const showDictamen = ref(false)
 const dataDictamen = ref({})
 const showActa = ref(false)
 const dataActa = ref({})
+
+const service = toRef(props,'data')
 
 const notify = (msg, type) => {
     $q.notify({
@@ -362,7 +377,7 @@ const getDocument = (type) => {
             break;
     }
     // console.log(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`)
-    let url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`
+    let url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&visita_id=${visitSelected.value.id}`
     if(req==4){
         if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''
             || dataDictamen.value.emite == undefined || dataDictamen.value.emite == ''
@@ -385,7 +400,7 @@ const getDocument = (type) => {
             return encodeURIComponent(key) + '=' + encodeURIComponent(value);
         }).join('&');
 
-        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}`
+        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showDictamen.value = false
         dataDictamen.value = {}
         dataDictamen.value.representante = props.data.representante
@@ -409,7 +424,7 @@ const getDocument = (type) => {
             .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
             .join('&');
             
-        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}`
+        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showActa.value = false
         dataActa.value = {}
     }
@@ -460,11 +475,31 @@ watch(status, async (value) => {
     })
 })
 
+const setDataService = () => {
+    visitas.value = service.value.fechas.map((item) => {return {id:item.id, texto:`Visita ${item.visita}`}})
+    status.value = props.data.status == 'abierto'
+    dataDictamen.value.representante = props.data.representante
+}
+
+const validateVisit = computed(() => {
+    if(service.value.fechas!=undefined && visitSelected.value != null){
+        service.value.fechas.map((item) => {
+            if(item.id == visitSelected.value.id){
+                currentVisit.value = item.finalizado == 1
+            }
+        })
+        console.log('true bloquea', currentVisit.value)
+    }
+    
+    return currentVisit.value
+})
+
 
 onMounted(async () => {
     await getStaff({owner_service:true})
-    status.value = props.data.status == 'abierto'
-    dataDictamen.value.representante = props.data.representante
+    setTimeout(() => {
+        setDataService()
+    }, 1000);
 })
     
 
