@@ -78,7 +78,7 @@
                 </div>
                 </q-expansion-item>
                 
-                <contentActa :service="service"  />
+                <contentActa :service="service" :autoSaveParent="autoSave" />
             </q-list>
             <div class="q-pa-md" v-else>
                 <q-item style="max-width: 300px">

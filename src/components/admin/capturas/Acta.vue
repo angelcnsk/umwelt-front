@@ -25,7 +25,8 @@ const storeCapturas = useCapturas();
 const {listener} = storeCapturas
 
 const props = defineProps({
-    service: Object
+    service: Object,
+    autoSaveParent: Function
 })
 
 const visita = inject('currentVisit')
@@ -107,11 +108,12 @@ const fonts = ref({
 
 const getLocalData = () => {
     localData.value = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visita.value.valor}`))
+    if(localData.value == null)props.autoSaveParent()
     // console.log('hace el get de la información', localData.value)
 }
 
 const setLocalData = () => {
-    //console.log("antes de guardar cambios", localData.value)
+    // console.log("antes de guardar cambios", localData.value)
     localStorage.setItem(`service_${service.value.id}_categorias_visita_${visita.value.valor}`, JSON.stringify(localData.value))
 }
 
