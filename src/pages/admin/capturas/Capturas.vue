@@ -22,8 +22,8 @@
         >
             <!-- <q-tab name="documentacion" label="Documentación" /> -->
             <q-tab name="inspeccion" label="Inspección" />
-            <q-tab name="archivos" label="Archivos" />
-            <q-tab name="gestion" label="Gestión" />
+            <!-- <q-tab name="archivos" label="Archivos" /> -->
+            
         </q-tabs>
         
         <q-tab-panels
@@ -42,12 +42,12 @@
             <guia-conceptos :service="currentService" />
           </q-tab-panel>
 
-          <q-tab-panel name="archivos">
+          <!-- <q-tab-panel name="archivos">
             <archivos :service="currentService" />
-          </q-tab-panel>
-          <q-tab-panel name="gestion">
+          </q-tab-panel> -->
+          <!-- <q-tab-panel name="gestion">
             <gestion :service="currentService" />
-          </q-tab-panel>
+          </q-tab-panel> -->
         </q-tab-panels>
       
     </div>
@@ -62,18 +62,10 @@ import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { searchDocuments, createDocument } from "src/composables/firebase/capturas/nom02/documentos.js";
 
-// const documentacion = defineAsyncComponent(() => import('src/components/admin/capturas/Documentacion.vue'))
-
 const guiaConceptos = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaConceptos.vue'))
 
-const archivos = defineAsyncComponent(() => import('src/components/admin/capturas/ArchivosMasivos.vue'))
-
-const gestion = defineAsyncComponent(() => import('src/components/admin/capturas/GestionServicio.vue'))
-
-const storeUsers = useUsers();
 const storeCapturas = useCapturas();
 const { getServiceList, servicesList, currentService } = storeCapturas
-const { AppActiveUser } = storeUsers
 
 const serviceSelected = ref(null)
 const offline = inject('statusOnLine')
