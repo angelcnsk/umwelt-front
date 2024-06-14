@@ -27,16 +27,32 @@
                 </div>
             </div>
             <div class="row q-pa-md items-center justify-start ">
-                <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="autoSave('manual')">
+                <!-- <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="autoSave('manual')">
                     <q-tooltip>
                         Guarda información en tu equipo
                     </q-tooltip>
-                </q-btn>
-                <q-btn class="q-mb-md q-ml-md" color="primary" icon="check_circle_outline" label="finalizar" @click="closeVisit('manual')">
+                </q-btn> -->
+                <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="asyncSaveData('manual')">
                     <q-tooltip>
                         Guarda información en el servidor
                     </q-tooltip>
-                </q-btn> 
+                </q-btn>
+                <q-btn class="q-mb-md q-ml-md" color="primary" icon="delete_outline" label="Borrar" @click="cleanData('manual')">
+                    <q-tooltip>
+                        Borrar datos sin conexión
+                    </q-tooltip>
+                </q-btn>
+                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="guía inspección" @click="imprimir('guia inspeccion')">
+                    <q-tooltip>
+                        Imprimir guía de inspección
+                    </q-tooltip>
+                </q-btn>
+                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="imprimir('acta')">
+                    <q-tooltip>
+                        Imprimir Acta
+                    </q-tooltip>
+                </q-btn>
+                
             </div>
             <q-list bordered class="rounded-borders" v-if="service.id != undefined && categorias.length > 0">
                 <q-expansion-item
@@ -72,6 +88,7 @@
                         :fonts="fonts"
                         filled
                         clearable
+                        max-height="300px"
                         color="red-12"
                         @blur="saveObservaciones(index)"
                     />
@@ -179,15 +196,6 @@ const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref('')
 const conceptos = ref([])
 
-// const textoEntrevistas = ref('')
-// const textoDeclaracion = ref('')
-
-// const extraCat = [
-//     {texto:'Sección Entrevistas', observaciones:textoEntrevistas.value, entrevistas:true},
-//     {texto:'Declaración del visitado, si quisiera hacerla', observaciones:textoDeclaracion.value, declaracion:true}
-// ]
-
-
 provide('currentVisit', visitSelected);
 
 const fechas_visita = ref({
@@ -197,27 +205,13 @@ const fechas_visita = ref({
     hora_final: "00:00",
 })
 
-watch(fechas_visita,(newVal) => {
-    //al seleccionar la visita se hace el set de las fechas que traiga
-    if(newVal != undefined && service.value.id != undefined){        
-        if(service.value.fechas == undefined){
-            service.value.fechas = []
-        } 
-    } else {
-        fechas_visita.value.from = formattedString
-        fechas_visita.value.to = formattedString
-    }
-})
-
 const setNoCumple = () => {
     //se recorren los conceptos y si alguno incluye la opción no cumple, se guarda bandera para identificar puntos que no cumplen
     return new Promise((resolve) => {
         categorias.value.forEach(categoria => {
-            if(categorias.value.conceptos){
-                categoria.conceptos.forEach(concepto => {
-                    if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
-                })
-            }
+            categoria.conceptos.forEach(concepto => {
+                if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
+            })
         });
         resolve()
     })
@@ -231,9 +225,13 @@ const setService = (type) => {
         const fechas = service.value.fechas.length == 0 ? 1 : service.value.fechas.length
         
         for (let index = 0; index < fechas; index++) {
-            visitas.value.push({valor:visita+1, texto:`Visita ${visita+1}`})
+            visitas.value.push(
+                {   valor:service.value.fechas[index].visita, 
+                    texto:`Visita ${service.value.fechas[index].visita}`, id:service.value.fechas[index].id
+                })
             visita++
         }
+        
         visitSelected.value = visitas.value[0]
     }
     setLocal(type)
@@ -242,7 +240,6 @@ const setService = (type) => {
 
 watch(service, (newVal) => {
     setService('load')
-    setFechas()
 })
 
 const changeValue = async (categoria, concepto) => {
@@ -265,7 +262,7 @@ const changeValue = async (categoria, concepto) => {
 
 const saveObservaciones = async (categoria) => {
     //recibe los indices de cada uno
-    console.log('editar observaciones',  categorias.value[30])
+    // console.log('editar observaciones',  categorias.value)
     /*await saveObservation({
         uid:categorias.value[categoria].uid,
         texto:categorias.value[categoria].observaciones,
@@ -340,6 +337,14 @@ watch(visitSelected, async (fecha) => {
     
         //si no existe, es la primera vez y se hace el set de la data
         const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
+
+        if(data!=null){
+            categorias.value = data.categorias
+        } else {
+            const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
+            categorias.value = getCategorias.status == 200 ? getCategorias.data.categorias : categorias.value
+            
+        }
         
         // if(!offline.value) {
         //     //si hay conexión a internet
@@ -353,26 +358,15 @@ watch(visitSelected, async (fecha) => {
         //     }
         // }
         
-        const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
-        if(getCategorias.status == 200){
-            categorias.value = getCategorias.data.categorias
-        }
+        
     }
 })
 
 const setFechas = (value) => {
     if(service.value.fechas != undefined){
-        if(service.value.fechas.length == 0){
-            fechas_visita.value.from = formattedString
-            fechas_visita.value.to = formattedString
-            visitSelected.value = visitas.value[0]
-        } else {
-            const indice = visitas.value.indexOf(visitSelected.value)
-            //fecha    
-            // fechas_visita.value.from = service.value.fechas[indice].fecha_inicio != undefined ? service.value.fechas[indice].fecha_inicio : service.value.fechas[indice].from
-            // fechas_visita.value.to = service.value.fechas[indice].fecha_fin != undefined ? service.value.fechas[indice].fecha_fin : service.value.fechas[indice].to
-            fechas_visita.value = service.value.fechas[indice]
-        }
+        fechas_visita.value = service.value.fechas.find(visit => visit.id == visitSelected.value.id)
+        console.log('ok fechas', fechas_visita.value)
+        
     }
 }
 
@@ -390,7 +384,7 @@ const bloquearVisita = computed(() => {
     return new Date() < fecha_final
 })
 
-const setLocal = (type) => {
+const setLocal = async (type) => {
     if(service.value.categorias != undefined){
         if(type == 'load'){
         const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
@@ -408,9 +402,11 @@ const setLocal = (type) => {
     
     if(type == 'update'){
         const indice = visitas.value.indexOf(visitSelected.value)
-
+        
         const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
         
+        await setNoCumple()
+
         localStorage.setItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`, JSON.stringify({
             service_id:service.value.id,
             categorias:categorias.value,
@@ -426,13 +422,13 @@ const setLocal = (type) => {
     
 }
 
-const closeVisit = () => {
+const asyncSaveData = () => {
     if(!serviceSelected()) return false
 
-    
+    console.log(offline.value)
     $q.dialog({
-        title: '¿Deseas finalizar la visita?',
-        message: 'Se guardarán los datos ingresados y no podrán ser modificados',
+        title: '¿Deseas continuar?',
+        message: 'Se guardarán los datos ingresados en la base de datos',
         ok: {
         push: true,
         label:'Continuar'
@@ -443,14 +439,7 @@ const closeVisit = () => {
         label:'Cancelar'
         },
         persistent: true,
-        // options: {
-        //   type: 'toggle',
-        //   model: [],
-        //   // inline: true,
-        //   items: [
-        //     { label: 'Cerrar servicio', value: 'cerrado', color: 'secondary' }
-        //   ]
-        // },
+
     }).onOk(async data => {
         
         const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
@@ -465,36 +454,55 @@ const closeVisit = () => {
         //     return false
         // }
 
-        const blob = new Blob([info.acta], { type: 'text/plain' });
+        if(info!=null){
+            //se hace otro setLocal para evitar perder cualquier dato si no hay conexión, se mantiene en local los cambios
+            setLocal('update')
+            
+            if(!offline.value){
+                //hay conexión
+                if(info.acta == undefined){
+                    $q.notify({
+                        position:'top',
+                        type:'negative',
+                        message:'Falta el texto del acta'
+                    })
+                    return false  
+                }
 
-        const actaStore = await storeActa({ 
-            file:blob,
-            service_id: info.service_id,
-            visita: visitSelected.value.valor
-        })
-        
-        const saveData = await saveCaptures({
-            service_id: info.service_id, 
-            categorias:info.categorias, 
-            type:"conceptos",
-            fechas:info.fechas,
-            visita: visitSelected.value.valor,
-            acta:actaStore.path,
-            storageId:actaStore.storageId,
-            finalizado:1
-        })
-        
-        if(saveData.status == 200){
-            $q.notify({
-                position:'top',
-                type:'positive',
-                message:'Visita finalizada'
-            })
-            localStorage.removeItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`)
-            localStorage.removeItem(`service_${service.value.id}_data`)
-            localStorage.removeItem('serviceList')
+                const blob = new Blob([info.acta], { type: 'text/plain' });
+                const actaStore = await storeActa({ 
+                    file:blob,
+                    service_id: info.service_id,
+                    visita: visitSelected.value.valor
+                })
+
+                const saveData = await saveCaptures({
+                    service_id: info.service_id, 
+                    categorias:info.categorias, 
+                    type:"conceptos",
+                    fechas:info.fechas,
+                    visita: visitSelected.value.valor,
+                    acta:actaStore.path,
+                    storageId:actaStore.storageId,
+                    finalizado:1
+                })
+
+                if(saveData.status == 200){
+                    $q.notify({
+                        position:'top',
+                        type:'positive',
+                        message:'Se guardó la información en el servidor'
+                    })
+                    localStorage.setItem(`service_${service.value.id}_asyncData_visita_${visitSelected.value.valor}`,true)
+                }
+            } else {
+                $q.notify({
+                    position:'top',
+                    type:'warning',
+                    message:'Se guardó la información en tu equipo'
+                })
+            }
         }
-
     })
 }
 
@@ -508,6 +516,44 @@ const serviceSelected = () => {
         return false
     }
     return true
+}
+
+const cleanData = () => {
+    
+    if(service.value.id == undefined){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para continuar selecciona un servicio'
+        })
+        return false
+    }
+    
+    $q.dialog({
+        title: '¿Estás seguro?',
+        message: 'Esta acción borrará toda la información guardada en tu dispositivo',
+        ok: {
+            push: true,
+            label:'Si, borrar',
+            color:'red-4'
+        },
+        cancel: {
+            push: true,
+            color: 'dark',
+            label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
+        
+        localStorage.removeItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`)
+        localStorage.removeItem(`service_${service.value.id}_data`)
+        $q.notify({
+            position:'top',
+            type:'positive',
+            message:'Se borró la información guardada sin conexión'
+        })
+    })
+        
 }
 
 const disableOptions = computed(() => {
@@ -547,7 +593,42 @@ const fonts = ref({
     lucida_grande: 'Lucida Grande',
     times_new_roman: 'Times New Roman',
     verdana: 'Verdana'
-})   
+})
+
+const imprimir = (doc) => {
+    if(service.value.id == undefined){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para continuar selecciona un servicio'
+        })
+        return false
+    }
+
+    const asyncData = localStorage.getItem(`service_${service.value.id}_asyncData_visita_${visitSelected.value.valor}`)
+
+    if(asyncData == null || asyncData == undefined){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para continuar guarda la información capturada'
+        })
+        return false
+    }
+
+    let url = import.meta.env.VITE_api_host
+    switch (doc) {
+        case 'guia inspeccion':
+            url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
+        break;
+
+        case 'acta':
+        url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=2&visita_id=${visitSelected.value.id}`
+        break;
+    }
+
+    window.open(url,'_blank')
+}
 
 onMounted( async () => {
     setService('load')
