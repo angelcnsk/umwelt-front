@@ -64,14 +64,14 @@
     </q-card>
 </div>
 <!-- <logistica :servicio="servicio" :id="$route.params.id" /> -->
-<gestion :servicio_id="$route.params.id" :data="servicio" />
+<gestion :servicio_id="$route.params.id" />
 
 </q-page>
 </template>
 
 
 <script setup>
-import {computed, onMounted, watch, ref, inject} from 'vue'
+import {computed, onMounted, watch, ref, inject, provide} from 'vue'
 import { useQuasar, date } from "quasar";
 import { useRoute } from "vue-router";
 
@@ -115,6 +115,8 @@ const fecha_fin = ref('')
 const servicio = computed(() => {
     return serviceItem.value
 })
+
+provide('servicio', serviceItem)
 
 const setTime = async () => {
     // fecha_reconocimiento.value = servicio.value.recognition_date.split('-')

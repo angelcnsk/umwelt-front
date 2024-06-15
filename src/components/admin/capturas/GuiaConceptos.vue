@@ -211,6 +211,7 @@ const setNoCumple = () => {
         categorias.value.forEach(categoria => {
             categoria.conceptos.forEach(concepto => {
                 if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
+                else concepto.no_cumple = 0
             })
         });
         resolve()
@@ -425,7 +426,6 @@ const setLocal = async (type) => {
 const asyncSaveData = () => {
     if(!serviceSelected()) return false
 
-    console.log(offline.value)
     $q.dialog({
         title: '¿Deseas continuar?',
         message: 'Se guardarán los datos ingresados en la base de datos',

@@ -283,6 +283,10 @@ export const useServiciosStore = defineStore('servicios', {
           
           return new Promise((resolve, reject) => {
             api.post(url,payload).then((response) => {
+              if(response.data.fechas){
+                this.serviceItem.fechas =response.data.fechas;
+              }
+
                 resolve(response)
             }).catch((error) => { reject(error) })
           })

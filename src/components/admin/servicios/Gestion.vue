@@ -1,5 +1,5 @@
 <template>
-<div class="q-ma-md" style="margin-top: 50px;">
+<div class="q-ma-md" style="margin-top: 50px;" v-if="service.id != undefined">
     <q-card>
         <q-card-section>
             <q-separator spaced />
@@ -38,10 +38,10 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="generarFolio"
-                    :disable="data.folio !== 'Sin número dictamen'"
+                    :disable="service.folio !== 'Sin número dictamen'"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="data.folio == 'Sin número dictamen'">Genera número de dictamen </span>
+                        <span v-if="service.folio == 'Sin número dictamen'">Genera número de dictamen </span>
                         <span v-else>Ya tiene número de dictamen</span>
                     </q-tooltip>
                 </q-btn>
@@ -154,7 +154,7 @@
                     <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-select :options="data.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
+                    <q-select :options="servicio.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
                 </div>
                 <div class="col-xs-12 col-md-4">
                     <q-input class="q-pa-sm" v-model="dataDictamen.resultado" label="Resultado del dictamen" />
@@ -215,7 +215,6 @@ const archivos = defineAsyncComponent(() => import('src/components/admin/servici
 
 const props = defineProps({
     servicio_id: String,
-    data: Object
 })
 
 const servicio_id = ref(props.servicio_id)
@@ -237,7 +236,7 @@ const dataDictamen = ref({})
 const showActa = ref(false)
 const dataActa = ref({})
 
-const service = toRef(props,'data')
+const service = inject('servicio')
 
 const notify = (msg, type) => {
     $q.notify({
@@ -261,7 +260,7 @@ watch(signatory, (value) => {
 
 const addVisit = (type) => {
     if(type == 'init'){
-        if(props.data.visitas_en_curso){
+        if(service.value.visitas_en_curso){
             $q.notify({
                 position:'top',
                 type:'warning',
@@ -270,7 +269,7 @@ const addVisit = (type) => {
             return false
         }
 
-        if(!props.data.no_cumple){
+        if(!service.value.no_cumple){
             $q.notify({
                 position:'top',
                 type:'warning',
@@ -332,7 +331,7 @@ const addVisit = (type) => {
                         message:'No es necesario agregar una visita, todos los puntos cumplen'
                     })
                 } else {
-                    
+                    setDates()
                     $q.notify({
                         position:'top',
                         type:'positive',
@@ -403,7 +402,7 @@ const getDocument = (type) => {
         url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showDictamen.value = false
         dataDictamen.value = {}
-        dataDictamen.value.representante = props.data.representante
+        dataDictamen.value.representante = servicio.value.representante
     }
 
     if(req==2){
@@ -448,7 +447,7 @@ const generarFolio = () => {
             persistent: true
             }).onOk(async app => {
 
-            const getfolio = await generarNumDictamen({servicio_id:props.data.id, generar_folio:true})
+            const getfolio = await generarNumDictamen({servicio_id:servicio_id.value, generar_folio:true})
             if(getfolio.status == 200){
                 notify('Se asignó número de dictamen', 'positive')
             } else {
@@ -464,10 +463,10 @@ const generarFolio = () => {
 
 watch(status, async (value) => {
     await closeServiceStatus({
-        servicio_id:props.data.id,
+        servicio_id:servicio_id.value,
         status: status.value ? 'abierto' : 'cerrado'
     })
-    props.data.status =  status.value ? 'abierto' : 'cerrado'
+    service.value.status =  status.value ? 'abierto' : 'cerrado'
     $q.notify({
         position:'top',
         type:'positive',
@@ -475,10 +474,14 @@ watch(status, async (value) => {
     })
 })
 
-const setDataService = () => {
+const setDates = () => {
     visitas.value = service.value.fechas.map((item) => {return {id:item.id, texto:`Visita ${item.visita}`}})
-    status.value = props.data.status == 'abierto'
-    dataDictamen.value.representante = props.data.representante
+}
+
+const setDataService = () => {
+    setDates()
+    status.value = service.value.status == 'abierto'
+    dataDictamen.value.representante = service.value.representante
 }
 
 const validateVisit = computed(() => {
