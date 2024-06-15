@@ -34,18 +34,7 @@
             <q-separator spaced />
             
             <div class="row q-pa-md">
-                <q-btn label="Número dictamen" 
-                    color="primary" 
-                    class="q-mr-md" 
-                    @click="generarFolio"
-                    :disable="service.folio !== 'Sin número dictamen'"
-                >
-                    <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="service.folio == 'Sin número dictamen'">Genera número de dictamen </span>
-                        <span v-else>Ya tiene número de dictamen</span>
-                    </q-tooltip>
-                </q-btn>
-                <q-btn label="Guía Documental" 
+                <!-- <q-btn label="Guía Documental" 
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('documental')"
@@ -55,7 +44,7 @@
                         <span v-if="validateVisit">Descarga guía documental</span>
                         <span v-else>Para continuar finaliza la visita</span>
                     </q-tooltip>
-                </q-btn>
+                </q-btn> -->
                 <q-btn label="Guía Inspección" 
                     color="primary" 
                     class="q-mr-md" 
@@ -429,36 +418,6 @@ const getDocument = (type) => {
     }
 
     window.open(url,'_blank')
-}
-
-const generarFolio = () => {
-    $q.dialog({
-            title: '¿Estás seguro?',
-            message: 'Se asingará un número de dictamen al servicio',
-            ok: {
-            push: true,
-            label:'Aceptar'
-            },
-            cancel: {
-            push: true,
-            color: 'dark',
-            label:'Cancelar'
-            },
-            persistent: true
-            }).onOk(async app => {
-
-            const getfolio = await generarNumDictamen({servicio_id:servicio_id.value, generar_folio:true})
-            if(getfolio.status == 200){
-                notify('Se asignó número de dictamen', 'positive')
-            } else {
-                notify('Por favor contácta al administrador', 'negative')
-            }
-                            
-        }).onCancel(() => {
-            // console.log('>>>> Cancel')
-        }).onDismiss(() => {
-            // console.log('I am triggered on both OK and Cancel')
-        })   
 }
 
 watch(status, async (value) => {
