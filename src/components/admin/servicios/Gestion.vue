@@ -317,8 +317,13 @@ const filterStaff = (val, update, abort) => {
 }
 
 const getActa = (data) => {
-    dataActa.value = data.value
-    getDocument('acta')
+    if(data != undefined){
+        dataActa.value = data.value
+        getDocument('acta')
+    } else {
+       showActa.value = false
+    }
+    
 }
 
 const getDocument = (type) => {
@@ -347,7 +352,7 @@ const getDocument = (type) => {
             req = 4;
             break;
     }
-    console.log(servicio_id, dataActa.value, type)
+    
     let url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&visita_id=${visitSelected.value.id}`
     if(req==4){
         if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''

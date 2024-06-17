@@ -47,7 +47,7 @@
                         Imprimir guía de inspección
                     </q-tooltip>
                 </q-btn>
-                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="imprimir('acta')">
+                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="showActa=!showActa">
                     <q-tooltip>
                         Imprimir Acta
                     </q-tooltip>
@@ -147,22 +147,8 @@
         </q-card-section>
         
     </q-card>
-        <q-dialog v-model="dialog" position="bottom">
-        <q-card style="width: 350px">
-            <q-linear-progress indeterminate color="primary" />
-
-            <q-card-section class="row items-center no-wrap">
-            <div>
-                <div class="text-weight-bold">{{tipo}}</div>
-            </div>
-
-            <q-space />
-
-            <q-btn flat round icon="check" color="green"/>
-            
-            </q-card-section>
-        </q-card>
-        </q-dialog>
+    
+    <modal-acta :show="showActa" @closeModal="getActa" />
 
 </template>
 
@@ -179,6 +165,8 @@ const { saveCaptures, newVisit, listenerObservations, getCategories} = storeCapt
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
 
+const modalActa = defineAsyncComponent(() => import('src/components/admin/acta/ModalPrintActa.vue'))
+
 const props = defineProps({
     service: Object
 })
@@ -188,12 +176,14 @@ const currentUser = inject('currentUser')
 const categorias = ref([])
 const service = toRef(props,'service')
 
-const dialog = ref(false)
+const showActa = ref(false)
+const dataActa = ref({})
+
 const visitas = ref([])
 const tipo = ref('')
 const timeStamp = Date.now()
 const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
-const visitSelected = ref('')
+const visitSelected = ref(null)
 const conceptos = ref([])
 
 provide('currentVisit', visitSelected);
@@ -596,6 +586,15 @@ const fonts = ref({
 })
 
 const imprimir = (doc) => {
+    if((doc == 'inspeccion' || doc == 'acta') && visitSelected.value == null){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para continuar selecciona una visita'
+        })
+        return false
+    }
+
     if(service.value.id == undefined){
         $q.notify({
             position:'top',
@@ -620,14 +619,46 @@ const imprimir = (doc) => {
     switch (doc) {
         case 'guia inspeccion':
             url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
-        break;
+            break;
 
         case 'acta':
-        url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=2&visita_id=${visitSelected.value.id}`
-        break;
+            if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
+                || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
+                || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
+                || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
+                || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
+                || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
+                || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
+                || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
+                
+            ){
+                $q.notify({
+                    position:'top',
+                    type:'negative',
+                    message:'Todos los campos son obligatorios'
+                })
+                return false
+            }
+            const queryString = Object.keys(dataActa.value)
+            .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
+            .join('&');
+            
+            url = `${url}reportes/getreport/?service_id=${service.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
+            showActa.value = false
+            dataActa.value = {}
     }
 
     window.open(url,'_blank')
+}
+
+const getActa = (data) => {
+    if(data != undefined){
+        dataActa.value = data.value
+        imprimir('acta')
+    } else {
+       showActa.value = false
+    }
+    
 }
 
 onMounted( async () => {

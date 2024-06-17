@@ -1,5 +1,5 @@
 <template>
-    <q-dialog v-model="ver" ref="actaEvaluacion">
+    <q-dialog v-model="ver" ref="actaEvaluacion" @hide="submitClose">
         <q-card style="min-width: 500px;">
             <q-card-section>
                 <span class="text-title">Personas que atienden la visita</span>
@@ -52,15 +52,14 @@ const submitData = () => {
     emits('closeModal',dataActa)
 }
 
+const submitClose = () => {
+    ver.value = false
+    emits('closeModal')
+}
+
 watch(mostrar,(valor) => {
     ver.value = valor
 },{deep:true})
-
-// watch(ver,(valor) => {
-//     if(!valor){
-        
-//     }
-// })
 
 
 </script>
