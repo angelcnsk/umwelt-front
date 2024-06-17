@@ -177,7 +177,7 @@ const $q = useQuasar();
 const storeCapturas = useCapturas();
 const { saveCaptures, newVisit, listenerObservations, getCategories} = storeCapturas
 
-const contentActa = defineAsyncComponent(() => import('src/components/admin/capturas/Acta.vue'))
+const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
 
 const props = defineProps({
     service: Object

@@ -142,7 +142,7 @@ const configText = () => {
     }).onOk(async data => {
         //console.log('se ejecuta acción de escribir acta')
         getLocalData()
-        textoDocumental.value = '<br><span><strong> VERIFICACIÓN DOCUMENTAL</span></strong><br>'
+        textoDocumental.value = '<br><span><strong> INSPECCIÓN DOCUMENTAL</span></strong><br>'
         textoFisica.value = '<br><span><strong>INSPECCIÓN FÍSICA</span></strong><br>'
         if(localData.value != null){
             texto.value = ''
