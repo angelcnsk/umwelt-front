@@ -42,12 +42,12 @@
                         Borrar datos sin conexión
                     </q-tooltip>
                 </q-btn>
-                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="guía inspección" @click="imprimir('guia inspeccion')">
+                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="guía inspección" @click="validatePrint('guia inspeccion')">
                     <q-tooltip>
                         Imprimir guía de inspección
                     </q-tooltip>
                 </q-btn>
-                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="showActa=!showActa">
+                <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="validatePrint('acta')">
                     <q-tooltip>
                         Imprimir Acta
                     </q-tooltip>
@@ -585,21 +585,21 @@ const fonts = ref({
     verdana: 'Verdana'
 })
 
-const imprimir = (doc) => {
-    if((doc == 'inspeccion' || doc == 'acta') && visitSelected.value == null){
-        $q.notify({
-            position:'top',
-            type:'negative',
-            message:'Para continuar selecciona una visita'
-        })
-        return false
-    }
-
+const validatePrint = (doc) => {
     if(service.value.id == undefined){
         $q.notify({
             position:'top',
             type:'negative',
             message:'Para continuar selecciona un servicio'
+        })
+        return false
+    }
+
+    if(visitSelected.value == null){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para continuar selecciona una visita'
         })
         return false
     }
@@ -615,6 +615,15 @@ const imprimir = (doc) => {
         return false
     }
 
+    if(doc == 'acta'){
+        showActa.value = !showActa.value
+        return false
+    }
+    imprimir(doc)
+}
+
+const imprimir = (doc) => {
+    
     let url = import.meta.env.VITE_api_host
     switch (doc) {
         case 'guia inspeccion':
