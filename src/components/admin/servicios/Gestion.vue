@@ -136,20 +136,49 @@
         </q-card>
     </q-dialog>
     <q-dialog v-model="showDictamen" ref="dictamenData">
-        <q-card style="min-width: 500px;">
+        <q-card style="min-width: 800px;">
             <q-card-section>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
+                <div class="row">
+                    <div class="col-md-4">
+                        <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
+                    </div>
                 </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-select :options="servicio.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
+                <div class="row">
+                    <span class="q-pa-sm text-subtitle2 q-mt-md">Visitas realizadas:</span>
                 </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataDictamen.resultado" label="Resultado del dictamen" />
+                <div class="row q-mt-sm q-pa-sm justify-around">
+                    <q-badge 
+                        v-for="(text, index) in visitasText"   
+                        :key="index" 
+                        outline 
+                        color="black" 
+                        :label="text"
+                        class="q-pa-sm"
+                    />
                 </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataDictamen.representante" label="Representante legal empresa" />
+                <div class="row">
+                    <span class="q-pa-sm text-subtitle2 q-mt-md">Texto de fechas de visita:</span>
+                    <span class="q-pa-sm">{{ dataDictamen.textoDictamen + dataDictamen.textoFechas + dataDictamen.textoDictamentResult + dataDictamen.resultado}}</span>
                 </div>
+                <div class="row q-pa-sm q-mt-md justify-between">
+                    <div class="col-xs-12 col-md-6">
+                        <q-input v-model="dataDictamen.textoFechas" style="max-width: 95%;" filled label="Fecha de visitas"/>
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <q-input v-model="dataDictamen.resultado" style="max-width: 95%;" filled label="Resultado del dictamen" />
+                    </div>
+                </div>
+                <div class="row justify-between">
+                    <div class="col-xs-12 col-md-6">
+                        <q-select style="max-width: 95%;" :options="service.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <q-input class="q-pa-sm" style="max-width: 95%;" v-model="dataDictamen.representante" label="Representante legal empresa" />
+                    </div>
+                </div>
+                
+                
+                
                 <div class="row q-pa-md justify-end">
                     <q-btn label="Descargar" color="primary" @click="getDocument('dictamen')"/>
                 </div>
@@ -189,12 +218,19 @@ const visita = ref({})
 const owners = ref([])
 const status = ref(false)
 const showDictamen = ref(false)
-const dataDictamen = ref({})
+const dataDictamen = ref({
+    textoDictamen:"La inspección del cumplimiento de la norma NOM-002-STPS-2010, Condiciones de Seguridad Prevención y Protección contra incendios en los centros de trabajo fue realizada ",
+    textoDictamentResult:" con el siguiente resultado:",
+    resultado:"",
+    textoFechas:"",
+})
 
 const showActa = ref(false)
 const dataActa = ref({})
 
 const service = inject('servicio')
+
+const visitasText = ref([])
 
 const notify = (msg, type) => {
     $q.notify({
@@ -207,6 +243,8 @@ const notify = (msg, type) => {
 const signatory = computed(() =>{
     return props.signatory
 })
+
+const listFechas = computed(() => visitasText.value.join('<br>'))
 
 const signatario = ref({elabora:'', revisa:''})
 
@@ -359,6 +397,7 @@ const getDocument = (type) => {
             || dataDictamen.value.emite == undefined || dataDictamen.value.emite == ''
             || dataDictamen.value.resultado == undefined || dataDictamen.value.resultado == ''
             || dataDictamen.value.representante == undefined || dataDictamen.value.representante == ''
+            || dataDictamen.value.textoFechas == undefined || dataDictamen.value.textoFechas == ''
         ){
             notify('Todos los campos son requeridos', 'negative')
             return false
@@ -379,7 +418,7 @@ const getDocument = (type) => {
         url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showDictamen.value = false
         dataDictamen.value = {}
-        dataDictamen.value.representante = servicio.value.representante
+        dataDictamen.value.representante = service.value.representante
     }
 
     if(req==2){
@@ -429,6 +468,8 @@ const setDataService = () => {
     setDates()
     status.value = service.value.status == 'abierto'
     dataDictamen.value.representante = service.value.representante
+    
+    visitasText.value = service.value.fechas != undefined ? service.value.fechas.map(fecha => `Visita ${fecha.visita}: ${fecha.fecha_inicio} - ${fecha.fecha_fin} \n`) : []
 }
 
 const validateVisit = computed(() => {
