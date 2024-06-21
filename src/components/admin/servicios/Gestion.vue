@@ -1,5 +1,5 @@
 <template>
-<div class="q-ma-md" style="margin-top: 50px;">
+<div class="q-ma-md" style="margin-top: 50px;" v-if="service.id != undefined">
     <q-card>
         <q-card-section>
             <q-separator spaced />
@@ -34,18 +34,7 @@
             <q-separator spaced />
             
             <div class="row q-pa-md">
-                <q-btn label="Número dictamen" 
-                    color="primary" 
-                    class="q-mr-md" 
-                    @click="generarFolio"
-                    :disable="data.folio !== 'Sin número dictamen'"
-                >
-                    <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
-                        <span v-if="data.folio == 'Sin número dictamen'">Genera número de dictamen </span>
-                        <span v-else>Ya tiene número de dictamen</span>
-                    </q-tooltip>
-                </q-btn>
-                <q-btn label="Guía Documental" 
+                <!-- <q-btn label="Guía Documental" 
                     color="primary" 
                     class="q-mr-md" 
                     @click="getDocument('documental')"
@@ -55,7 +44,7 @@
                         <span v-if="validateVisit">Descarga guía documental</span>
                         <span v-else>Para continuar finaliza la visita</span>
                     </q-tooltip>
-                </q-btn>
+                </q-btn> -->
                 <q-btn label="Guía Inspección" 
                     color="primary" 
                     class="q-mr-md" 
@@ -64,18 +53,18 @@
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         <span v-if="validateVisit">Descarga guía de inspección</span>
-                        <span v-else>Para continuar finaliza la visita</span>
+                        <span v-else>Para continuar selecciona una visita</span>
                     </q-tooltip>
                 </q-btn>
                 <q-btn label="Acta" 
                     color="primary" 
                     class="q-mr-md" 
-                    @click="showActa=true"
                     :disable="!validateVisit"
+                    @click="showActa=!showActa"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         <span v-if="validateVisit">Descarga acta</span>
-                        <span>Para continuar finaliza la visita</span>
+                        <span>Para continuar selecciona una visita</span>
                     </q-tooltip>
                 </q-btn>
                 <q-btn label="Dictamen" 
@@ -84,10 +73,9 @@
                     @click="showDictamen=true"
                     :disable="!validateVisit"
                 >
-                    <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
+                    <!-- <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         <span v-if="validateVisit">Descarga dictamen</span>
-                        <span>Para continuar finaliza la visita</span>
-                    </q-tooltip>
+                    </q-tooltip> -->
                 </q-btn>
                 <q-toggle
                     v-model="status"
@@ -104,7 +92,7 @@
                 <div class="text-h6">Agregar visita</div>
                 <div class="row">
                     <div class="col-xs-12 col-md-3 d-inline-block q-mt-lg q-ml-md">
-                        <q-input v-model="visita.from" filled type="date" hint="Fecha inicial" />    
+                        <q-input v-model="visita.from" filled type="date" hint="Fecha inicial" />
                     </div>
                     <div class="col-xs-12 col-md-3 d-inline-block q-mt-lg q-ml-md">
                         <q-input v-model="visita.to" filled type="date" hint="Fecha final" />
@@ -148,74 +136,71 @@
         </q-card>
     </q-dialog>
     <q-dialog v-model="showDictamen" ref="dictamenData">
-        <q-card style="min-width: 500px;">
+        <q-card style="min-width: 800px;">
             <q-card-section>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
+                <div class="row">
+                    <div class="col-md-4">
+                        <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
+                    </div>
                 </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-select :options="data.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
+                <div class="row">
+                    <span class="q-pa-sm text-subtitle2 q-mt-md">Visitas realizadas:</span>
                 </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataDictamen.resultado" label="Resultado del dictamen" />
+                <div class="row q-mt-sm q-pa-sm justify-around">
+                    <q-badge 
+                        v-for="(text, index) in visitasText"   
+                        :key="index" 
+                        outline 
+                        color="black" 
+                        :label="text"
+                        class="q-pa-sm"
+                    />
                 </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataDictamen.representante" label="Representante legal empresa" />
+                <div class="row">
+                    <span class="q-pa-sm text-subtitle2 q-mt-md">Texto de fechas de visita:</span>
+                    <span class="q-pa-sm">{{ dataDictamen.textoDictamen + dataDictamen.textoFechas + dataDictamen.textoDictamentResult + dataDictamen.resultado}}</span>
                 </div>
+                <div class="row q-pa-sm q-mt-md justify-between">
+                    <div class="col-xs-12 col-md-6">
+                        <q-input v-model="dataDictamen.textoFechas" style="max-width: 95%;" filled label="Fecha de visitas"/>
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <q-input v-model="dataDictamen.resultado" style="max-width: 95%;" filled label="Resultado del dictamen" />
+                    </div>
+                </div>
+                <div class="row justify-between">
+                    <div class="col-xs-12 col-md-6">
+                        <q-select style="max-width: 95%;" :options="service.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <q-input class="q-pa-sm" style="max-width: 95%;" v-model="dataDictamen.representante" label="Representante legal empresa" />
+                    </div>
+                </div>
+                
+                
+                
                 <div class="row q-pa-md justify-end">
                     <q-btn label="Descargar" color="primary" @click="getDocument('dictamen')"/>
                 </div>
             </q-card-section>
         </q-card>
     </q-dialog>
-    <q-dialog v-model="showActa" ref="actaEvaluacion">
-        <q-card style="min-width: 500px;">
-            <q-card-section>
-                <span class="text-title">Personas que atienden la visita</span>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.persona1" label="Nombre persona 1" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.cargo1" label="Cargo persona 1" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.persona2" label="Nombre persona 2" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.cargo2" label="Cargo persona 2" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo1" label="Nombre testigo 1" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo1" label="Cargo testigo 1" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo2" label="Nombre testigo 2" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo2" label="Cargo testigo 2" />
-                </div>
-                <div class="row q-pa-md justify-end">
-                    <q-btn label="Descargar" color="primary" @click="getDocument('acta')"/>
-                </div>
-            </q-card-section>
-        </q-card>
-    </q-dialog>
+    <modal-acta :show="showActa" @closeModal="getActa" />
 </div>
 </template>
 
 
 <script setup>
-import {ref, computed, watch, onMounted, defineAsyncComponent, inject, toRef} from 'vue';
+import {ref, computed, watch, onMounted, defineAsyncComponent, inject} from 'vue';
 import { useQuasar } from "quasar";
 import { useServicios } from 'src/composables/useServicios.js'
 
 const archivos = defineAsyncComponent(() => import('src/components/admin/servicios/Archivos.vue'))
 
+const modalActa = defineAsyncComponent(() => import('src/components/admin/acta/ModalPrintActa.vue'))
+
 const props = defineProps({
     servicio_id: String,
-    data: Object
 })
 
 const servicio_id = ref(props.servicio_id)
@@ -233,11 +218,19 @@ const visita = ref({})
 const owners = ref([])
 const status = ref(false)
 const showDictamen = ref(false)
-const dataDictamen = ref({})
+const dataDictamen = ref({
+    textoDictamen:"La inspección del cumplimiento de la norma NOM-002-STPS-2010, Condiciones de Seguridad Prevención y Protección contra incendios en los centros de trabajo fue realizada ",
+    textoDictamentResult:" con el siguiente resultado:",
+    resultado:"",
+    textoFechas:"",
+})
+
 const showActa = ref(false)
 const dataActa = ref({})
 
-const service = toRef(props,'data')
+const service = inject('servicio')
+
+const visitasText = ref([])
 
 const notify = (msg, type) => {
     $q.notify({
@@ -251,6 +244,8 @@ const signatory = computed(() =>{
     return props.signatory
 })
 
+const listFechas = computed(() => visitasText.value.join('<br>'))
+
 const signatario = ref({elabora:'', revisa:''})
 
 watch(signatory, (value) => {
@@ -261,7 +256,7 @@ watch(signatory, (value) => {
 
 const addVisit = (type) => {
     if(type == 'init'){
-        if(props.data.visitas_en_curso){
+        if(service.value.visitas_en_curso){
             $q.notify({
                 position:'top',
                 type:'warning',
@@ -270,7 +265,7 @@ const addVisit = (type) => {
             return false
         }
 
-        if(!props.data.no_cumple){
+        if(!service.value.no_cumple){
             $q.notify({
                 position:'top',
                 type:'warning',
@@ -332,7 +327,7 @@ const addVisit = (type) => {
                         message:'No es necesario agregar una visita, todos los puntos cumplen'
                     })
                 } else {
-                    
+                    setDates()
                     $q.notify({
                         position:'top',
                         type:'positive',
@@ -359,7 +354,26 @@ const filterStaff = (val, update, abort) => {
     })
 }
 
+const getActa = (data) => {
+    if(data != undefined){
+        dataActa.value = data.value
+        getDocument('acta')
+    } else {
+       showActa.value = false
+    }
+    
+}
+
 const getDocument = (type) => {
+    if((type == 'inspeccion' || type == 'acta') && visitSelected.value == null){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para continuar selecciona una visita'
+        })
+        return false
+    }
+
     let req = 0
     switch (type) {
         case 'documental':
@@ -376,13 +390,14 @@ const getDocument = (type) => {
             req = 4;
             break;
     }
-    // console.log(`${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}`)
+    
     let url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&visita_id=${visitSelected.value.id}`
     if(req==4){
         if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''
             || dataDictamen.value.emite == undefined || dataDictamen.value.emite == ''
             || dataDictamen.value.resultado == undefined || dataDictamen.value.resultado == ''
             || dataDictamen.value.representante == undefined || dataDictamen.value.representante == ''
+            || dataDictamen.value.textoFechas == undefined || dataDictamen.value.textoFechas == ''
         ){
             notify('Todos los campos son requeridos', 'negative')
             return false
@@ -403,7 +418,7 @@ const getDocument = (type) => {
         url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showDictamen.value = false
         dataDictamen.value = {}
-        dataDictamen.value.representante = props.data.representante
+        dataDictamen.value.representante = service.value.representante
     }
 
     if(req==2){
@@ -432,42 +447,12 @@ const getDocument = (type) => {
     window.open(url,'_blank')
 }
 
-const generarFolio = () => {
-    $q.dialog({
-            title: '¿Estás seguro?',
-            message: 'Se asingará un número de dictamen al servicio',
-            ok: {
-            push: true,
-            label:'Aceptar'
-            },
-            cancel: {
-            push: true,
-            color: 'dark',
-            label:'Cancelar'
-            },
-            persistent: true
-            }).onOk(async app => {
-
-            const getfolio = await generarNumDictamen({servicio_id:props.data.id, generar_folio:true})
-            if(getfolio.status == 200){
-                notify('Se asignó número de dictamen', 'positive')
-            } else {
-                notify('Por favor contácta al administrador', 'negative')
-            }
-                            
-        }).onCancel(() => {
-            // console.log('>>>> Cancel')
-        }).onDismiss(() => {
-            // console.log('I am triggered on both OK and Cancel')
-        })   
-}
-
 watch(status, async (value) => {
     await closeServiceStatus({
-        servicio_id:props.data.id,
+        servicio_id:servicio_id.value,
         status: status.value ? 'abierto' : 'cerrado'
     })
-    props.data.status =  status.value ? 'abierto' : 'cerrado'
+    service.value.status =  status.value ? 'abierto' : 'cerrado'
     $q.notify({
         position:'top',
         type:'positive',
@@ -475,10 +460,16 @@ watch(status, async (value) => {
     })
 })
 
-const setDataService = () => {
+const setDates = () => {
     visitas.value = service.value.fechas.map((item) => {return {id:item.id, texto:`Visita ${item.visita}`}})
-    status.value = props.data.status == 'abierto'
-    dataDictamen.value.representante = props.data.representante
+}
+
+const setDataService = () => {
+    setDates()
+    status.value = service.value.status == 'abierto'
+    dataDictamen.value.representante = service.value.representante
+    
+    visitasText.value = service.value.fechas != undefined ? service.value.fechas.map(fecha => `Visita ${fecha.visita}: ${fecha.fecha_inicio} - ${fecha.fecha_fin} \n`) : []
 }
 
 const validateVisit = computed(() => {

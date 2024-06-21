@@ -32,6 +32,13 @@
                             </template>
                         </q-input>
                     </div>
+                    <div class="col-md-3 col-xs-12">
+                        <q-input class="q-ml-lg" label="Número de dictamen" v-model="servicio.folio">
+                            <template v-slot:after>
+                                <q-btn round dense flat color="primary" icon="check" @click="generarFolio" />
+                            </template>
+                        </q-input>
+                    </div>
                     
                 </div>
                 <div class="row q-mt-md q-mb-lg q-ma-sm">
@@ -55,23 +62,23 @@
                         <span class="label q-mt-sm">Fecha creación</span><br>
                         <q-badge outline color="grey-7" :label="servicio.create_date" class="q-mt-md" />    
                     </div>
-                    <div class="col-md-3 col-sm-12">
+                    <!-- <div class="col-md-3 col-sm-12">
                         <span class="label q-mt-sm">Número dictamen</span><br>
                         <q-badge outline color="grey-7" :label="servicio.folio" class="q-mt-md" />
-                    </div>
+                    </div> -->
                 </div>
             </q-card-section>
     </q-card>
 </div>
 <!-- <logistica :servicio="servicio" :id="$route.params.id" /> -->
-<gestion :servicio_id="$route.params.id" :data="servicio" />
+<gestion :servicio_id="$route.params.id" />
 
 </q-page>
 </template>
 
 
 <script setup>
-import {computed, onMounted, watch, ref, inject} from 'vue'
+import {computed, onMounted, watch, ref, inject, provide} from 'vue'
 import { useQuasar, date } from "quasar";
 import { useRoute } from "vue-router";
 
@@ -86,7 +93,7 @@ const $q = useQuasar();
 const $router = useRoute()
 
 const { AppActiveUser } = storeUsers
-const { getService, serviceItem, closeServiceStatus } = storeServicios
+const { getService, serviceItem, closeServiceStatus, generarNumDictamen } = storeServicios
 
 const generar_ot = ref(false)
 
@@ -115,6 +122,8 @@ const fecha_fin = ref('')
 const servicio = computed(() => {
     return serviceItem.value
 })
+
+provide('servicio', serviceItem)
 
 const setTime = async () => {
     // fecha_reconocimiento.value = servicio.value.recognition_date.split('-')
@@ -164,9 +173,37 @@ const update = async () => {
 
         if(registro.status == 200) notify('Se guardo el registro correctamente','positive')
         else notify('Por favor contacta al administrador','negative')
-    })
-            
-    
+    })   
+}
+
+const generarFolio = () => {
+    $q.dialog({
+            title: '¿Estás seguro?',
+            message: 'Se asingará un número de dictamen al servicio',
+            ok: {
+            push: true,
+            label:'Aceptar'
+            },
+            cancel: {
+            push: true,
+            color: 'dark',
+            label:'Cancelar'
+            },
+            persistent: true
+            }).onOk(async app => {
+
+            const getfolio = await generarNumDictamen({servicio_id:servicio.value.id, generar_folio:true, folio:servicio.value.folio})
+            if(getfolio.status == 200){
+                notify('Se asignó número de dictamen', 'positive')
+            } else {
+                notify('Por favor contácta al administrador', 'negative')
+            }
+                            
+        }).onCancel(() => {
+            // console.log('>>>> Cancel')
+        }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+        })   
 }
 
 onMounted(async () => {
