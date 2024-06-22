@@ -71,7 +71,7 @@
                     color="primary" 
                     class="q-mr-md" 
                     @click="showDictamen=true"
-                    :disable="!validateVisit"
+                    :disable="!getDictamen"
                 >
                     <!-- <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         <span v-if="validateVisit">Descarga dictamen</span>
@@ -147,26 +147,17 @@
                 <div class="row">
                     <span class="q-pa-sm text-subtitle2 q-mt-md">Visitas realizadas:</span>
                 </div>
-                <div class="row q-mt-sm q-pa-sm justify-around">
-                    <q-badge 
-                        v-for="(text, index) in visitasText"   
-                        :key="index" 
-                        outline 
-                        color="black" 
-                        :label="text"
-                        class="q-pa-sm"
-                    />
+                <div class="q-pa-sm">
+                    <div class="row bg-blue-4 q-pa-sm q-mt-sm text-body1 text-bold text-white" v-for="(text, index) in visitasText" :key="index">{{ text }}</div>
                 </div>
+            
                 <div class="row">
                     <span class="q-pa-sm text-subtitle2 q-mt-md">Texto de fechas de visita:</span>
-                    <span class="q-pa-sm">{{ dataDictamen.textoDictamen + dataDictamen.textoFechas + dataDictamen.textoDictamentResult + dataDictamen.resultado}}</span>
+                    <span class="q-pa-sm">{{ dataDictamen.textoDictamen + dataDictamen.textoFechas + dataDictamen.textoDictamentResult + ' Cumple'}}</span>
                 </div>
                 <div class="row q-pa-sm q-mt-md justify-between">
                     <div class="col-xs-12 col-md-6">
                         <q-input v-model="dataDictamen.textoFechas" style="max-width: 95%;" filled label="Fecha de visitas"/>
-                    </div>
-                    <div class="col-xs-12 col-md-6">
-                        <q-input v-model="dataDictamen.resultado" style="max-width: 95%;" filled label="Resultado del dictamen" />
                     </div>
                 </div>
                 <div class="row justify-between">
@@ -177,8 +168,6 @@
                         <q-input class="q-pa-sm" style="max-width: 95%;" v-model="dataDictamen.representante" label="Representante legal empresa" />
                     </div>
                 </div>
-                
-                
                 
                 <div class="row q-pa-md justify-end">
                     <q-btn label="Descargar" color="primary" @click="getDocument('dictamen')"/>
@@ -222,7 +211,6 @@ const showDictamen = ref(false)
 const dataDictamen = ref({
     textoDictamen:"La inspección del cumplimiento de la norma NOM-002-STPS-2010, Condiciones de Seguridad Prevención y Protección contra incendios en los centros de trabajo fue realizada ",
     textoDictamentResult:" con el siguiente resultado:",
-    resultado:"",
     textoFechas:"",
 })
 
@@ -257,7 +245,7 @@ watch(signatory, (value) => {
 
 const addVisit = (type) => {
     if(type == 'init'){
-        if(service.value.visitas_en_curso){
+        if(service.value.has_doc){
             $q.notify({
                 position:'top',
                 type:'warning',
@@ -396,7 +384,6 @@ const getDocument = (type) => {
     if(req==4){
         if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''
             || dataDictamen.value.emite == undefined || dataDictamen.value.emite == ''
-            || dataDictamen.value.resultado == undefined || dataDictamen.value.resultado == ''
             || dataDictamen.value.representante == undefined || dataDictamen.value.representante == ''
             || dataDictamen.value.textoFechas == undefined || dataDictamen.value.textoFechas == ''
         ){
@@ -470,20 +457,28 @@ const setDataService = () => {
     status.value = service.value.status == 'abierto'
     dataDictamen.value.representante = service.value.representante
     
-    visitasText.value = service.value.fechas != undefined ? service.value.fechas.map(fecha => `Visita ${fecha.visita}: ${fecha.fecha_inicio} - ${fecha.fecha_fin} \n`) : []
+    visitasText.value = service.value.fechas != undefined ? service.value.fechas.map(fecha => {
+        // Función para convertir fecha de 'aaaa/mm/dd' a 'dd/mm/aaaa'
+        const formatFecha = (fechaStr) => {
+            console.log(fechaStr)
+            const [year, month, day] = fechaStr.split('-');
+            return `${day}/${month}/${year}`;
+        };
+
+        // Formatear las fechas de inicio y fin
+        const fechaInicio = formatFecha(fecha.fecha_inicio);
+        const fechaFin = formatFecha(fecha.fecha_fin);
+
+        return `Visita ${fecha.visita}: Inicio:${fechaInicio} - Fin:${fechaFin} \n`;
+    }) : []
 }
 
+const getDictamen = computed(() => {
+    return visitSelected.value != null && service.value.has_doc && !service.value.no_cumple
+})
+
 const validateVisit = computed(() => {
-    if(service.value.fechas!=undefined && visitSelected.value != null){
-        service.value.fechas.map((item) => {
-            if(item.id == visitSelected.value.id){
-                currentVisit.value = item.finalizado == 1
-            }
-        })
-        console.log('true bloquea', currentVisit.value)
-    }
-    
-    return currentVisit.value
+    return service.value.has_doc && visitSelected.value != null
 })
 
 
