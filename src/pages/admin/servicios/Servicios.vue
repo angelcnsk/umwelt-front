@@ -264,6 +264,8 @@ const permisos = computed(async () => {
 watch(permisos, async (newVal) => {
     const find = await newVal
     agregar_servicio.value = find.find((permiso) => permiso === 'agregar_servicio')
+    
+    editar_servicio.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'editar_servicio')
 })
 
 watch( () => service,(currValue, prevValue) => {

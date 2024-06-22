@@ -126,7 +126,6 @@ watch(permisos, async (newVal) => {
 
 const goTo = (e, element) => {
     if(editar_cliente.value){
-        console.log(editar_cliente.value)
         router.push({name:'cliente', params:{id:element.id}})
     }
 }
@@ -157,6 +156,7 @@ const saveClient = async () => {
 onMounted(async () => {
     if(AppActiveUser.value.permissions){
         agregar_cliente.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_empresa')
+        editar_cliente.value = find.find((permiso) => permiso === 'editar_cliente')
     }
     await getClients()
 })
