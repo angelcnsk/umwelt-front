@@ -34,7 +34,7 @@ const routes = [
     children: [
       {path: '/admin/dashboard', component: () => import('pages/admin/Dashboard.vue'), 
         name:'index-admin',
-        meta: { rule: ['user', 'admin', 'root', 'captura'], authRequired: true}
+        meta: { rule: ['user', 'admin', 'inspeccion'], authRequired: true}
       },
       {path: '/admin/usuarios', component: () => import('pages/admin/usuarios/ListaUsuarios.vue'), 
         name:'usuarios',
@@ -62,11 +62,11 @@ const routes = [
       },
       {path: '/admin/clientes/', component: () => import('pages/admin/clientes/Clientes.vue'), 
         name:'clientes',
-        meta: { rule: ['admin','root'], authRequired: true}
+        meta: { rule: ['admin','root','inspeccion'], authRequired: true}
       },
       {path: '/admin/clientes/cliente/:id?', component: () => import('pages/admin/clientes/Cliente.vue'), 
         name:'cliente',
-        meta: { rule: ['admin','root'], authRequired: true}
+        meta: { rule: ['admin','root','inspeccion'], authRequired: true}
       },
       {path: '/admin/productos/', component: () => import('pages/admin/productos/Productos.vue'), 
         name:'productos',
@@ -74,15 +74,15 @@ const routes = [
       },
       {path: '/admin/servicios/', component: () => import('pages/admin/servicios/Servicios.vue'), 
         name:'servicios',
-        meta: { rule: ['admin','root','user','captura'], authRequired: true}
+        meta: { rule: ['admin','root','inspeccion'], authRequired: true}
       },
       {path: '/admin/servicios/servicio/:id?', component: () => import('pages/admin/servicios/Servicio.vue'), 
         name:'servicio',
-        meta: { rule: ['admin','root','user','captura'], authRequired: true}
+        meta: { rule: ['admin','root'], authRequired: true}
       },
       {path: '/admin/captura/', component: () => import('pages/admin/capturas/Capturas.vue'), 
         name:'capturas',
-        meta: { rule: ['admin','root','user','captura'], authRequired: true}
+        meta: { rule: ['admin','root','user','inspeccion','captura'], authRequired: true}
       },
     ]
   },
