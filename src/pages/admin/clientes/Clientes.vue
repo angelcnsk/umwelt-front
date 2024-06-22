@@ -156,7 +156,8 @@ const saveClient = async () => {
 onMounted(async () => {
     if(AppActiveUser.value.permissions){
         agregar_cliente.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_empresa')
-        editar_cliente.value = find.find((permiso) => permiso === 'editar_cliente')
+
+        editar_cliente.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'editar_cliente')
     }
     await getClients()
 })
