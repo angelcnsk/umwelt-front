@@ -99,6 +99,7 @@ const router = useRouter()
 const { AppActiveUser } = storeUsers
 const {getClients, clients, createClient} = storeClientes
 const agregar_cliente = ref(false)
+const editar_cliente = ref(false)
 const newClient = ref({})
 const addClient = ref(false)
 
@@ -120,10 +121,14 @@ const permisos = computed(async () => {
 watch(permisos, async (newVal) => {
     const find = await newVal
     agregar_cliente.value = find.find((permiso) => permiso === 'agregar_empresa')
+    editar_cliente.value = find.find((permiso) => permiso === 'editar_cliente')
 })
 
-const goTo = (e, value) => {
-    router.push({name:'cliente', params:{id:value.id}})
+const goTo = (e, element) => {
+    if(editar_cliente.value){
+        console.log(editar_cliente.value)
+        router.push({name:'cliente', params:{id:element.id}})
+    }
 }
 
 const saveClient = async () => {

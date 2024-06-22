@@ -80,6 +80,7 @@
                 <q-toggle
                     v-model="status"
                     color="green"
+                    @click="changeStatus"
                     label="Cerrado / Abierto"
                 />
             </div>
@@ -447,7 +448,7 @@ const getDocument = (type) => {
     window.open(url,'_blank')
 }
 
-watch(status, async (value) => {
+const changeStatus = async() => {
     await closeServiceStatus({
         servicio_id:servicio_id.value,
         status: status.value ? 'abierto' : 'cerrado'
@@ -458,7 +459,7 @@ watch(status, async (value) => {
         type:'positive',
         message:'Estatus de servicio actualizado'
     })
-})
+}
 
 const setDates = () => {
     visitas.value = service.value.fechas.map((item) => {return {id:item.id, texto:`Visita ${item.visita}`}})

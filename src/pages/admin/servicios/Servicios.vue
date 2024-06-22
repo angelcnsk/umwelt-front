@@ -181,6 +181,7 @@ const { staff, getStaff, getService, servicesList, productos, getProductos, getS
 
 
 const agregar_servicio = ref(false)
+const editar_servicio = ref(false)
 
 const addService = ref(false)
 const clientes = ref([])
@@ -394,13 +395,17 @@ const filterPlanta = (val, update, abort) => {
 }
 
 
-const goTo = (e, value) => {
-    router.push({name:'servicio', params:{id:value.id}})
+const goTo = (e, element) => {
+    if(editar_servicio.value){
+        router.push({name:'servicio', params:{id:element.id}})
+    }
 }
 
 onMounted(async () => {
     if(AppActiveUser.value.permissions){
         agregar_servicio.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'agregar_servicio')
+
+        editar_servicio.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'editar_servicio')
     }
     await getClients()
     await getProductos()

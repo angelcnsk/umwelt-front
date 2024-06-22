@@ -96,11 +96,6 @@ const { AppActiveUser } = storeUsers
 const { getService, serviceItem, closeServiceStatus, generarNumDictamen } = storeServicios
 
 const generar_ot = ref(false)
-
-const cambiar_fechas_servicio = ref(false)
-const agregar_signatarios = ref(false)
-const logistica = ref(false)
-const llenar_rec = ref(false)
 const incognit = inject('incognit')
 
 const notify = (msg, type) => {
@@ -144,10 +139,6 @@ watch(AppActiveUser, (valor) => {
 watch(permisos, (newVal) => {
     if(newVal != undefined){
         const permisos = newVal
-        cambiar_fechas_servicio.value = permisos.find((permiso) => permiso === 'cambiar_fechas_servicio')
-        agregar_signatarios.value = permisos.find((permiso) => permiso === 'agregar_signatarios')
-        logistica.value = permisos.find((permiso) => permiso === 'agregar_areas_reconocimiento')
-        llenar_rec.value = permisos.find((permiso) => permiso === 'datos_reconocimiento')
         generar_ot.value = permisos.find((permiso) => permiso === 'generar_num_dictamen')
     }
     
