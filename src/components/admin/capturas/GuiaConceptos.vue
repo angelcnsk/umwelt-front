@@ -548,14 +548,18 @@ const cleanData = () => {
 
 const disableOptions = computed(() => {
     return (opcion,categoria,concepto) => {
+        console.log('evaluar disable', opcion)
         if (opcion === 'si') {
-          return categorias.value[categoria].conceptos[concepto].value.includes('no') || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
+          return categorias.value[categoria].conceptos[concepto].value.includes('no')
+            // || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
         } else if (opcion === 'no') {
           return categorias.value[categoria].conceptos[concepto].value.includes('si') || categorias.value[categoria].conceptos[concepto].value.includes('cumple');
         } else if (opcion === 'cumple') {
-          return categorias.value[categoria].conceptos[concepto].value.includes('no') || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
+          return categorias.value[categoria].conceptos[concepto].value.includes('no') 
+        //   || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
         } else if (opcion === 'no_cumple') {
-          return categorias.value[categoria].conceptos[concepto].value.includes('si') || categorias.value[categoria].conceptos[concepto].value.includes('cumple');
+          return categorias.value[categoria].conceptos[concepto].value.includes('cumple') 
+        //   || categorias.value[categoria].conceptos[concepto].value.includes('si');
         }
     }
 })
