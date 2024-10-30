@@ -39,7 +39,55 @@
           </q-tab-panel> -->
 
           <q-tab-panel name="inspeccion">
-            <guia-conceptos :service="currentService" />
+            <div class="q-pa-md" v-if="Object.entries(currentService).length==0">
+                    <q-item style="max-width: 300px">
+                    <q-item-section avatar>
+                        <q-skeleton type="QAvatar" />
+                    </q-item-section>
+
+                    <q-item-section>
+                        <q-item-label>
+                        <q-skeleton type="text" />
+                        </q-item-label>
+                        <q-item-label caption>
+                        <q-skeleton type="text" width="65%" />
+                        </q-item-label>
+                    </q-item-section>
+                    </q-item>
+
+                    <q-item style="max-width: 300px">
+                    <q-item-section avatar>
+                        <q-skeleton type="QAvatar" />
+                    </q-item-section>
+
+                    <q-item-section>
+                        <q-item-label>
+                        <q-skeleton type="text" />
+                        </q-item-label>
+                        <q-item-label caption>
+                        <q-skeleton type="text" width="90%" />
+                        </q-item-label>
+                    </q-item-section>
+                    </q-item>
+
+                    <q-item style="max-width: 300px">
+                    <q-item-section avatar>
+                        <q-skeleton type="QAvatar" />
+                    </q-item-section>
+
+                    <q-item-section>
+                        <q-item-label>
+                        <q-skeleton type="text" width="35%" />
+                        </q-item-label>
+                        <q-item-label caption>
+                        <q-skeleton type="text" />
+                        </q-item-label>
+                    </q-item-section>
+                    </q-item>
+                </div>
+            <guia-conceptos v-else-if="currentService.product_id == 1" :service="currentService" />
+            <guia-22 v-else :service="currentService" /> 
+              
           </q-tab-panel>
 
           <!-- <q-tab-panel name="archivos">
@@ -63,6 +111,7 @@ import { useCapturas } from 'src/composables/useCapturas.js'
 import { searchDocuments, createDocument } from "src/composables/firebase/capturas/nom02/documentos.js";
 
 const guiaConceptos = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaConceptos.vue'))
+const guia22 = defineAsyncComponent(() => import('src/components/admin/capturas/Guia22.vue'))
 
 const storeCapturas = useCapturas();
 const { getServiceList, servicesList, currentService } = storeCapturas
