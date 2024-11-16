@@ -21,7 +21,9 @@
             class="bg-primary text-white shadow-2"
         >
             <!-- <q-tab name="documentacion" label="Documentación" /> -->
-            <q-tab name="inspeccion" label="Inspección" />
+            <q-tab v-if="currentService.product_id == 1" name="inspeccion" label="Inspección" />
+            <q-tab v-if="currentService.product_id == 2" name="guia22" label="Guía 22" />
+            <q-tab v-if="currentService.product_id == 2" name="guia25" label="Guía 25" />
             <!-- <q-tab name="archivos" label="Archivos" /> -->
             
         </q-tabs>
@@ -86,9 +88,14 @@
                     </q-item>
                 </div>
             <guia-conceptos v-else-if="currentService.product_id == 1" :service="currentService" />
-            <guia-22 v-else :service="currentService" /> 
               
           </q-tab-panel>
+            <q-tab-panel name="guia22">
+                <guia-22 :service="currentService" /> 
+            </q-tab-panel>
+            <q-tab-panel name="guia25">
+
+            </q-tab-panel>
 
           <!-- <q-tab-panel name="archivos">
             <archivos :service="currentService" />
@@ -141,6 +148,7 @@ watch(serviceSelected, async (item) => {
         } else {
             currentService.value = serviceData
         }
+        tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'
         setDataService(getLocal)
     }
 })
