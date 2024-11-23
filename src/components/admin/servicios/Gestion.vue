@@ -28,12 +28,18 @@
             </div>
             
         </q-card-section>
+        <q-card-section>
+            <q-separator spaced />
+                <div class="text-subtitle text-grey-8">Contenedores CSP CAT III</div>
+            <q-separator spaced />
+            <contenedores :service="service" />
+        </q-card-section>
         <q-card-section style="margin-bottom: 100px;">
             <q-separator spaced />
             <div class="text-subtitle text-grey-8">Reporte y control</div>
             <q-separator spaced />
             
-            <div class="row q-pa-md">
+            <div class="row q-pa-md" v-if="service.product_id ==1">
                 <!-- <q-btn label="Guía Documental" 
                     color="primary" 
                     class="q-mr-md" 
@@ -77,6 +83,16 @@
                         <span v-if="validateVisit">Descarga dictamen</span>
                     </q-tooltip> -->
                 </q-btn>
+                
+            </div>
+            <div class="row q-pa-md" v-if="service.product_id ==2">
+                <q-btn label="Documentos" 
+                    color="primary" 
+                    class="q-mr-md" 
+                    @click="showDocs20 = !showDocs20"
+                />
+            </div>
+            <div>
                 <q-toggle
                     v-model="status"
                     color="green"
@@ -84,7 +100,6 @@
                     label="Cerrado / Abierto"
                 />
             </div>
-
         </q-card-section>
     </q-card>
     <q-dialog v-model="nuevaVisita" ref="modalVisita" >
@@ -176,6 +191,7 @@
         </q-card>
     </q-dialog>
     <modal-acta :show="showActa" @closeModal="getActa" />
+    <modalDocuments20 :show="showDocs20" @closeModal="closeModalDoc20" :service="service" />
 </div>
 </template>
 
@@ -188,6 +204,10 @@ import { useServicios } from 'src/composables/useServicios.js'
 const archivos = defineAsyncComponent(() => import('src/components/admin/servicios/Archivos.vue'))
 
 const modalActa = defineAsyncComponent(() => import('src/components/admin/acta/ModalPrintActa.vue'))
+
+const contenedores = defineAsyncComponent(() => import('src/components/admin/servicios/Contenedores.vue'))
+
+const modalDocuments20 = defineAsyncComponent(() => import('src/components/admin/servicios/ModalDocuments020.vue'))
 
 const props = defineProps({
     servicio_id: String,
@@ -215,6 +235,7 @@ const dataDictamen = ref({
 })
 
 const showActa = ref(false)
+const showDocs20 = ref(false)
 const dataActa = ref({})
 
 const service = inject('servicio')
@@ -481,6 +502,9 @@ const validateVisit = computed(() => {
     return service.value.has_doc && visitSelected.value != null
 })
 
+const closeModalDoc20 = () => {
+    showDocs20.value = false
+}
 
 onMounted(async () => {
     await getStaff({owner_service:true})

@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import {ref, computed, watch, onMounted, defineAsyncComponent, inject, toRef} from 'vue';
+import {ref, watch, toRef} from 'vue';
 
 const props = defineProps({
     show: Boolean,
