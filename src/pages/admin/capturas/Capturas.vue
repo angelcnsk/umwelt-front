@@ -139,17 +139,18 @@ const formDate =  (date) => {
 
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
-        const serviceData = JSON.parse(localStorage.getItem(`service_${item.id}_data`))
-        const getLocal = serviceData != null ? 'local' : 'remote'
+        currentService.value = serviceSelected.value
+        // const serviceData = JSON.parse(localStorage.getItem(`service_${item.id}_data`))
+        // const getLocal = serviceData != null ? 'local' : 'remote'
         
-        if(getLocal == 'remote'){
-            //si no existe en local se obtiene la información y se hace el set
-            await getServiceList(serviceSelected.value.id)
-        } else {
-            currentService.value = serviceData
-        }
-        tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'
-        setDataService(getLocal)
+        // if(getLocal == 'remote'){
+        //     //si no existe en local se obtiene la información y se hace el set
+        //     await getServiceList(serviceSelected.value.id)
+        // } else {
+        //     currentService.value = serviceData
+        // }
+        // tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'
+        // setDataService(getLocal)
     }
 })
 
@@ -224,7 +225,6 @@ onMounted( async () => {
         await getServiceList()
     } else {
         servicesList.value = JSON.parse(localStorage.getItem('serviceList'))
-        console.log(servicesList.value)
     }
 }) 
 

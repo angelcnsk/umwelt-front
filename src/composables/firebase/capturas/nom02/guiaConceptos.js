@@ -2,6 +2,7 @@ import {db, auth} from 'boot/firebase'
 import { collection, query, onSnapshot, addDoc, where, updateDoc, doc, getDocs} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref } from "vue";
+import { getData, readData, saveData } from '../../firebaseService';
 
 export const collection2 = ref([]);
 
@@ -132,3 +133,44 @@ export async function saveObservation(req) {
         return false
     }
 }
+
+export async function getCategoriesNom02(params) {
+    try {
+        const categorias = await getData('catalogos/nom02/');
+        categorias.forEach((cat) => {
+            if(cat.conceptos){
+                cat.conceptos.forEach((concept) => {
+                    concept.value = [];
+                })
+            }
+        })
+        return categorias
+    } catch (error) {
+        console.log('error al obtener categorías NOM-02')
+    }
+}
+
+export async function getResultNom02(params) {
+    try {
+        return await readData(`servicios/${params.service_id}/result`);
+    } catch (error) {
+        console.log('error al obtener resultados NOM-02')
+    }
+}
+
+export async function getObservationsNom02(params) {
+    try {
+        return await readData(`servicios/${params.service_id}/observaciones`);
+    } catch (error) {
+        console.log('error al obtener observaciones NOM-02')
+    }
+}
+
+export async function setConceptsValues(params) {
+    try {
+        return await saveData(`servicios/${params.service_id}/result`, params.data)
+    } catch (error) {
+        console.log('error al guardar lista de conceptos')
+    }
+}
+

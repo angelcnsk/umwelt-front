@@ -25,9 +25,11 @@ export const useCapturasStore = defineStore('capturas', {
                 if (typeof payload === 'undefined') {
                   this.servicesList = response.data.service_list
                   localStorage.setItem('serviceList', JSON.stringify(response.data.service_list))
-                } else {
-                  this.currentService = response.data.service
                 }
+                // TODO quitar cuando se confirme que info desde nodo funciona
+                // else {
+                //   this.currentService = response.data.service
+                // }
                 
                 resolve()
               }).catch((error) => { reject(error) })

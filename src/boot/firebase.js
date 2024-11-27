@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getDatabase } from "firebase/database";
+import { getDatabase, goOffline, goOnline } from "firebase/database";
 import { getStorage} from "firebase/storage"
 
 
@@ -20,4 +20,4 @@ const db = getDatabase(app)
 const storage = getStorage(app)
 
 
-export { db, auth, storage }
+export { db, auth, storage, goOffline, goOnline }

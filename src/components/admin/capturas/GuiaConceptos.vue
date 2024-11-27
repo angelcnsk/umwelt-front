@@ -64,19 +64,19 @@
                     style="border: .2px solid gray"
                 >
                 <q-separator />
-                <div style="height: 150px; overflow-y: scroll; border:1px solid" v-if="categoria.conceptos.length>0">
+                <div v-if="categoria.conceptos && categoria.conceptos.length > 0" style="height: 150px; overflow-y: scroll; border:1px solid">
                     <div class="q-pa-md" v-for="(concepto,i) in categoria.conceptos" :key="i">
                         <div class="row wrap q-pa-sm">
                             <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
                         </div>
-                        <div class="row q-pa-sm">
+                        <div class="row q-pa-sm" v-if="concepto.value">
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="si" label="Si" color="orange" :disable="disableOptions('si',index,i)" />
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="no" label="No" color="orange" :disable="disableOptions('no',index,i)" />
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="cumple" label="Cumple" color="orange" :disable="disableOptions('cumple',index,i)" />
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="no_cumple" label="No cumple" color="orange" :disable="disableOptions('no_cumple',index,i)" />
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="na" label="N.A." color="orange" />
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="et" label="E.T." color="orange" />
-                        </div>                                                            
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-12">
@@ -156,8 +156,9 @@
 import {ref, computed, watch, onMounted, toRef, inject, provide, defineAsyncComponent} from 'vue';
 import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
-import { createGuideConcepts, getGuideConcepts, observacionesCategorias, saveConceptValue, saveObservation } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
+import { createGuideConcepts, getCategoriesNom02, getGuideConcepts, getObservationsNom02, getResultNom02, observacionesCategorias, saveConceptValue, saveObservation, setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
 import { storeActa } from "src/composables/firebase/storage";
+import { updateData } from 'src/composables/firebase/firebaseService';
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
@@ -185,6 +186,7 @@ const timeStamp = Date.now()
 const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref(null)
 const conceptos = ref([])
+const result = ref([])
 
 provide('currentVisit', visitSelected);
 
@@ -225,12 +227,12 @@ const setService = (type) => {
         
         visitSelected.value = visitas.value[0]
     }
-    setLocal(type)
+    // setLocal(type)
     setFechas()
 }
 
 watch(service, (newVal) => {
-    setService('load')
+    // setService('load')
 })
 
 const changeValue = async (categoria, concepto) => {
@@ -239,10 +241,23 @@ const changeValue = async (categoria, concepto) => {
     
     //se busca el concepto en todas las categorias y se actualiza el valor
     categorias.value.forEach((categoria) => {
-        categoria.conceptos.forEach((concepto) => {
-            if(concept.id == concepto.id) concepto.value = concept.value
-        })
+        if(categoria.conceptos){
+            categoria.conceptos.forEach((concepto) => {
+                if(concept.id == concepto.id) concepto.value = concept.value
+            })
+        }
     })
+    //path de nodo
+    const findIndex = result.value.findIndex((item) => item.concepto_id == concept.id)
+    const path = `servicios/${service.value.id}/result/${findIndex}`;
+    // console.log('index', path)
+    const flag = concept.value.includes('no_cumple');
+    
+    const props = {
+        value:concept.value, no_cumple:flag?1:0 
+    }
+    
+    await updateData(path,props )
     // await saveConceptValue({
     //     uid:categorias.value[categoria].conceptos[concepto].uid,
     //     value:categorias.value[categoria].conceptos[concepto].value,
@@ -266,7 +281,48 @@ watch(visitSelected, async (fecha) => {
     if(service.value.id != undefined){
         // categorias.value = []
         setFechas()
-        console.log("trae conceptos", conceptos.value.length)
+        //recupera categorías desde el catálogo
+        categorias.value = await getCategoriesNom02();
+        //busca si hay resultados en firebase
+        result.value = await getResultNom02({service_id:service.value.id});
+        //busca observaciones
+        const observaciones = await getObservationsNom02({service_id:service.value.id})
+        
+        //si no existen respuestas previamente guardadas las crea en firebase
+        if(result.value === undefined || result.value === null) {
+            const a_conceptos = []
+            categorias.value.map((cat) => {
+                if(cat.conceptos){
+                    const items = cat.conceptos.map((item) => {
+                        return {concepto_id:item.id,service_id:service.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:currentUser.value.id}
+                    })
+                    a_conceptos.push(...items)
+                }
+            })
+            const uniqueArray = a_conceptos.filter((item, index, self) =>
+                index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
+            );
+
+            //los guarda en firebase
+            await setConceptsValues({service_id:service.value.id, data:uniqueArray})
+        }
+
+        //se relacionan las respuestas con los conceptos correspondientes
+        categorias.value.map((cat) => {
+            if(cat.conceptos){
+                cat.conceptos.forEach((item) => {
+                    if(result.value){
+                        result.value.map((element) => {
+                            if(element.value == 1) element.value = [];
+                            if(element.concepto_id === item.id){
+                                item.value = element.value ? element.value : []
+                            }
+                        })
+                    }
+                })
+            }
+        })
+        
         async function createConcepts(){
             if(conceptos.value.length == 0){
                 console.log('espera a que se complete la promesa?', conceptos.value)
@@ -300,42 +356,42 @@ watch(visitSelected, async (fecha) => {
                         })
                     })
                 })
-                conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
+                // conceptos.value = await getGuideConcepts({service_id:service.value.id, visita_id:visitSelected.value.valor})
                 console.log('get Concepts', conceptos.value)
             }
             // console.log('qué tiene?', conceptos.value.length)
             //si ya existen los conceptos se iteran
             
-            setTimeout(() => {
-                // console.log('por qué trae data?', conceptos.value)
-                if(conceptos.value.length>0){
-                    //console.log('hace set')
-                    conceptos.value.forEach((concept) => {
-                        console.log("se ejecuta set de conceptos")
-                        categorias.value.forEach((category) => {
-                            category.conceptos.forEach((item) => {
-                                if(item.categoria_vista_id == concept.categoria_id && concept.concepto_id == item.id){
-                                    item.value = concept.value
-                                    item.uid = concept.uid
-                                }
-                            })
-                        })
-                    })
-                    setLocal('update')
-                }
-            }, 3000);
+            // setTimeout(() => {
+            //     // console.log('por qué trae data?', conceptos.value)
+            //     if(conceptos.value.length>0){
+            //         //console.log('hace set')
+            //         conceptos.value.forEach((concept) => {
+            //             console.log("se ejecuta set de conceptos")
+            //             categorias.value.forEach((category) => {
+            //                 category.conceptos.forEach((item) => {
+            //                     if(item.categoria_vista_id == concept.categoria_id && concept.concepto_id == item.id){
+            //                         item.value = concept.value
+            //                         item.uid = concept.uid
+            //                     }
+            //                 })
+            //             })
+            //         })
+            //         setLocal('update')
+            //     }
+            // }, 3000);
         }
     
         //si no existe, es la primera vez y se hace el set de la data
-        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
+        // const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
 
-        if(data!=null){
-            categorias.value = data.categorias
-        } else {
-            const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
-            categorias.value = getCategorias.status == 200 ? getCategorias.data.categorias : categorias.value
+        // if(data!=null){
+        //     categorias.value = data.categorias
+        // } else {
+        //     const getCategorias = await getCategories({service_id:service.value.id, visita:visitSelected.value.valor})
+        //     categorias.value = getCategorias.status == 200 ? getCategorias.data.categorias : categorias.value
             
-        }
+        // }
         
         // if(!offline.value) {
         //     //si hay conexión a internet
@@ -356,8 +412,6 @@ watch(visitSelected, async (fecha) => {
 const setFechas = (value) => {
     if(service.value.fechas != undefined){
         fechas_visita.value = service.value.fechas.find(visit => visit.id == visitSelected.value.id)
-        console.log('ok fechas', fechas_visita.value)
-        
     }
 }
 
@@ -376,6 +430,7 @@ const bloquearVisita = computed(() => {
 })
 
 const setLocal = async (type) => {
+    console.log('data', service.value.categorias)
     if(service.value.categorias != undefined){
         if(type == 'load'){
         const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
@@ -391,25 +446,25 @@ const setLocal = async (type) => {
         }   
     }
     
-    if(type == 'update'){
-        const indice = visitas.value.indexOf(visitSelected.value)
+    // if(type == 'update'){
+    //     const indice = visitas.value.indexOf(visitSelected.value)
         
-        const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
+    //     const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
         
-        await setNoCumple()
+    //     await setNoCumple()
 
-        localStorage.setItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`, JSON.stringify({
-            service_id:service.value.id,
-            categorias:categorias.value,
-            fechas:fechas_visita.value,
-            visita:visitSelected.value.valor,
-            finalizado: service.value.fechas[indice].finalizado,
-            acta: (info && info.acta) ? info.acta : ''
-        }))
-        setTimeout(() => {
-            listenerObservations()
-        }, 1000);
-    }
+    //     localStorage.setItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`, JSON.stringify({
+    //         service_id:service.value.id,
+    //         categorias:categorias.value,
+    //         fechas:fechas_visita.value,
+    //         visita:visitSelected.value.valor,
+    //         finalizado: service.value.fechas[indice].finalizado,
+    //         acta: (info && info.acta) ? info.acta : ''
+    //     }))
+    //     setTimeout(() => {
+    //         listenerObservations()
+    //     }, 1000);
+    // }
     
 }
 
@@ -671,10 +726,11 @@ const getActa = (data) => {
 }
 
 onMounted( async () => {
+    console.log('NOM-02', service.value)
     setService('load')
-    setInterval(() => {
-        if(categorias.value.length>0) autoSave()
-    }, 300000);
+    // setInterval(() => {
+    //     if(categorias.value.length>0) autoSave()
+    // }, 300000);
 })
 
 </script>
