@@ -203,10 +203,12 @@ const setNoCumple = () => {
     //se recorren los conceptos y si alguno incluye la opción no cumple, se guarda bandera para identificar puntos que no cumplen
     return new Promise((resolve) => {
         categorias.value.forEach(categoria => {
-            categoria.conceptos.forEach(concepto => {
-                if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
-                else concepto.no_cumple = 0
-            })
+            if(categoria.conceptos){
+                categoria.conceptos.forEach(concepto => {
+                    if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
+                    else concepto.no_cumple = 0
+                })
+            }
         });
         resolve()
     })
@@ -313,7 +315,7 @@ watch(visitSelected, async (fecha) => {
 
         //se relacionan las respuestas con los conceptos correspondientes
         categorias.value.map((cat) => {
-            cat.observaciones = observaciones.value[`categoria_id_${cat.id}`] ? observaciones.value[`categoria_id_${cat.id}`].texto : ''
+            cat.observaciones = (Object.keys(observaciones.value).length > 0 && observaciones.value[`categoria_id_${cat.id}`])  ? observaciones.value[`categoria_id_${cat.id}`].texto : ''
             
             if(cat.conceptos){
                 cat.conceptos.forEach((item) => {
