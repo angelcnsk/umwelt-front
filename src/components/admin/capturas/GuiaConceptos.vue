@@ -88,7 +88,8 @@
                         :fonts="fonts"
                         filled
                         clearable
-                        max-height="300px"
+                        min-height="10rem"
+                        dmax-height="20rem"
                         color="red-12"
                         @blur="saveObservaciones(index)"
                     />
@@ -186,6 +187,7 @@ const timeStamp = Date.now()
 const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 const visitSelected = ref(null)
 const conceptos = ref([])
+const observaciones = ref([])
 const result = ref([])
 
 provide('currentVisit', visitSelected);
@@ -256,7 +258,7 @@ const changeValue = async (categoria, concepto) => {
     const props = {
         value:concept.value, no_cumple:flag?1:0 
     }
-    
+    //se actualiza en firebase
     await updateData(path,props )
     // await saveConceptValue({
     //     uid:categorias.value[categoria].conceptos[concepto].uid,
@@ -267,14 +269,16 @@ const changeValue = async (categoria, concepto) => {
 }
 
 const saveObservaciones = async (categoria) => {
-    //recibe los indices de cada uno
+    //recibe los indices de cada uno y armamos el path
+    const path = `servicios/${service.value.id}/observaciones/categoria_id_${categorias.value[categoria].id}`
+    await updateData(path,{texto:categorias.value[categoria].observaciones})
     // console.log('editar observaciones',  categorias.value)
     /*await saveObservation({
         uid:categorias.value[categoria].uid,
         texto:categorias.value[categoria].observaciones,
         user_id:currentUser.value.id
     })*/
-    setLocal('update')
+    // setLocal('update')
 }
 
 watch(visitSelected, async (fecha) => {
@@ -286,7 +290,7 @@ watch(visitSelected, async (fecha) => {
         //busca si hay resultados en firebase
         result.value = await getResultNom02({service_id:service.value.id});
         //busca observaciones
-        const observaciones = await getObservationsNom02({service_id:service.value.id})
+        observaciones.value = await getObservationsNom02({service_id:service.value.id})
         
         //si no existen respuestas previamente guardadas las crea en firebase
         if(result.value === undefined || result.value === null) {
@@ -303,12 +307,14 @@ watch(visitSelected, async (fecha) => {
                 index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
             );
 
-            //los guarda en firebase
+            //guarda en firebase respuestas vacías
             await setConceptsValues({service_id:service.value.id, data:uniqueArray})
         }
 
         //se relacionan las respuestas con los conceptos correspondientes
         categorias.value.map((cat) => {
+            cat.observaciones = observaciones.value[`categoria_id_${cat.id}`] ? observaciones.value[`categoria_id_${cat.id}`].texto : ''
+            
             if(cat.conceptos){
                 cat.conceptos.forEach((item) => {
                     if(result.value){
