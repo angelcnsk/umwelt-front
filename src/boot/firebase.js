@@ -13,12 +13,13 @@ var firebaseConfig = {
   messagingSenderId:import.meta.env.VITE_messagingSenderId,
   appId:import.meta.env.VITE_appId
 }
-console.log('environment', import.meta.env.VITE_apiKey)
 
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const db = getDatabase(app)
 const storage = getStorage(app)
 
+// Habilitar la persistencia offline
+db.persistenceEnabled = true;
 
 export { db, auth, storage, goOffline, goOnline }

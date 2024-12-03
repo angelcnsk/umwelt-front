@@ -111,11 +111,9 @@
 </template>
 
 <script setup>
-import {onMounted, watch, ref, inject, defineAsyncComponent, provide} from 'vue'
+import {onMounted, watch, ref, inject, defineAsyncComponent} from 'vue'
 
-import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
-import { searchDocuments, createDocument } from "src/composables/firebase/capturas/nom02/documentos.js";
 
 const guiaConceptos = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaConceptos.vue'))
 const guia22 = defineAsyncComponent(() => import('src/components/admin/capturas/Guia22.vue'))
@@ -124,9 +122,8 @@ const storeCapturas = useCapturas();
 const { getServiceList, servicesList, currentService } = storeCapturas
 
 const serviceSelected = ref(null)
-const offline = inject('statusOnLine')
+const online = inject('statusOnLine')
 const secciones = ref([])
-const guiaconceptos = ref([])
 
 const tab = ref('inspeccion')
 
@@ -140,17 +137,6 @@ const formDate =  (date) => {
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
         currentService.value = serviceSelected.value
-        // const serviceData = JSON.parse(localStorage.getItem(`service_${item.id}_data`))
-        // const getLocal = serviceData != null ? 'local' : 'remote'
-        
-        // if(getLocal == 'remote'){
-        //     //si no existe en local se obtiene la información y se hace el set
-        //     await getServiceList(serviceSelected.value.id)
-        // } else {
-        //     currentService.value = serviceData
-        // }
-        // tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'
-        // setDataService(getLocal)
     }
 })
 
@@ -160,7 +146,7 @@ const setDataService = async (type) => {
 
     //si hay internet recupero la data
     //obtengo los documentos del servicio
-    if(!offline.value){
+    if(online.value){
         if(type == 'remote'){
             // let documents = await searchDocuments({
             //     service_id: currentService.value.id
@@ -204,7 +190,7 @@ const setDataService = async (type) => {
         } 
         
         //se actualiza el localstorage con la data
-        localStorage.setItem(`service_${currentService.value.id}_data`, JSON.stringify(currentService.value))
+        // localStorage.setItem(`service_${currentService.value.id}_data`, JSON.stringify(currentService.value))
     } else {
         //si al seleccionar servicio no hay internet o se busca en local
         //se agrega el valor en vacío para que se pueda llenar el form
@@ -216,11 +202,11 @@ const setDataService = async (type) => {
         //     })
         // }
     }
-    guiaconceptos.value = currentService.value.categorias
+    // guiaconceptos.value = currentService.value.categorias
 }
 
 onMounted( async () => {
-    if (!offline.value) {
+    if (online.value) {
         //hay conexión a internet
         await getServiceList()
     } else {

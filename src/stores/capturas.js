@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { api } from 'boot/axios'
+import { defineStore } from 'pinia';
+import { api } from 'boot/axios';
 
 export const useCapturasStore = defineStore('capturas', {
     state: () => {
@@ -7,13 +7,12 @@ export const useCapturasStore = defineStore('capturas', {
             servicesList:[],
             currentService:{},
             categories:[],
-            listener:false
+            fechas_visita:[],
+            visitSelected:null,
+            showActa:false,
         }
     },
     actions:{
-        listenerObservations() {
-          this.listener = !this.listener
-        },
         getServiceList (payload) {
             const url = 'spa/getServiceStaff'
             
@@ -87,19 +86,6 @@ export const useCapturasStore = defineStore('capturas', {
           }
               
           
-        },
-        async getCategories (payload){
-          const url = 'spa/getCategories'
-            
-          const options = {
-            params:payload
-          }
-          return new Promise((resolve, reject) => {
-            api.get(url, options).then((response) => {
-              this.categories = response.data
-              resolve(response)
-            }).catch((error) => { reject(error) })
-          })
         },
     }
 })

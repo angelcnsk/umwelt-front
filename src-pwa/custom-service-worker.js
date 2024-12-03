@@ -28,7 +28,7 @@ registerRoute(
 );
 
 registerRoute(
-  new RegExp('https://identitytoolkit.googleapis.com/v1'), 
+  new RegExp(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.VITE_apiKey}`), 
   new NetworkFirst({
       cacheName: 'google-api',
       plugins:[
@@ -38,7 +38,7 @@ registerRoute(
 );
 
 registerRoute(
-  new RegExp(".[js || css || json]$"), 
+  new RegExp("\\.(js|css|json)$"),
   new StaleWhileRevalidate({
       cacheName: 'statics',
       plugins:[
@@ -48,7 +48,7 @@ registerRoute(
 );
 
 registerRoute(
-  new RegExp(".[png || jpg || gif || svg]+"),
+  new RegExp("\\.(png|jpg|gif|svg)$"),
   new CacheFirst({
       cacheName: 'images-cache',
       plugins: [
@@ -60,13 +60,9 @@ registerRoute(
   })
 );
 
-// precacheAndRoute([
-//   {
-//     url: 'index.html',
-//     revision: '123456' // Reemplaza con el número de revisión adecuado
-//   },
-//   // Otros recursos a precachear
-// ]);
+precacheAndRoute([
+  { url: '/index.html', revision: null },
+]);
 
 // Use with precache injection
 precacheAndRoute(self.__WB_MANIFEST)
@@ -75,11 +71,9 @@ cleanupOutdatedCaches()
 
 // Non-SSR fallback to index.html
 // Production SSR fallback to offline.html (except for dev)
-if (process.env.MODE !== 'ssr' || process.env.PROD) {
-  registerRoute(
-    new NavigationRoute(
-      createHandlerBoundToURL(process.env.PWA_FALLBACK_HTML),
-      { denylist: [/sw\.js$/, /workbox-(.)*\.js$/] }
-    )
+registerRoute(
+  new NavigationRoute(
+    createHandlerBoundToURL('/index.html'), // Cambiar por '/offline.html' si usas un archivo dedicado
+    { denylist: [/sw\.js$/, /workbox-(.)*\.js$/] }
   )
-}
+);
