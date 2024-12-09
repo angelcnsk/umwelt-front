@@ -114,7 +114,7 @@ import { updateData } from 'src/composables/firebase/firebaseService';
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const { saveCaptures, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, fechas_visita, visitSelected } = storeCapturas;
+const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, fechas_visita, visitSelected } = storeCapturas;
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
 
@@ -142,6 +142,8 @@ const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
 
 const observaciones = ref([])
 const result = ref([]);
+const pendingResult = ref([]);
+const pendingObs = ref([])
 
 provide('currentVisit', visitSelected);
 
@@ -204,22 +206,39 @@ const changeValue = async (categoria, concepto) => {
     //actualizo los valores en la matriz principal
     findConcept.value = concept.value;
     findConcept.no_cumple = flag?1:0;
-
+    findConcept.status = !navigator.onLine ? 'pending' : 'completed';
+    
     const props = {
-        value:concept.value, no_cumple:flag?1:0 
+        value:concept.value, 
+        no_cumple:flag?1:0,
+        status:!navigator.onLine ? 'pending' : 'completed'
     }
-    //se actualiza en firebase
-    await updateData(path,props);
+    
     //se actualiza en idb
     await saveLocalResults({service_id:service.value.id, visita:visitSelected.value.valor, data:result.value});
-    
+
+    //se actualiza en firebase
+    await updateData(path,props);   
 }
 
 const saveObservaciones = async (categoria) => {
     //recibe los indices de cada uno y armamos el path
     const path = `servicios/${service.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[categoria].id}`
+
+    categorias.value[categoria].status = !navigator.onLine ? 'pending' : 'completed';
+    
+    const a_observations = categorias.value.reduce((acumulador, categoria) => {
+        acumulador[`categoria_id_${categoria.id}`] = { texto: categoria.observaciones };
+        return acumulador;
+    }, {});
+    console.log('observ', a_observations)
+    //se guarda en idb
+    await saveLocalObservations({service_id:service.value.id, visita:visitSelected.value.valor, data:a_observations});
+    //guardar status local de categorías
+    await saveDataCategories({service_id:service.value.id,visita:visitSelected.value.valor, data:categorias.value, product_id:service.value.product_id});
+    //se guarda en firebase
     await updateData(path,{texto:categorias.value[categoria].observaciones});
-    await saveLocalObservations({service_id:service.value.id, visita:visitSelected.value.valor, data:categorias.value[categoria].observaciones})
+    
 }
 
 const configService = async () => {
@@ -232,8 +251,12 @@ const configService = async () => {
         result.value = await fetchResult({service_id:service.value.id,
         product_id:service.value.product_id,visita:visitSelected.value.valor});
         //busca observaciones
-        observaciones.value = await fetchObservations({service_id:service.value.id, product_id:service.value.product_id, visita:visitSelected.value.valor})
-        
+        observaciones.value = await fetchObservations({service_id:service.value.id, product_id:service.value.product_id, visita:visitSelected.value.valor});
+
+        //ejecuta sync de conceptos y observaciones
+        await syncConceptResult();
+        await syncObservations();
+
         //si no existen respuestas previamente guardadas las crea en firebase
         if(result.value === undefined || result.value === null) {
             const a_conceptos = []
@@ -245,6 +268,7 @@ const configService = async () => {
                     a_conceptos.push(...items);
                 }
             });
+            //filtra listado de conceptos para evitar duplicados por conceptos compartidos
             const uniqueArray = a_conceptos.filter((item, index, self) =>
                 index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
             );
@@ -276,6 +300,52 @@ const configService = async () => {
 const setFechas = (value) => {
     if(service.value.fechas != undefined){
         fechas_visita.value = service.value.fechas.find(visit => visit.id == visitSelected.value.id)
+    }
+}
+
+const syncConceptResult = async () => {
+    //busco conceptos pendientes de sincronizar
+    pendingResult.value = result.value.filter((item) => item.status && item.status === 'pending');
+
+    if(pendingResult.value.length>0){
+        pendingResult.value.map(async(pending) => {
+            //path de nodo
+            const findIndex = result.value.findIndex((item) => item.concepto_id == pending.concepto_id);
+            const path = `servicios/${service.value.id}/visita_${visitSelected.value.valor}/result/${findIndex}`;
+            
+            pending.status = !navigator.onLine ? 'pending' : 'completed';
+            //se actualiza en idb
+            await saveLocalResults({service_id:service.value.id, visita:visitSelected.value.valor, data:result.value});
+
+            //se actualiza en firebase
+            await updateData(path,pending);
+            //se elimina elemento del arreglo de pendientes
+            pendingResult.value = pendingResult.value.filter((item) => item.concepto_id != pending.concepto_id)
+        });  
+    }    
+}
+
+const syncObservations = async () => {
+    pendingObs.value = categorias.value.filter(cat => cat.id && cat.status === 'pending');
+    if(pendingObs.value.length>0){
+        const promises = pendingObs.value.map(async(pending) => {
+            const findIndex = categorias.value.findIndex((item) => item.id == pending.id);
+
+            const path = `servicios/${service.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[findIndex].id}`;
+            
+            categorias.value[findIndex].observaciones = observaciones.value[`categoria_id_${pending.id}`].texto
+            
+            await updateData(path,{texto:categorias.value[findIndex].observaciones});
+
+            categorias.value.forEach((obj, index) => {
+                if(obj.status) {
+                    categorias.value[index] = { ...obj };
+                    delete categorias.value[index].status;
+                }
+            });
+        });
+        await Promise.all(promises)
+        await saveDataCategories({data:categorias.value,product_id:service.value.product_id});
     }
 }
 

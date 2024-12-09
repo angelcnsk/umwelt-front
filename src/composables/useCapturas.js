@@ -20,7 +20,7 @@ export const useCapturas = () => {
             let path = params.product_id == 1 ? 'Nom02Categories' : 'Nom020Categories'
 
             if(params.visita > 1) path = `${params.service_id}/visita_${visita}/categories`
-            console.log('buscar local', path)
+            
             let data = await getDataFromIndexedDB(path);
             if (!data) {
                 // Si no hay datos en IndexedDB, obtenerlos desde Firebase
@@ -37,18 +37,16 @@ export const useCapturas = () => {
 
     const fetchResult = async (params) => {
         try {
-            let data = null;
-            if(navigator.onLine){
+            let data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/result`);
+
+            if(!data){
                 //firebase
                 data = await getResult(params);
                 if (data) {
                     // Guardar los datos en IndexedDB
                     await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/result`, data);
                 }
-            } else {
-                //caché
-                data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/result`);
-            }
+            } 
 
             return data;
         } catch (error) {
@@ -58,13 +56,12 @@ export const useCapturas = () => {
 
     const fetchObservations = async (params) => {
         try {
-            let data = null;
-            if(navigator.onLine){
+            let data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/observations`);
+
+            if(!data){
                 data = await getObservations(params)
                 if(data) await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/observations`, data);
-            } else {
-                data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita_id}/observations`);
-            }
+            } 
             return data;
         } catch (error) {
             console.log('error fetch observations', error)
@@ -73,14 +70,15 @@ export const useCapturas = () => {
 
     const fetchActa = async (params) => {
         try {
-            let data = null;
-            if(navigator.onLine){
+            let data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/acta`);
+            
+            if(!data){
                 data = await getActa(params)
                 if(data) {
                     await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/acta`, data.texto)
                     data = data.texto
                 }
-            } else data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/acta`);
+            }
             return data
         } catch (error) {
             console.log('error fetch acta', error)
@@ -93,8 +91,8 @@ export const useCapturas = () => {
     }
 
     const saveLocalObservations = async (params) => {
-        // const serializableData = JSON.parse(JSON.stringify(params.data));
-        await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/observations`, params.data);
+        const serializableData = JSON.parse(JSON.stringify(params.data));
+        await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/observations`, serializableData);
     }
 
     const saveActa = async (params) => {
@@ -110,8 +108,19 @@ export const useCapturas = () => {
         await removeItem(key);
     }
 
+    const saveDataCategories = async (params) => {
+        try {
+            let path = params.product_id == 1 ? 'Nom02Categories' : 'Nom020Categories';
+            const serializableData = JSON.parse(JSON.stringify(params.data));
+            await saveDataToIndexedDB(path, serializableData);
+        } catch (error) {
+            console.log('error al guardar categories local', error)
+        }
+    }
+
+
     return {
         servicesList,currentService,categories,fechas_visita, visitSelected,showActa,
-        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService
+        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories
     }
 }
