@@ -251,7 +251,7 @@ const configService = async () => {
         //ejecuta sync de conceptos y observaciones
         await syncConceptResult();
         await syncObservations();
-
+            console.log('resultados', result.value)
         //si no existen respuestas previamente guardadas las crea en firebase
         if(result.value === undefined || result.value === null) {
             const a_conceptos = [];
@@ -328,7 +328,8 @@ const setFechas = async (value) => {
 const syncConceptResult = async () => {
     //busco conceptos pendientes de sincronizar
     pendingResult.value = result.value.filter((item) => item.status && item.status === 'pending');
-
+    console.log('async', result.value);
+    console.log('async2', pendingResult.value);
     if(pendingResult.value.length>0){
         pendingResult.value.map(async(pending) => {
             //path de nodo
