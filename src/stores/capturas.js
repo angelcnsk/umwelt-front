@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { api } from 'boot/axios'
+import { defineStore } from 'pinia';
+import { api } from 'boot/axios';
 
 export const useCapturasStore = defineStore('capturas', {
     state: () => {
@@ -7,13 +7,14 @@ export const useCapturasStore = defineStore('capturas', {
             servicesList:[],
             currentService:{},
             categories:[],
-            listener:false
+            fechas_visita:[],
+            visitSelected:null,
+            showActa:false,
+            textoActa:'',
+            serviceSelected:null,
         }
     },
     actions:{
-        listenerObservations() {
-          this.listener = !this.listener
-        },
         getServiceList (payload) {
             const url = 'spa/getServiceStaff'
             
@@ -25,10 +26,7 @@ export const useCapturasStore = defineStore('capturas', {
                 if (typeof payload === 'undefined') {
                   this.servicesList = response.data.service_list
                   localStorage.setItem('serviceList', JSON.stringify(response.data.service_list))
-                } else {
-                  this.currentService = response.data.service
                 }
-                
                 resolve()
               }).catch((error) => { reject(error) })
             })
@@ -83,10 +81,8 @@ export const useCapturasStore = defineStore('capturas', {
           catch (e) {
             console.log('error guardar archivo', e)
           }
-              
-          
         },
-        async getCategories (payload){
+        async getCategoriesBackend (payload){
           const url = 'spa/getCategories'
             
           const options = {
@@ -94,7 +90,6 @@ export const useCapturasStore = defineStore('capturas', {
           }
           return new Promise((resolve, reject) => {
             api.get(url, options).then((response) => {
-              this.categories = response.data
               resolve(response)
             }).catch((error) => { reject(error) })
           })

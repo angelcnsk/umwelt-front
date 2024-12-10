@@ -21,7 +21,9 @@
             class="bg-primary text-white shadow-2"
         >
             <!-- <q-tab name="documentacion" label="Documentación" /> -->
-            <q-tab name="inspeccion" label="Inspección" />
+            <q-tab v-if="currentService.product_id == 1" name="inspeccion" label="Inspección" />
+            <q-tab v-if="currentService.product_id == 2" name="guia22" label="Guía 22" />
+            <q-tab v-if="currentService.product_id == 2" name="guia25" label="Guía 25" />
             <!-- <q-tab name="archivos" label="Archivos" /> -->
             
         </q-tabs>
@@ -39,8 +41,61 @@
           </q-tab-panel> -->
 
           <q-tab-panel name="inspeccion">
-            <guia-conceptos :service="currentService" />
+            <div class="q-pa-md" v-if="Object.entries(currentService).length==0">
+                    <q-item style="max-width: 300px">
+                    <q-item-section avatar>
+                        <q-skeleton type="QAvatar" />
+                    </q-item-section>
+
+                    <q-item-section>
+                        <q-item-label>
+                        <q-skeleton type="text" />
+                        </q-item-label>
+                        <q-item-label caption>
+                        <q-skeleton type="text" width="65%" />
+                        </q-item-label>
+                    </q-item-section>
+                    </q-item>
+
+                    <q-item style="max-width: 300px">
+                    <q-item-section avatar>
+                        <q-skeleton type="QAvatar" />
+                    </q-item-section>
+
+                    <q-item-section>
+                        <q-item-label>
+                        <q-skeleton type="text" />
+                        </q-item-label>
+                        <q-item-label caption>
+                        <q-skeleton type="text" width="90%" />
+                        </q-item-label>
+                    </q-item-section>
+                    </q-item>
+
+                    <q-item style="max-width: 300px">
+                    <q-item-section avatar>
+                        <q-skeleton type="QAvatar" />
+                    </q-item-section>
+
+                    <q-item-section>
+                        <q-item-label>
+                        <q-skeleton type="text" width="35%" />
+                        </q-item-label>
+                        <q-item-label caption>
+                        <q-skeleton type="text" />
+                        </q-item-label>
+                    </q-item-section>
+                    </q-item>
+                </div>
+            <guia-conceptos v-else-if="currentService.product_id == 1" :service="currentService" />
+              
           </q-tab-panel>
+            <q-tab-panel name="guia22">
+                <guia-22 :service="currentService" /> 
+            </q-tab-panel>
+            <q-tab-panel name="guia25">
+
+            </q-tab-panel>
 
           <!-- <q-tab-panel name="archivos">
             <archivos :service="currentService" />
@@ -56,118 +111,32 @@
 </template>
 
 <script setup>
-import {onMounted, watch, ref, inject, defineAsyncComponent, provide} from 'vue'
+import {onMounted, watch, ref, inject, defineAsyncComponent} from 'vue'
 
-import { useUsers } from 'src/composables/useUsers.js'
 import { useCapturas } from 'src/composables/useCapturas.js'
-import { searchDocuments, createDocument } from "src/composables/firebase/capturas/nom02/documentos.js";
 
 const guiaConceptos = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaConceptos.vue'))
+const guia22 = defineAsyncComponent(() => import('src/components/admin/capturas/Guia22.vue'))
 
 const storeCapturas = useCapturas();
-const { getServiceList, servicesList, currentService } = storeCapturas
-
-const serviceSelected = ref(null)
-const offline = inject('statusOnLine')
-const secciones = ref([])
-const guiaconceptos = ref([])
+const { getServiceList, servicesList, currentService, serviceSelected } = storeCapturas
+const online = inject('statusOnLine')
 
 const tab = ref('inspeccion')
 
-const formDate =  (date) => {
-    const year = date.getFullYear().toString()
-    const month = (date.getMonth() + 101).toString().substring(1)
-    const day = (date.getDate() + 100).toString().substring(1)
-    return `${year  }-${  month  }-${  day}`
-}
 
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
-        const serviceData = JSON.parse(localStorage.getItem(`service_${item.id}_data`))
-        const getLocal = serviceData != null ? 'local' : 'remote'
-        
-        if(getLocal == 'remote'){
-            //si no existe en local se obtiene la información y se hace el set
-            await getServiceList(serviceSelected.value.id)
-        } else {
-            currentService.value = serviceData
-        }
-        setDataService(getLocal)
+        currentService.value = serviceSelected.value
     }
 })
 
-const setDataService = async (type) => {
-    let empty = true
-    secciones.value = currentService.value.secciones
-
-    //si hay internet recupero la data
-    //obtengo los documentos del servicio
-    if(!offline.value){
-        if(type == 'remote'){
-            // let documents = await searchDocuments({
-            //     service_id: currentService.value.id
-            // })
-
-            // if(documents == undefined){
-            //     empty = true
-            //     //si no existen documentos se crean
-            //     secciones.value.forEach(async (seccion) => {
-            //         seccion.documents.forEach(async (document) => {
-            //             await createDocument({
-            //                 global:document.global,
-            //                 seccion_id:seccion.id,
-            //                 doc_id:document.id,
-            //                 service_id:currentService.value.id,
-            //                 value:'',
-            //                 user_id:AppActiveUser.value.id,
-            //             })
-            //         })
-            //     })
-            // }
-            // if(empty){
-            // //si no había documentos y se crearon, los recupero
-            //     documents = await searchDocuments({
-            //         service_id: currentService.value.id
-            //     })
-            // }
-            
-            // if(documents != undefined){
-            //     documents.forEach((document) => {
-            //         currentService.value.secciones.forEach((seccion) => {
-            //             seccion.documents.forEach((doc) => {
-            //                 if(doc.id === document.doc_id){
-            //                     doc.filled_i = document.value
-            //                     doc.uid = document.uid
-            //                 }
-            //             })
-            //         })
-            //     })
-            // }
-        } 
-        
-        //se actualiza el localstorage con la data
-        localStorage.setItem(`service_${currentService.value.id}_data`, JSON.stringify(currentService.value))
-    } else {
-        //si al seleccionar servicio no hay internet o se busca en local
-        //se agrega el valor en vacío para que se pueda llenar el form
-        // if(type == 'remote'){
-        //     currentService.value.secciones.forEach((seccion) => {
-        //         seccion.documents.forEach((doc) => {
-        //             doc.filled_i = ''
-        //         })
-        //     })
-        // }
-    }
-    guiaconceptos.value = currentService.value.categorias
-}
-
 onMounted( async () => {
-    if (!offline.value) {
+    if (online.value) {
         //hay conexión a internet
         await getServiceList()
     } else {
         servicesList.value = JSON.parse(localStorage.getItem('serviceList'))
-        console.log(servicesList.value)
     }
 }) 
 

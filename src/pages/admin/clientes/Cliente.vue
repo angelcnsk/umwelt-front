@@ -82,7 +82,7 @@
                 </div>
                 
                 <div class="q-pa-sm q-mb-lg">
-                    <q-card>
+                    <q-card v-if="dataClient.plantas != undefined">
                         <q-table :rows="dataClient.plantas" :columns="addressColumn">
                             <template v-slot:body-cell-acciones="props">
                                 <q-td :props="props" class="text-center">
@@ -104,7 +104,7 @@
                     <q-btn color="primary" class="q-mr-sm" outline @click="addContact = true" label="Agregar contacto" />
                 </div>
                 <div class="q-pa-sm q-mb-lg">
-                    <q-card>
+                    <q-card v-if="dataClient.contactos != undefined">
                         <q-table :rows="dataClient.contactos" :columns="contactColumns">
                             <template v-slot:body-cell-acciones="props">
                                 <q-td :props="props" class="text-center">
@@ -461,429 +461,373 @@
     </q-page>
 </template>
 
-<script>
+<script setup>
 import { useRoute } from "vue-router";
-import { ref, onMounted, defineComponent, computed, watch } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useClientes } from "src/composables/useClientes"; 
 import { useDialogPluginComponent, useQuasar } from "quasar";
 
-const stringOptions = [
-  'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
-].reduce((acc, opt) => {
-  for (let i = 1; i <= 5; i++) {
-    acc.push(opt + ' ' + i)
-  }
-  return acc
-}, [])
+const $q = useQuasar()
+const $router = useRoute()
+const {getCities, getStates, fetchClient, getMainClient, addFactory,newAddress,
+    updateClient, editClient, clientesPrincipales, cities, states, createContact
+} = useClientes()
 
-export default defineComponent({
-    name: 'clientePage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
-    setup() {
-        const $q = useQuasar()
-        const $router = useRoute()
-        const {getCities, getStates, fetchClient, getMainClient, addFactory,newAddress,
-            updateClient, editClient, clientesPrincipales, cities, states, createContact
-        } = useClientes()
+const {  dialogRef, onDialogHide, onDialogOK, onDialogCancel  } = useDialogPluginComponent()
 
-        const {  dialogRef, onDialogHide, onDialogOK, onDialogCancel  } = useDialogPluginComponent()
+const cliente = computed(() => {
+    return editClient
+})
 
-        const cliente = computed(() => {
-            return editClient
-        })
+const estados = ref([])
+const ciudades = ref([])
+const clientes = ref([])
 
-        const estados = ref([])
-        const ciudades = ref([])
-        const clientes = ref([])
+const isMain = ref(true)
 
-        const isMain = ref(true)
+const clienteSelected = ref(null)
+const stateSelected = ref(null)
+const citySelected = ref(null)
+const addPlanta = ref(false)
 
-        const clienteSelected = ref(null)
-        const stateSelected = ref(null)
-        const citySelected = ref(null)
-        const addPlanta = ref(false)
-        
-        const plantaName = ref('')
-        const address = ref({areas:[], equipoSeguridad:[], acta:false, notarial:false, copias:{representate:false, persona:false, testigo1:false, testigo2:false} })
-        
-        const addContact = ref(false)
-        const disableFactory = ref(false)
-        const dataClient = ref({plantas:[]})
-        const contact = ref({})
-        const statusClient = ref(false)
-        const tab = ref('planta')
-        const areaPlanta = ref('')
-        const deletedArea = ref('')
-        const equipoSeguridad = ref('')
-        const deletedEquipo = ref('')
+const plantaName = ref('')
+const address = ref({areas:[], equipoSeguridad:[], acta:false, notarial:false, copias:{representate:false, persona:false, testigo1:false, testigo2:false} })
 
-        const addressColumn = [
-            {name: 'id', label: 'Id',field: 'id', align:'center'},
-            {name: 'alias', label: 'Planta', field: 'alias', align:'center', sortable:true, sortOrder:'ad'},
-            {name: 'domicilio', label: 'Domicilio', field: 'domicilio', align:'center'},
-            {name:'acciones' ,label:'Acciones',  align:'left'}
-        ]
+const addContact = ref(false)
+const disableFactory = ref(false)
+const dataClient = ref({plantas:[]})
+const contact = ref({})
+const statusClient = ref(false)
+const tab = ref('planta')
+const areaPlanta = ref('')
+const deletedArea = ref('')
+const equipoSeguridad = ref('')
+const deletedEquipo = ref('')
 
-        const contactColumns = [
-            {name: 'id', label: 'Id',field: 'contact_id', align:'center'},
-            {name: 'name', label: 'Nombre', field: 'contact_name', align:'center', sortable:true, sortOrder:'ad'},
-            {name: 'location', label: 'Planta', field: 'planta', align:'center'},
-            {name: 'position', label: 'Cargo', field: 'contact_position', align:'center'},
-            {name: 'phone', label: 'Teléfono', field: 'contact_phone', align:'center'},
-            {name: 'extension', label: 'Extensión', field: 'contact_ext', align:'center'},
-            {name: 'movil', label: 'Movil', field: 'contact_movil', align:'center'},
-            {name: 'mail', label: 'E-mail', field: 'contact_mail', align:'center'},
-            {name:'acciones' ,label:'Acciones',  align:'left'}
-        ]
+const addressColumn = [
+    {name: 'id', label: 'Id',field: 'id', align:'center'},
+    {name: 'alias', label: 'Planta', field: 'alias', align:'center', sortable:true, sortOrder:'ad'},
+    {name: 'domicilio', label: 'Domicilio', field: 'domicilio', align:'center'},
+    {name:'acciones' ,label:'Acciones',  align:'left'}
+]
 
-        watch(clientesPrincipales, (newVal) => {
-            clientes.value = newVal
-        })
+const contactColumns = [
+    {name: 'id', label: 'Id',field: 'contact_id', align:'center'},
+    {name: 'name', label: 'Nombre', field: 'contact_name', align:'center', sortable:true, sortOrder:'ad'},
+    {name: 'location', label: 'Planta', field: 'planta', align:'center'},
+    {name: 'position', label: 'Cargo', field: 'contact_position', align:'center'},
+    {name: 'phone', label: 'Teléfono', field: 'contact_phone', align:'center'},
+    {name: 'extension', label: 'Extensión', field: 'contact_ext', align:'center'},
+    {name: 'movil', label: 'Movil', field: 'contact_movil', align:'center'},
+    {name: 'mail', label: 'E-mail', field: 'contact_mail', align:'center'},
+    {name:'acciones' ,label:'Acciones',  align:'left'}
+]
 
-        watch(cliente, (newVal) => {
-            dataClient.value = newVal
-        })
+watch(clientesPrincipales, (newVal) => {
+    clientes.value = newVal
+})
 
-        const setModel = async (val) => {
-            await getMainClient({cliente:val})
-            clienteSelected.value = val
-            console.log(clienteSelected)
+watch(cliente, (newVal) => {
+    dataClient.value = newVal
+})
+
+const setModel = async (val) => {
+    await getMainClient({cliente:val})
+    clienteSelected.value = val
+    console.log(clienteSelected)
+}
+
+watch(stateSelected, async (val) =>{
+    if(!disableFactory.value){
+        citySelected.value = null
+    }
+    if(val != null) await getCities(val.id)
+    
+    console.log('ciudades_a', ciudades.value)
+    console.log('city selected', citySelected.value)
+})
+
+
+const filterFn = (val, update, abort) => {
+    update(() => {
+        const needle = val.toLocaleLowerCase()
+        clientes.value = clientesPrincipales.value
+        console.log(clientesPrincipales)
+    })
+}
+
+const filterState = (val, update, abort) => {
+    console.log(val)
+    update(
+    () => {
+        if (val === '') {
+        estados.value = states.value
         }
+        else {
+        const needle = val.toLowerCase()
+        estados.value = states.value.filter(v => v.estado.toLowerCase().indexOf(needle) > -1)
+        }
+    },
+    )
+}
 
-        watch(stateSelected, async (val) =>{
-            if(!disableFactory.value){
-                citySelected.value = null
-            }
-            if(val != null) await getCities(val.id)
-            
-            console.log('ciudades_a', ciudades.value)
-            console.log('city selected', citySelected.value)
-        })
+const filterCity = (val, update, abort) => {
+    update(() => {
+        if (val === '') {
+            ciudades.value = cities.value
+        }
+        else {
+            const needle = val.toLowerCase()
+            ciudades.value = cities.value.filter(v => v.ciudad.toLowerCase().indexOf(needle) > -1)
+        }
+        // const needle = val.toLocaleLowerCase()
+        // ciudades.value = cities.value
+    })
+}
 
+const searchClient = async (val, update, abort) => {
+    await getMainClient({cliente:clienteSelected.value})
+}
+
+
+const getData = async () => {
+    dataClient.value = editClient.value
+
+    if(editClient.value.payload != null){
+        address.value = JSON.parse(editClient.value.payload)
+    }
+
+    isMain.value = editClient.value.client_id == null
+    
+    statusClient.value = dataClient.value.status == 1? true :false
+}
+
+const addressAdd = () => {
+
+    $q.dialog({
+        title: disableFactory.value ? '¿Deseas modificar esta información?' : 'Agregar planta',
+        message: 'Se guardarán los datos ingresados',
+        // prompt: {
+        //   model: password,
+        //   isValid: val => val.length > 5,
+        //   type: 'password' // optional
+        // },
+        ok: {
+        push: true,
+        label:'Guardar'
+        },
+        cancel: {
+        push: true,
+        color: 'dark',
+        label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
+        // address.value.client_id = factory.value.id
+        address.value.city_id = citySelected.value.id
+        address.value.client_id = $router.params.id
         
-        const filterFn = (val, update, abort) => {
-            update(() => {
-                const needle = val.toLocaleLowerCase()
-                clientes.value = clientesPrincipales.value
-                console.log(clientesPrincipales)
+        const guardar = await newAddress(address.value)
+
+        if (guardar.status == 200){
+            disableFactory.value = false
+            
+            await getData()
+            $q.notify({
+                position:'top',
+                type: 'positive',
+                message: 'Se guardó la información correctamente'
+            })
+        
+        } else {
+            $q.notify({
+                position:'top',
+                type: 'negative',
+                message:`Hubo un error al guardar la información`
             })
         }
+        // address.value = {}
+        // citySelected.value = {}
+        // stateSelected.value = {}
+        // factory.value = null
+    }).onCancel(() => {
+        // console.log('>>>> Cancel')
+    }).onDismiss(() => {
+        // console.log('I am triggered on both OK and Cancel')
+    })
+}
 
-        const filterState = (val, update, abort) => {
-            console.log(val)
-            update(
-            () => {
-              if (val === '') {
-                estados.value = states.value
-              }
-              else {
-                const needle = val.toLowerCase()
-                estados.value = states.value.filter(v => v.estado.toLowerCase().indexOf(needle) > -1)
-              }
-            },
-          )
-        }
+const infoPlanta = (type) => {
+    if(type == 'nuevo'){
+        address.value = {areas:[], equipoSeguridad:[], acta:false, notarial:false, copias:{representate:false, persona:false, testigo1:false, testigo2:false} }
+        citySelected.value = null
+        stateSelected.value = null
+    } else {
+        console.log('info_edita', address.value)
+    }
 
-        const filterCity = (val, update, abort) => {
-            update(() => {
-                if (val === '') {
-                    ciudades.value = cities.value
-                }
-                else {
-                    const needle = val.toLowerCase()
-                    ciudades.value = cities.value.filter(v => v.ciudad.toLowerCase().indexOf(needle) > -1)
-                }
-                // const needle = val.toLocaleLowerCase()
-                // ciudades.value = cities.value
+    addPlanta.value = true
+}
+
+
+
+const editAddress = (row) => {
+    //asigno información del row al objeto para editar
+    address.value = row
+    infoPlanta('editar')
+    addPlanta.value = true
+    disableFactory.value = true
+    
+
+    if(address.value.payload == null){
+        address.value.areas=[] 
+        address.value.equipoSeguridad=[]
+        address.value.acta=false, 
+        address.value.notarial=false, 
+        address.value.copias={representate:false, persona:false, testigo1:false, testigo2:false}
+    } else {
+        let data = JSON.parse(address.value.payload)
+        let ids = {client_id: address.value.client_id, id:address.value.id, address_id: address.value.address_id}
+        address.value = data
+        address.value.client_id = ids.client_id
+        address.value.id = ids.id
+        address.value.address_id = ids.address_id
+    }
+    
+
+    citySelected.value = {id:row.cityid, ciudad:row.citydsc, city_id:row.cityid}
+    stateSelected.value = {id:row.stateid, estado: row.statedsc}
+}
+
+const updateRFC = async () => {
+    $q.dialog({
+        title: '¿Deseas modificar la información del cliente?',
+        message: 'Se guardarán los datos ingresados',
+        ok: {
+        push: true,
+        label:'Guardar'
+        },
+        cancel: {
+        push: true,
+        color: 'dark',
+        label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
+        
+        const crearCliente = await updateClient({
+            id:dataClient.value.id,
+            legalname:dataClient.value.legalname,
+            business_description: dataClient.value.business_description,
+            rfc: dataClient.value.rfc,
+            status:statusClient.value
+        })
+    
+        if(crearCliente.response){
+            if(crearCliente.response.data.errors)
+            $q.notify({
+                position:'top',
+                type:'negative',
+                message:'El RFC ingresado corresponde a otro cliente'
             })
         }
-
-        const searchClient = async (val, update, abort) => {
-            await getMainClient({cliente:clienteSelected.value})
+    
+        if(crearCliente.status == 200){
+            $q.notify({
+                position:'top',
+                type:'positive',
+                message:'El cliente se actualizó correctamente'
+            })
+            getClients()
+            newClient.value = {}
         }
 
+    })
+}
+
+const editContact = (row) => {
+    contact.value = row
+    addContact.value = true
+}
+
+watch(addContact, (newVal) => {
+    if(!addContact.value){
+        contact.value = {}
+    }
+    console.log(contact.value)
+})
+
+const saveContact = async () => {
+    $q.dialog({
+        title: '¿Deseas continuar?',
+        message: 'Se guardarán los datos ingresados',
+        ok: {
+        push: true,
+        label:'Guardar'
+        },
+        cancel: {
+        push: true,
+        color: 'dark',
+        label:'Cancelar'
+        },
+        persistent: true
+    }).onOk(async data => {
         
-        const getData = async () => {
-            await fetchClient($router.params.id)
-            dataClient.value = editClient.value
+        contact.value.client_id = dataClient.value.id
+        const crearContacto = await createContact(contact.value)
 
-            if(editClient.value.payload != null){
-                address.value = JSON.parse(editClient.value.payload)
-            }
-
-            isMain.value = editClient.value.client_id == null
-            
-            statusClient.value = dataClient.value.status == 1? true :false
-        }
-
-        const addressAdd = () => {
-
-            $q.dialog({
-                title: disableFactory.value ? '¿Deseas modificar esta información?' : 'Agregar planta',
-                message: 'Se guardarán los datos ingresados',
-                // prompt: {
-                //   model: password,
-                //   isValid: val => val.length > 5,
-                //   type: 'password' // optional
-                // },
-                ok: {
-                push: true,
-                label:'Guardar'
-                },
-                cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-                },
-                persistent: true
-            }).onOk(async data => {
-                // address.value.client_id = factory.value.id
-                address.value.city_id = citySelected.value.id
-                address.value.client_id = $router.params.id
+        if(crearContacto.status == 200){
+            $q.notify({
+                position:'top',
+                type:'positive',
+                message:'El cliente se actualizó correctamente'
+            })
                 
-                const guardar = await newAddress(address.value)
-
-                if (guardar.status == 200){
-                    disableFactory.value = false
-                    
-                    await getData()
-                    $q.notify({
-                        position:'top',
-                        type: 'positive',
-                        message: 'Se guardó la información correctamente'
-                    })
-                
-                } else {
-                    $q.notify({
-                        position:'top',
-                        type: 'negative',
-                        message:`Hubo un error al guardar la información`
-                    })
-                }
-                // address.value = {}
-                // citySelected.value = {}
-                // stateSelected.value = {}
-                // factory.value = null
-            }).onCancel(() => {
-                // console.log('>>>> Cancel')
-            }).onDismiss(() => {
-                // console.log('I am triggered on both OK and Cancel')
+        } else {
+            $q.notify({
+                position:'top',
+                type:'negative',
+                message:'Error al crear contacto'
             })
+            return false;
         }
+        addContact.value = false
+        contact.value = {}
+        await getData()
 
-        const infoPlanta = (type) => {
-            if(type == 'nuevo'){
-                address.value = {areas:[], equipoSeguridad:[], acta:false, notarial:false, copias:{representate:false, persona:false, testigo1:false, testigo2:false} }
-                citySelected.value = null
-                stateSelected.value = null
-            } else {
-                console.log('info_edita', address.value)
-            }
+    })
+    
+}
 
-            addPlanta.value = true
-        }
-        
-        
+const addArea = () => {
+    address.value.areas.push(areaPlanta.value)
+    areaPlanta.value = ''
+}
 
-        const editAddress = (row) => {
-            //asigno información del row al objeto para editar
-            address.value = row
-            infoPlanta('editar')
-            addPlanta.value = true
-            disableFactory.value = true
-            
+const deleteArea = () => {
+    address.value.areas = address.value.areas.filter(item => item !== deletedArea.value)
+}
 
-            if(address.value.payload == null){
-                address.value.areas=[] 
-                address.value.equipoSeguridad=[]
-                address.value.acta=false, 
-                address.value.notarial=false, 
-                address.value.copias={representate:false, persona:false, testigo1:false, testigo2:false}
-            } else {
-                let data = JSON.parse(address.value.payload)
-                let ids = {client_id: address.value.client_id, id:address.value.id, address_id: address.value.address_id}
-                address.value = data
-                address.value.client_id = ids.client_id
-                address.value.id = ids.id
-                address.value.address_id = ids.address_id
-            }
-            
+const addEquipo = () => {
+    console.log(address.value, equipoSeguridad.value)
+    address.value.equipoSeguridad.push(equipoSeguridad.value)
+    equipoSeguridad.value = ''
+}
 
-            citySelected.value = {id:row.cityid, ciudad:row.citydsc, city_id:row.cityid}
-            stateSelected.value = {id:row.stateid, estado: row.statedsc}
-        }
+const deleteEquipo = () => {
+    address.value.equipoSeguridad = address.value.equipoSeguridad.filter(item => item !== deletedEquipo.value)
+}
 
-        const updateRFC = async () => {
-            $q.dialog({
-                title: '¿Deseas modificar la información del cliente?',
-                message: 'Se guardarán los datos ingresados',
-                ok: {
-                push: true,
-                label:'Guardar'
-                },
-                cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-                },
-                persistent: true
-            }).onOk(async data => {
-                
-                const crearCliente = await updateClient({
-                    id:dataClient.value.id,
-                    legalname:dataClient.value.legalname,
-                    business_description: dataClient.value.business_description,
-                    rfc: dataClient.value.rfc,
-                    status:statusClient.value
-                })
-            
-                if(crearCliente.response){
-                    if(crearCliente.response.data.errors)
-                    $q.notify({
-                        position:'top',
-                        type:'negative',
-                        message:'El RFC ingresado corresponde a otro cliente'
-                    })
-                }
-            
-                if(crearCliente.status == 200){
-                    $q.notify({
-                        position:'top',
-                        type:'positive',
-                        message:'El cliente se actualizó correctamente'
-                    })
-                    getClients()
-                    newClient.value = {}
-                }
-
-            })
-        }
-
-        const editContact = (row) => {
-            contact.value = row
-            addContact.value = true
-        }
-
-        watch(addContact, (newVal) => {
-            if(!addContact.value){
-                contact.value = {}
-            }
-            console.log(contact.value)
-        })
-
-        const saveContact = async () => {
-            $q.dialog({
-                title: '¿Deseas continuar?',
-                message: 'Se guardarán los datos ingresados',
-                ok: {
-                push: true,
-                label:'Guardar'
-                },
-                cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-                },
-                persistent: true
-            }).onOk(async data => {
-                
-                contact.value.client_id = dataClient.value.id
-                const crearContacto = await createContact(contact.value)
-
-                if(crearContacto.status == 200){
-                    $q.notify({
-                        position:'top',
-                        type:'positive',
-                        message:'El cliente se actualizó correctamente'
-                    })
-                        
-                } else {
-                    $q.notify({
-                        position:'top',
-                        type:'negative',
-                        message:'Error al crear contacto'
-                    })
-                    return false;
-                }
-                addContact.value = false
-                contact.value = {}
-                await getData()
-
-            })
-            
-        }
-
-        const addArea = () => {
-            address.value.areas.push(areaPlanta.value)
-            areaPlanta.value = ''
-        }
-
-        const deleteArea = () => {
-            address.value.areas = address.value.areas.filter(item => item !== deletedArea.value)
-        }
-
-        const addEquipo = () => {
-            console.log(address.value, equipoSeguridad.value)
-            address.value.equipoSeguridad.push(equipoSeguridad.value)
-            equipoSeguridad.value = ''
-        }
-
-        const deleteEquipo = () => {
-            address.value.equipoSeguridad = address.value.equipoSeguridad.filter(item => item !== deletedEquipo.value)
-        }
-
-        onMounted(async () => {
-            await getCities()
-            await getStates()
-            estados.value = states.value
-            if($router.params.id){
-                await getData()
-            }
-        })
-
-        return {
-            dataClient,
-            clienteSelected,
-            clientes,
-            citySelected,
-            stateSelected,
-            isMain,
-            ciudades,
-            estados,
-            addPlanta,
-            plantaName,
-            address,
-            addressColumn,
-            disableFactory,
-            addContact,
-            contact,
-            contactColumns,
-            statusClient,
-            tab,
-            areaPlanta,
-            deletedArea,
-            equipoSeguridad,
-            deletedEquipo,
-            setModel,
-            searchClient,
-            filterFn,
-            filterState,
-            filterCity,
-            addressAdd,
-            editAddress,
-            updateRFC,
-            saveContact,
-            editContact,
-            addArea,
-            deleteArea,
-            addEquipo,
-            deleteEquipo,
-            infoPlanta
-        }
+onMounted(async () => {
+    await getCities()
+    await getStates()
+    estados.value = states.value
+    if($router.params.id){
+        await fetchClient($router.params.id)
+        await getData()
     }
 })
+
 </script>
 
 <style>

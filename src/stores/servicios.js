@@ -15,6 +15,7 @@ export const useServiciosStore = defineStore('servicios', {
             asignados:[],
             archivos:[],
             secciones:[],
+            containers:[],
         }
     },
     actions:{
@@ -290,6 +291,43 @@ export const useServiciosStore = defineStore('servicios', {
                 resolve(response)
             }).catch((error) => { reject(error) })
           })
-        }
+        },
+        async addContainers (payload){
+          const url = 'spa/addContainer'
+          console.log('payload', payload)  
+          const options = {
+            params:{}
+          }
+          
+          return new Promise((resolve, reject) => {
+            api.post(url,payload).then((response) => {
+              resolve(response)
+            }).catch((error) => { reject(error) })
+          })
+        },
+        getContainers(req){
+          const url = 'spa/getContainers'
+            const options = {
+              params:req
+            }
+            return new Promise((resolve, reject) => {
+              api.get(url, options).then((response) => {
+                this.containers = response.data
+                resolve()
+              }).catch((error) => { reject(error) })
+            })
+        },
+        removeContainer(payload) {
+          const url = 'spa/removeContainer'
+          const options = {
+          //   params:payload
+          }
+      
+          return new Promise((resolve, reject) => {
+            api.post(url, payload, options).then((response) => {
+              resolve(response)
+            }).catch((error) => { reject(error) })
+          })
+      },
     }
 })

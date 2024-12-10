@@ -16,7 +16,7 @@
         </q-toolbar-title>
         <q-space/>
         <div class="q-gutter-sm row items-center no-wrap">
-          <q-icon name="wifi_off" color="red" size="md" v-if="offline">
+          <q-icon name="wifi_off" color="red" size="md" v-if="!online">
             <q-tooltip max-width="200px" self="top middle" class="bg-red" >
               Sin conexión a internet, funcionalidad limitada
             </q-tooltip>
@@ -156,30 +156,31 @@ const viewNotify = async (item) => {
   setNotifyView(item)
 }
 
-const offline = ref(false)
+const online = ref(navigator.onLine) // con internet true sin internet false
 
-provide('statusOnLine', offline);
+provide('statusOnLine', online);
 provide('currentUser', AppActiveUser)
 provide('incognit', incognit)
 
 onMounted(async() => {
-  notifications.value = await getNotify(user)
-  
   window.addEventListener('offline',() => {
-    offline.value = true
+    online.value = navigator.onLine;
+    console.log('desconectado')
   })
 
   window.addEventListener('online', async () => {
-    offline.value = false
+    online.value = navigator.onLine
+    console.log('conectado')
   })
   
-  if(offline.value){  
+  
+  if(online.value){  
+    notifications.value = await getNotify(user)
+    await fetchUser()    
+  } else {
     //data sin conexión, se obtiene del localStorage
     AppActiveUser.value = user
     menus.value = AppActiveUser.value.menus
-    
-  } else {
-    await fetchUser()
   }
   
 })
