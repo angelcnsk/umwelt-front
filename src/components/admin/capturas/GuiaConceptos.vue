@@ -1,7 +1,7 @@
 <template>
     <q-card>
         <q-card-section>
-            <fechas-component :visitas="visitas" :changeVisit="configService" />
+            <fechas-component :visitas="visitas" :changeVisit="configService" :categorias="categorias" />
         </q-card-section>
         <q-card-section>
             
@@ -105,16 +105,15 @@
 </template>
 
 <script setup>
-import {ref, computed, watch, onMounted, toRef, inject, provide, defineAsyncComponent} from 'vue';
+import {ref, computed, onMounted, toRef, inject, provide, defineAsyncComponent} from 'vue';
 import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
-import { storeActa } from "src/composables/firebase/storage";
 import { updateData } from 'src/composables/firebase/firebaseService';
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, fechas_visita, visitSelected } = storeCapturas;
+const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates, fechas_visita, visitSelected } = storeCapturas;
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
 
@@ -178,10 +177,6 @@ const setService = (type) => {
         }
     }
 }
-
-watch(service, (newVal) => {
-    // setService('load')
-})
 
 const changeValue = async (categoria, concepto) => {
     //recibe los indices de cada uno
@@ -247,6 +242,7 @@ const configService = async () => {
         setFechas()
         //recupera categorías desde el catálogo
         categorias.value = await fetchCategories({service_id:service.value.id,product_id:service.value.product_id, visita:visitSelected.value.valor});
+        console.log('next visit', categorias.value, visitSelected.value.valor)
         //busca si hay resultados en firebase
         result.value = await fetchResult({service_id:service.value.id,
         product_id:service.value.product_id,visita:visitSelected.value.valor});
@@ -297,9 +293,17 @@ const configService = async () => {
     }
 }
 
-const setFechas = (value) => {
+const setFechas = async (value) => {
     if(service.value.fechas != undefined){
-        fechas_visita.value = service.value.fechas.find(visit => visit.id == visitSelected.value.id)
+        const data = await getDates({service_id:service.value.id,
+            visita:visitSelected.value.valor
+        });
+        if(data){
+            fechas_visita.value = data
+        } else {
+            fechas_visita.value = service.value.fechas.find(visit => visit.id == visitSelected.value.id)
+        }
+        
     }
 }
 
@@ -367,17 +371,7 @@ const setLocal = async (type) => {
     }
 }
 
-const serviceSelected = () => {
-    if(service.value.id == undefined){
-        $q.notify({
-            position:'top',
-            type:'negative',
-            message:'Para continuar selecciona un servicio'
-        })
-        return false
-    }
-    return true
-}
+
 
 const disableOptions = computed(() => {
     return (opcion,categoria,concepto) => {

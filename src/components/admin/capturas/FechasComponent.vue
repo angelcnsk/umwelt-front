@@ -58,27 +58,49 @@
 import { ref, toRef, onMounted, watch } from "vue";
 import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js';
+import { storeActa } from "src/composables/firebase/storage";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates } = storeCapturas;
 
 const props = defineProps({
     visitas:Object,
-    changeVisit: Function
+    changeVisit: Function,
+    categorias:Object
 });
 
-// const fechas_visita = toRef(props,'fechas')
-const visitas = toRef(props,'visitas')
+
+const visitas = toRef(props,'visitas');
+const categorias = toRef(props,'categorias');
 watch(visitSelected, () => {
     props.changeVisit();
-})
+});
+
+watch(fechas_visita, async (valor) => {
+    if(valor.fecha_inicio != fechas_visita.value.fecha_inicio ||
+       valor.fecha_fin != fechas_visita.fecha_fin ||
+       valor.hora_inicio != fechas_visita.hora_inicio ||
+       valor.hora_final != fechas_visita.hora_final 
+    ){
+        await saveDate();    
+    }
+},{deep:true});
 
 const asyncSaveData = () => {
-    if(!serviceSelected()) return false
+    const now = new Date();
+    console.log('saveFechas', fechas_visita.value)
+    if(!navigator.onLine){
+        $q.notify({
+            position:'top',
+            type:'negative',
+            message:'Para sincronizar asegúrate de tener conexión a internet'
+        })
+        return false
+    }
 
     $q.dialog({
         title: '¿Deseas continuar?',
-        message: 'Se guardarán los datos ingresados en la base de datos',
+        message: 'Se guardará en la base de datos la información ingresada',
         ok: {
         push: true,
         label:'Continuar'
@@ -91,69 +113,44 @@ const asyncSaveData = () => {
         persistent: true,
 
     }).onOk(async data => {
-        
-        const info = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
 
-        //candado cerrar visita
-        // if(info.finalizado == 1){
-        //     $q.notify({
-        //         position:'top',
-        //         type:'negative',
-        //         message:'La visita está finalizada, no es posible continuar'
-        //     })
-        //     return false
-        // }
-
-        if(info!=null){
-            //se hace otro setLocal para evitar perder cualquier dato si no hay conexión, se mantiene en local los cambios
-            // setLocal('update')
-            
-            if(!offline.value){
-                //hay conexión
-                if(info.acta == undefined){
-                    $q.notify({
-                        position:'top',
-                        type:'negative',
-                        message:'Falta el texto del acta'
-                    })
-                    return false  
-                }
-
-                const blob = new Blob([info.acta], { type: 'text/plain' });
-                const actaStore = await storeActa({ 
-                    file:blob,
-                    service_id: info.service_id,
-                    visita: visitSelected.value.valor
-                })
-
-                const saveData = await saveCaptures({
-                    service_id: info.service_id, 
-                    categorias:info.categorias, 
-                    type:"conceptos",
-                    fechas:info.fechas,
-                    visita: visitSelected.value.valor,
-                    acta:actaStore.path,
-                    storageId:actaStore.storageId,
-                    finalizado:1
-                })
-
-                if(saveData.status == 200){
-                    $q.notify({
-                        position:'top',
-                        type:'positive',
-                        message:'Se guardó la información en el servidor'
-                    })
-                    localStorage.setItem(`service_${service.value.id}_asyncData_visita_${visitSelected.value.valor}`,true)
-                }
-            } else {
-                $q.notify({
-                    position:'top',
-                    type:'warning',
-                    message:'Se guardó la información en tu equipo'
-                })
-            }
+        if(textoActa.value == undefined || textoActa.value == ''){
+            $q.notify({
+                position:'top',
+                type:'negative',
+                message:'Falta el texto del acta'
+            })
+            return false  
         }
-    })
+        
+        
+        const blob = new Blob([textoActa.value], { type: 'text/plain' });
+        const actaStore = await storeActa({ 
+            file:blob,
+            service_id: currentService.value.id,
+            visita: visitSelected.value.valor,
+            date:`${now.getFullYear()}_${now.getUTCMonth()+1}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
+        });
+
+        const saveData = await saveCaptures({
+            service_id: currentService.value.id, 
+            categorias:categorias.value, 
+            type:"conceptos",
+            visita: visitSelected.value.valor,
+            acta:actaStore.path,
+            storageId:actaStore.storageId,
+            finalizado:1,
+            fechas:true,
+        })
+
+        if(saveData.status == 200){
+            $q.notify({
+                position:'top',
+                type:'positive',
+                message:'Se guardó la información en el servidor'
+            });
+        }
+    });
 }
 
 const cleanData = async () => {
@@ -279,9 +276,13 @@ const imprimir = (doc) => {
     window.open(url,'_blank')
 }
 
-onMounted(() => {
-    console.log('initial', visitSelected.value)
+const saveDate = async (params) => {
+    const props = {service_id:fechas_visita.value.service_id, visita:fechas_visita.value.visita, data:fechas_visita.value}
+    await saveDates(props)
+}
+
+onMounted(async() => {
     visitSelected.value = visitas.value[0];
-    console.log('carga fechas', visitSelected.value)
-})
+});
+
 </script>

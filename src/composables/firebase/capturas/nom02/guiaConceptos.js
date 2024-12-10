@@ -1,15 +1,13 @@
-import {db, auth} from 'boot/firebase'
-import { onAuthStateChanged } from "firebase/auth";
 import { getData, readData, saveData } from '../../firebaseService';
 
 export async function getCategories(params) {
     try {
         let path = params.product_id == 1 ? 'catalogos/nom02/' : 'catalogos/nom020/' 
-        console.log('path fetch', path)
+        
         if(params.visita >1) path = `servicios/${params.service_id}/visita_${params.visita}/categories`
         
         const categorias = await getData(path);
-        console.log('entra y recupera', categorias)
+        
         categorias.forEach((cat) => {
             if(cat.conceptos){
                 cat.conceptos.forEach((concept) => {

@@ -1,7 +1,7 @@
 <template>
     <q-editor
         class="q-editor-mb"
-        v-model="texto"
+        v-model="textoActa"
         :dense="$q.screen.lt.md"
         :toolbar="toolbar"
         :fonts="fonts"
@@ -22,7 +22,7 @@ import { useCapturas } from 'src/composables/useCapturas.js'
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const {fetchActa, saveActa} = storeCapturas;
+const {fetchActa, saveActa,textoActa} = storeCapturas;
 
 const props = defineProps({
     service: Object,
@@ -40,8 +40,6 @@ const textoDocumental = ref('');
 const textoFisica = ref('');
 
 const textoExtra = ref('');
-const texto = ref('');
-const localData = ref(null);
 
 const textoEntrevistas = '<p>De la información arriba mencionada, la organización deberá presentar el requisito asentado y se da por enterada que cuenta con 60 días naturales para dar cumplimiento a la información solicitada en la presente minuta, contando que todo el proceso no excederá 90 días naturales, si en el último caso no se presenta dicha información se procede a cancelar el servicio. </p> <p>La empresa declara que toda la información presentada durante el proceso de inspección es verídica y actualizada.</p>'
 
@@ -130,7 +128,7 @@ const configText = () => {
     }).onOk(async data => {
         textoDocumental.value = '<br><span><strong> INSPECCIÓN DOCUMENTAL</span></strong><br>'
         textoFisica.value = '<br><span><strong>INSPECCIÓN FÍSICA</span></strong><br>'
-        texto.value = ''
+        textoActa.value = ''
         textoExtra.value = ''
         
         categorias.value.forEach((categoria) => {
@@ -162,15 +160,15 @@ const configText = () => {
             }
         })
 
-        texto.value = textoDocumental.value
-        texto.value+= textoFisica.value
-        texto.value+= textoExtra.value
+        textoActa.value = textoDocumental.value
+        textoActa.value+= textoFisica.value
+        textoActa.value+= textoExtra.value
     });
     
 }
 
 const saveTextActa = async () => {
-    await saveActa({service_id:service.value.id, visita:visita.value.valor, data:texto.value});
+    await saveActa({service_id:service.value.id, visita:visita.value.valor, data:textoActa.value});
 }
 
 const extraFn = ref({
@@ -189,8 +187,8 @@ const extraFn = ref({
 })
 
 onMounted(async() => {
-    texto.value = await fetchActa({service_id:service.value.id, visita:visita.value.valor})
-    texto.value = texto.value == null ? '' : texto.value
+    textoActa.value = await fetchActa({service_id:service.value.id, visita:visita.value.valor})
+    textoActa.value = textoActa.value == null ? '' : textoActa.value
 })
 
 </script>

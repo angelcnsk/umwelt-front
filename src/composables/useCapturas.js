@@ -13,19 +13,21 @@ export const useCapturas = () => {
         getServiceList, saveCaptures, setDateCapture,
         saveSectionFile
     } = capturasStore
-    const { servicesList,currentService, categories, fechas_visita, visitSelected, showActa} = storeToRefs(capturasStore)
+    const { servicesList,currentService, categories, fechas_visita, visitSelected, showActa, textoActa, serviceSelected} = storeToRefs(capturasStore)
     
     const fetchCategories = async (params) => {
         try {
             let path = params.product_id == 1 ? 'Nom02Categories' : 'Nom020Categories'
 
-            if(params.visita > 1) path = `${params.service_id}/visita_${visita}/categories`
+            if(params.visita > 1) path = `${params.service_id}/visita_${params.visita}/categories`
             
             let data = await getDataFromIndexedDB(path);
             if (!data) {
                 // Si no hay datos en IndexedDB, obtenerlos desde Firebase
                 data = await getCategories(params);
-          
+                if(!data){
+                    data await getServiceStaff()    
+                }
                 // Guardar los datos en IndexedDB
                 await saveDataToIndexedDB(path, data);
               }
@@ -118,9 +120,27 @@ export const useCapturas = () => {
         }
     }
 
+    const saveDates = async (params) => {
+        try {
+            const path = `${params.service_id}/visita_${params.visita}/fechas`;
+            const serializableData = JSON.parse(JSON.stringify(params.data));
+            await saveDataToIndexedDB(path, serializableData);
+        } catch (error) {
+            console.log('error al guardar fechas', error)
+        }
+    }
+
+    const getDates = async (params) => {
+        try {
+            return await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/fechas`);
+        } catch (error) {
+            console.log('error al obtener fechas', error)
+        }
+    }
+
 
     return {
-        servicesList,currentService,categories,fechas_visita, visitSelected,showActa,
-        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories
+        servicesList,currentService,categories,fechas_visita, visitSelected,showActa,textoActa,serviceSelected,
+        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates
     }
 }

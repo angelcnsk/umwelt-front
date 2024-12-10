@@ -10,6 +10,8 @@ export const useCapturasStore = defineStore('capturas', {
             fechas_visita:[],
             visitSelected:null,
             showActa:false,
+            textoActa:'',
+            serviceSelected:null,
         }
     },
     actions:{
@@ -25,11 +27,6 @@ export const useCapturasStore = defineStore('capturas', {
                   this.servicesList = response.data.service_list
                   localStorage.setItem('serviceList', JSON.stringify(response.data.service_list))
                 }
-                // TODO quitar cuando se confirme que info desde nodo funciona
-                // else {
-                //   this.currentService = response.data.service
-                // }
-                
                 resolve()
               }).catch((error) => { reject(error) })
             })

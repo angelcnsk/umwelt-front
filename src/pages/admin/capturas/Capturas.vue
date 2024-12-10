@@ -119,91 +119,17 @@ const guiaConceptos = defineAsyncComponent(() => import('src/components/admin/ca
 const guia22 = defineAsyncComponent(() => import('src/components/admin/capturas/Guia22.vue'))
 
 const storeCapturas = useCapturas();
-const { getServiceList, servicesList, currentService } = storeCapturas
-
-const serviceSelected = ref(null)
+const { getServiceList, servicesList, currentService, serviceSelected } = storeCapturas
 const online = inject('statusOnLine')
-const secciones = ref([])
 
 const tab = ref('inspeccion')
 
-const formDate =  (date) => {
-    const year = date.getFullYear().toString()
-    const month = (date.getMonth() + 101).toString().substring(1)
-    const day = (date.getDate() + 100).toString().substring(1)
-    return `${year  }-${  month  }-${  day}`
-}
 
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
         currentService.value = serviceSelected.value
     }
 })
-
-const setDataService = async (type) => {
-    let empty = true
-    secciones.value = currentService.value.secciones
-
-    //si hay internet recupero la data
-    //obtengo los documentos del servicio
-    if(online.value){
-        if(type == 'remote'){
-            // let documents = await searchDocuments({
-            //     service_id: currentService.value.id
-            // })
-
-            // if(documents == undefined){
-            //     empty = true
-            //     //si no existen documentos se crean
-            //     secciones.value.forEach(async (seccion) => {
-            //         seccion.documents.forEach(async (document) => {
-            //             await createDocument({
-            //                 global:document.global,
-            //                 seccion_id:seccion.id,
-            //                 doc_id:document.id,
-            //                 service_id:currentService.value.id,
-            //                 value:'',
-            //                 user_id:AppActiveUser.value.id,
-            //             })
-            //         })
-            //     })
-            // }
-            // if(empty){
-            // //si no había documentos y se crearon, los recupero
-            //     documents = await searchDocuments({
-            //         service_id: currentService.value.id
-            //     })
-            // }
-            
-            // if(documents != undefined){
-            //     documents.forEach((document) => {
-            //         currentService.value.secciones.forEach((seccion) => {
-            //             seccion.documents.forEach((doc) => {
-            //                 if(doc.id === document.doc_id){
-            //                     doc.filled_i = document.value
-            //                     doc.uid = document.uid
-            //                 }
-            //             })
-            //         })
-            //     })
-            // }
-        } 
-        
-        //se actualiza el localstorage con la data
-        // localStorage.setItem(`service_${currentService.value.id}_data`, JSON.stringify(currentService.value))
-    } else {
-        //si al seleccionar servicio no hay internet o se busca en local
-        //se agrega el valor en vacío para que se pueda llenar el form
-        // if(type == 'remote'){
-        //     currentService.value.secciones.forEach((seccion) => {
-        //         seccion.documents.forEach((doc) => {
-        //             doc.filled_i = ''
-        //         })
-        //     })
-        // }
-    }
-    // guiaconceptos.value = currentService.value.categorias
-}
 
 onMounted( async () => {
     if (online.value) {
