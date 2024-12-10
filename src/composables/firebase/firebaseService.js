@@ -14,7 +14,7 @@ export const readData = (path) => {
             const data = snapshot.val();
             resolve(data); // Resuelve la promesa con los datos
           } else {
-            reject(null);
+            resolve(null);
           }
         }, 
         (error) => {

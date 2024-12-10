@@ -61,7 +61,7 @@ import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, showActa } = storeCapturas;
 
 const props = defineProps({
     visitas:Object,
@@ -88,7 +88,7 @@ watch(fechas_visita, async (valor) => {
 
 const asyncSaveData = () => {
     const now = new Date();
-    console.log('saveFechas', fechas_visita.value)
+    
     if(!navigator.onLine){
         $q.notify({
             position:'top',
@@ -140,7 +140,7 @@ const asyncSaveData = () => {
             acta:actaStore.path,
             storageId:actaStore.storageId,
             finalizado:1,
-            fechas:true,
+            fechas:fechas_visita.value,
         })
 
         if(saveData.status == 200){
@@ -202,7 +202,7 @@ const cleanData = async () => {
 }
 
 const validatePrint = (doc) => {
-    if(service.value.id == undefined){
+    if(currentService.value.id == undefined){
         $q.notify({
             position:'top',
             type:'negative',
@@ -220,22 +220,10 @@ const validatePrint = (doc) => {
         return false
     }
 
-    const asyncData = localStorage.getItem(`service_${service.value.id}_asyncData_visita_${visitSelected.value.valor}`)
-
-    if(asyncData == null || asyncData == undefined){
-        $q.notify({
-            position:'top',
-            type:'negative',
-            message:'Para continuar guarda la información capturada'
-        })
-        return false
-    }
-
     if(doc == 'acta'){
         showActa.value = !showActa.value
         return false
     }
-    imprimir(doc)
 }
 
 const imprimir = (doc) => {
@@ -243,7 +231,7 @@ const imprimir = (doc) => {
     let url = import.meta.env.VITE_api_host
     switch (doc) {
         case 'guia inspeccion':
-            url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
+            url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
             break;
 
         case 'acta':
@@ -268,7 +256,7 @@ const imprimir = (doc) => {
             .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
             .join('&');
             
-            url = `${url}reportes/getreport/?service_id=${service.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
+            url = `${url}reportes/getreport/?service_id=${currentService.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
             showActa.value = false
             dataActa.value = {}
     }

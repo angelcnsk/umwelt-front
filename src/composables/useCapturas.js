@@ -11,7 +11,7 @@ export const useCapturas = () => {
 
     const { 
         getServiceList, saveCaptures, setDateCapture,
-        saveSectionFile
+        saveSectionFile, getCategoriesBackend
     } = capturasStore
     const { servicesList,currentService, categories, fechas_visita, visitSelected, showActa, textoActa, serviceSelected} = storeToRefs(capturasStore)
     
@@ -26,7 +26,8 @@ export const useCapturas = () => {
                 // Si no hay datos en IndexedDB, obtenerlos desde Firebase
                 data = await getCategories(params);
                 if(!data){
-                    data await getServiceStaff()    
+                    data = await getCategoriesBackend({service_id:params.service_id, visita:params.visita});
+                    if(data.status == 200) data = data.data.categorias
                 }
                 // Guardar los datos en IndexedDB
                 await saveDataToIndexedDB(path, data);

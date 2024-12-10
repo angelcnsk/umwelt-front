@@ -7,14 +7,16 @@ export async function getCategories(params) {
         if(params.visita >1) path = `servicios/${params.service_id}/visita_${params.visita}/categories`
         
         const categorias = await getData(path);
+        if(categorias){
+            categorias.forEach((cat) => {
+                if(cat.conceptos){
+                    cat.conceptos.forEach((concept) => {
+                        concept.value = [];
+                    })
+                }
+            })
+        }
         
-        categorias.forEach((cat) => {
-            if(cat.conceptos){
-                cat.conceptos.forEach((concept) => {
-                    concept.value = [];
-                })
-            }
-        })
         return categorias
     } catch (error) {
         console.log('error al obtener categorías', error)

@@ -81,8 +81,18 @@ export const useCapturasStore = defineStore('capturas', {
           catch (e) {
             console.log('error guardar archivo', e)
           }
-              
-          
+        },
+        async getCategoriesBackend (payload){
+          const url = 'spa/getCategories'
+            
+          const options = {
+            params:payload
+          }
+          return new Promise((resolve, reject) => {
+            api.get(url, options).then((response) => {
+              resolve(response)
+            }).catch((error) => { reject(error) })
+          })
         },
     }
 })

@@ -113,7 +113,7 @@ import { updateData } from 'src/composables/firebase/firebaseService';
 
 const $q = useQuasar();
 const storeCapturas = useCapturas();
-const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates, fechas_visita, visitSelected } = storeCapturas;
+const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates, fechas_visita, visitSelected, showActa } = storeCapturas;
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
 
@@ -130,7 +130,7 @@ const currentUser = inject('currentUser')
 const categorias = ref([])
 const service = toRef(props,'service')
 
-const showActa = ref(false)
+
 const dataActa = ref({})
 
 const visitas = ref([])
@@ -226,7 +226,7 @@ const saveObservaciones = async (categoria) => {
         acumulador[`categoria_id_${categoria.id}`] = { texto: categoria.observaciones };
         return acumulador;
     }, {});
-    console.log('observ', a_observations)
+    
     //se guarda en idb
     await saveLocalObservations({service_id:service.value.id, visita:visitSelected.value.valor, data:a_observations});
     //guardar status local de categorías
@@ -242,20 +242,19 @@ const configService = async () => {
         setFechas()
         //recupera categorías desde el catálogo
         categorias.value = await fetchCategories({service_id:service.value.id,product_id:service.value.product_id, visita:visitSelected.value.valor});
-        console.log('next visit', categorias.value, visitSelected.value.valor)
+        
         //busca si hay resultados en firebase
         result.value = await fetchResult({service_id:service.value.id,
         product_id:service.value.product_id,visita:visitSelected.value.valor});
         //busca observaciones
         observaciones.value = await fetchObservations({service_id:service.value.id, product_id:service.value.product_id, visita:visitSelected.value.valor});
-
         //ejecuta sync de conceptos y observaciones
         await syncConceptResult();
         await syncObservations();
 
         //si no existen respuestas previamente guardadas las crea en firebase
         if(result.value === undefined || result.value === null) {
-            const a_conceptos = []
+            const a_conceptos = [];
             categorias.value.map((cat) => {
                 if(cat.conceptos){
                     const items = cat.conceptos.map((item) => {
@@ -271,6 +270,25 @@ const configService = async () => {
 
             //guarda en firebase respuestas vacías
             await setConceptsValues({service_id:service.value.id, data:uniqueArray, visita:visitSelected.value.valor, product_id:service.value.product_id,});
+        }
+
+        
+        //si no existen observaciones para las categorías
+        if(observaciones.value === undefined || observaciones.value === null){
+            const a_observations = categorias.value.reduce((acumulador, categoria) => {
+                acumulador[`categoria_id_${categoria.id}`] = { texto: categoria.observaciones };
+                return acumulador;
+            }, {});
+            
+            await saveLocalObservations({service_id:service.value.id, visita:visitSelected.value.valor, data:a_observations});
+            //se guarda en firebase
+            if(a_observations){
+                categorias.value.map(async (item, index) => {
+                    const path = `servicios/${service.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[index].id}`
+
+                    await updateData(path,{texto:''});
+                })
+            }
         }
 
         //se relacionan las respuestas con los conceptos correspondientes
@@ -413,13 +431,7 @@ const fonts = ref({
 })
 
 const getActa = (data) => {
-    if(data != undefined){
-        dataActa.value = data.value
-        imprimir('acta')
-    } else {
-       showActa.value = false
-    }
-    
+    showActa.value = false    
 }
 
 onMounted( async () => {
