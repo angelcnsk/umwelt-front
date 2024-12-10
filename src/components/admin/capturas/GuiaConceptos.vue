@@ -248,10 +248,7 @@ const configService = async () => {
         product_id:service.value.product_id,visita:visitSelected.value.valor});
         //busca observaciones
         observaciones.value = await fetchObservations({service_id:service.value.id, product_id:service.value.product_id, visita:visitSelected.value.valor});
-        //ejecuta sync de conceptos y observaciones
-        await syncConceptResult();
-        await syncObservations();
-            console.log('resultados', result.value)
+        
         //si no existen respuestas previamente guardadas las crea en firebase
         if(result.value === undefined || result.value === null) {
             const a_conceptos = [];
@@ -290,6 +287,11 @@ const configService = async () => {
                 })
             }
         }
+
+        //ejecuta sync de conceptos y observaciones
+        await syncConceptResult();
+        await syncObservations();
+            console.log('resultados', result.value)
 
         //se relacionan las respuestas con los conceptos correspondientes
         categorias.value.map((cat) => {
@@ -394,7 +396,6 @@ const setLocal = async (type) => {
 
 const disableOptions = computed(() => {
     return (opcion,categoria,concepto) => {
-        console.log('evaluar disable', opcion)
         if (opcion === 'si') {
           return categorias.value[categoria].conceptos[concepto].value.includes('no')
             // || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
