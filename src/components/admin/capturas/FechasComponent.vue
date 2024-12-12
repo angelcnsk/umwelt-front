@@ -224,6 +224,7 @@ const validatePrint = (doc) => {
         showActa.value = !showActa.value
         return false
     }
+    imprimir(doc)
 }
 
 const imprimir = (doc) => {
