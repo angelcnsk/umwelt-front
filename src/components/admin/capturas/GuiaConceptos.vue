@@ -35,8 +35,8 @@
                         class="q-editor-mb"
                         v-model="categoria.observaciones"
                         :dense="$q.screen.lt.md"
-                        :toolbar="toolbar"
-                        :fonts="fonts"
+                        :toolbar="getEditorProps($q).toolbarActa"
+                        :fonts="getEditorProps($q).fonts"
                         filled
                         clearable
                         min-height="10rem"
@@ -49,53 +49,6 @@
                 
                 <contentActa :service="service" :categorias="categorias" />
             </q-list>
-            <div class="q-pa-md" v-else>
-                <q-item style="max-width: 300px">
-                <q-item-section avatar>
-                    <q-skeleton type="QAvatar" />
-                </q-item-section>
-
-                <q-item-section>
-                    <q-item-label>
-                    <q-skeleton type="text" />
-                    </q-item-label>
-                    <q-item-label caption>
-                    <q-skeleton type="text" width="65%" />
-                    </q-item-label>
-                </q-item-section>
-                </q-item>
-
-                <q-item style="max-width: 300px">
-                <q-item-section avatar>
-                    <q-skeleton type="QAvatar" />
-                </q-item-section>
-
-                <q-item-section>
-                    <q-item-label>
-                    <q-skeleton type="text" />
-                    </q-item-label>
-                    <q-item-label caption>
-                    <q-skeleton type="text" width="90%" />
-                    </q-item-label>
-                </q-item-section>
-                </q-item>
-
-                <q-item style="max-width: 300px">
-                <q-item-section avatar>
-                    <q-skeleton type="QAvatar" />
-                </q-item-section>
-
-                <q-item-section>
-                    <q-item-label>
-                    <q-skeleton type="text" width="35%" />
-                    </q-item-label>
-                    <q-item-label caption>
-                    <q-skeleton type="text" />
-                    </q-item-label>
-                </q-item-section>
-                </q-item>
-            </div>
-            
         </q-card-section>
         
     </q-card>
@@ -110,10 +63,11 @@ import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
 import { updateData } from 'src/composables/firebase/firebaseService';
-
+import {getEditorProps} from '../acta/editorProps'
 const $q = useQuasar();
+
 const storeCapturas = useCapturas();
-const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates, fechas_visita, visitSelected, showActa } = storeCapturas;
+const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates, setVisitas, fechas_visita, visitSelected, showActa } = storeCapturas;
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
 
@@ -291,7 +245,6 @@ const configService = async () => {
         //ejecuta sync de conceptos y observaciones
         await syncConceptResult();
         await syncObservations();
-            console.log('resultados', result.value)
 
         //se relacionan las respuestas con los conceptos correspondientes
         categorias.value.map((cat) => {
@@ -329,9 +282,8 @@ const setFechas = async (value) => {
 
 const syncConceptResult = async () => {
     //busco conceptos pendientes de sincronizar
-    pendingResult.value = result.value.filter((item) => item.status && item.status === 'pending');
-    console.log('async', result.value);
-    console.log('async2', pendingResult.value);
+    pendingResult.value = result.value.length >0 ? result.value.filter((item) => item.status && item.status === 'pending') : [];
+    
     if(pendingResult.value.length>0){
         pendingResult.value.map(async(pending) => {
             //path de nodo
@@ -411,37 +363,13 @@ const disableOptions = computed(() => {
     }
 })
 
-const toolbar = ref([
-    [
-        {
-            icon: $q.iconSet.editor.align,
-            fixedLabel: true,
-            list: 'only-icons',
-            options: ['left', 'center', 'right', 'justify']
-        },
-        
-    ],
-    ['removeFormat'],
-    ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
-    ['undo', 'redo'],
-])
-const fonts = ref({
-    arial: 'Arial',
-    arial_black: 'Arial Black',
-    comic_sans: 'Comic Sans MS',
-    courier_new: 'Courier New',
-    impact: 'Impact',
-    lucida_grande: 'Lucida Grande',
-    times_new_roman: 'Times New Roman',
-    verdana: 'Verdana'
-})
 
 const getActa = (data) => {
     showActa.value = false    
 }
 
 onMounted( async () => {
-    setService('load')
+    setVisitas()
 })
 
 </script>

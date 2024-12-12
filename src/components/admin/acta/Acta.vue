@@ -3,8 +3,8 @@
         class="q-editor-mb"
         v-model="textoActa"
         :dense="$q.screen.lt.md"
-        :toolbar="toolbar"
-        :fonts="fonts"
+        :toolbar="getEditorProps($q).toolbarActa"
+        :fonts="getEditorProps($q).fonts"
         :definitions="extraFn"
         filled
         clearable
@@ -19,8 +19,9 @@
 import {ref, inject, toRef, onMounted} from 'vue';
 import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
-
+import { getEditorProps } from "./editorProps";
 const $q = useQuasar();
+
 const storeCapturas = useCapturas();
 const {fetchActa, saveActa,textoActa} = storeCapturas;
 
@@ -33,75 +34,12 @@ const visita = inject('currentVisit');
 const service = toRef(props,'service');
 const categorias = toRef(props,'categorias');
 
-// const textoDocumental = ref('<br><span><strong> VERIFICACIÓN DOCUMENTAL</strong></span><br>')
-// const textoFisica = ref('<br><span><strong>INSPECCIÓN FÍSICA</span></strong><br>')
-
 const textoDocumental = ref('');
 const textoFisica = ref('');
 
 const textoExtra = ref('');
 
 const textoEntrevistas = '<p>De la información arriba mencionada, la organización deberá presentar el requisito asentado y se da por enterada que cuenta con 60 días naturales para dar cumplimiento a la información solicitada en la presente minuta, contando que todo el proceso no excederá 90 días naturales, si en el último caso no se presenta dicha información se procede a cancelar el servicio. </p> <p>La empresa declara que toda la información presentada durante el proceso de inspección es verídica y actualizada.</p>'
-
-const toolbar = ref([
-    [
-        {
-            icon: $q.iconSet.editor.align,
-            fixedLabel: true,
-            list: 'only-icons',
-            options: ['left', 'center', 'right', 'justify']
-        },
-        
-    ],
-    ['save','load'],
-    ['removeFormat',
-          {
-            label: $q.lang.editor.formatting,
-            icon: $q.iconSet.editor.formatting,
-            list: 'no-icons',
-            options: [
-              'p',
-              'h1',
-              'h2',
-              'h3',
-              'h4',
-              'h5',
-              'h6',
-              'code'
-            ]
-          },
-          {
-            label: $q.lang.editor.fontSize,
-            icon: $q.iconSet.editor.fontSize,
-            fixedLabel: true,
-            fixedIcon: true,
-            list: 'no-icons',
-            options: [
-              'size-1',
-              'size-2',
-              'size-3',
-              'size-4',
-              'size-5',
-              'size-6',
-              'size-7'
-            ]
-          },
-    ],
-    ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
-    ['bold', 'italic', 'strike', 'underline', 'subscript', 'superscript'],
-    ['undo', 'redo'],
-    
-])
-const fonts = ref({
-    arial: 'Arial',
-    arial_black: 'Arial Black',
-    comic_sans: 'Comic Sans MS',
-    courier_new: 'Courier New',
-    impact: 'Impact',
-    lucida_grande: 'Lucida Grande',
-    times_new_roman: 'Times New Roman',
-    verdana: 'Verdana'
-})
 
 const configText = () => {
     $q.dialog({
@@ -147,7 +85,6 @@ const configText = () => {
                     textoExtra.value+= textoEntrevistas
                 }
                 else if(categoria.extra == 'declaracion'){
-                    console.log('entra cuantas veces', categoria)
                     textoExtra.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                     textoExtra.value+= categoria.observaciones
                 } 

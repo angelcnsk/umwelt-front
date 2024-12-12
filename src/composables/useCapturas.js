@@ -13,7 +13,7 @@ export const useCapturas = () => {
         getServiceList, saveCaptures, setDateCapture,
         saveSectionFile, getCategoriesBackend
     } = capturasStore
-    const { servicesList,currentService, categories, fechas_visita, visitSelected, showActa, textoActa, serviceSelected} = storeToRefs(capturasStore)
+    const { servicesList,currentService, categories, fechas_visita, visitSelected, showActa, textoActa, serviceSelected, visitas} = storeToRefs(capturasStore)
     
     const fetchCategories = async (params) => {
         try {
@@ -139,9 +139,23 @@ export const useCapturas = () => {
         }
     }
 
+    const setVisitas = () => {
+        visitas.value = []
+        let visita = 0
+        const fechas = currentService.value.fechas.length == 0 ? 1 : currentService.value.fechas.length
+        
+        for (let index = 0; index < fechas; index++) {
+            visitas.value.push(
+                {   valor:currentService.value.fechas[index].visita, 
+                    texto:`Visita ${currentService.value.fechas[index].visita}`, id:currentService.value.fechas[index].id
+                })
+            visita++
+        }
+    }
+
 
     return {
         servicesList,currentService,categories,fechas_visita, visitSelected,showActa,textoActa,serviceSelected,
-        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates
+        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setVisitas
     }
 }

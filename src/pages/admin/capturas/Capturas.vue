@@ -11,7 +11,55 @@
         </q-card-section>
     </q-card>
     
-    <div class="q-mt-md">
+    <div class="q-mt-md" v-if="Object.entries(currentService).length==0">
+        <div class="q-pa-md">
+            <q-item style="max-width: 300px">
+            <q-item-section avatar>
+                <q-skeleton type="QAvatar" />
+            </q-item-section>
+
+            <q-item-section>
+                <q-item-label>
+                <q-skeleton type="text" />
+                </q-item-label>
+                <q-item-label caption>
+                <q-skeleton type="text" width="65%" />
+                </q-item-label>
+            </q-item-section>
+            </q-item>
+
+            <q-item style="max-width: 300px">
+            <q-item-section avatar>
+                <q-skeleton type="QAvatar" />
+            </q-item-section>
+
+            <q-item-section>
+                <q-item-label>
+                <q-skeleton type="text" />
+                </q-item-label>
+                <q-item-label caption>
+                <q-skeleton type="text" width="90%" />
+                </q-item-label>
+            </q-item-section>
+            </q-item>
+
+            <q-item style="max-width: 300px">
+            <q-item-section avatar>
+                <q-skeleton type="QAvatar" />
+            </q-item-section>
+
+            <q-item-section>
+                <q-item-label>
+                <q-skeleton type="text" width="35%" />
+                </q-item-label>
+                <q-item-label caption>
+                <q-skeleton type="text" />
+                </q-item-label>
+            </q-item-section>
+            </q-item>
+        </div>
+    </div>
+    <div v-else>
         <q-tabs
             no-swipe
             v-model="tab"
@@ -19,6 +67,7 @@
             outside-arrows
             mobile-arrows
             class="bg-primary text-white shadow-2"
+            
         >
             <!-- <q-tab name="documentacion" label="Documentación" /> -->
             <q-tab v-if="currentService.product_id == 1" name="inspeccion" label="Inspección" />
@@ -39,61 +88,14 @@
           <!-- <q-tab-panel name="documentacion">
             <documentacion :secciones="secciones" :service="currentService" />
           </q-tab-panel> -->
-
-          <q-tab-panel name="inspeccion">
-            <div class="q-pa-md" v-if="Object.entries(currentService).length==0">
-                    <q-item style="max-width: 300px">
-                    <q-item-section avatar>
-                        <q-skeleton type="QAvatar" />
-                    </q-item-section>
-
-                    <q-item-section>
-                        <q-item-label>
-                        <q-skeleton type="text" />
-                        </q-item-label>
-                        <q-item-label caption>
-                        <q-skeleton type="text" width="65%" />
-                        </q-item-label>
-                    </q-item-section>
-                    </q-item>
-
-                    <q-item style="max-width: 300px">
-                    <q-item-section avatar>
-                        <q-skeleton type="QAvatar" />
-                    </q-item-section>
-
-                    <q-item-section>
-                        <q-item-label>
-                        <q-skeleton type="text" />
-                        </q-item-label>
-                        <q-item-label caption>
-                        <q-skeleton type="text" width="90%" />
-                        </q-item-label>
-                    </q-item-section>
-                    </q-item>
-
-                    <q-item style="max-width: 300px">
-                    <q-item-section avatar>
-                        <q-skeleton type="QAvatar" />
-                    </q-item-section>
-
-                    <q-item-section>
-                        <q-item-label>
-                        <q-skeleton type="text" width="35%" />
-                        </q-item-label>
-                        <q-item-label caption>
-                        <q-skeleton type="text" />
-                        </q-item-label>
-                    </q-item-section>
-                    </q-item>
-                </div>
-            <guia-conceptos v-else-if="currentService.product_id == 1" :service="currentService" />
-              
-          </q-tab-panel>
-            <q-tab-panel name="guia22">
-                <guia-22 :service="currentService" /> 
+            
+            <q-tab-panel v-if="currentService.product_id == 1" name="inspeccion">
+                <guia-conceptos :service="currentService" />
             </q-tab-panel>
-            <q-tab-panel name="guia25">
+            <q-tab-panel v-if="currentService.product_id == 2" name="guia22">
+                <guia22 :service="currentService" /> 
+            </q-tab-panel>
+            <q-tab-panel v-if="currentService.product_id == 2" name="guia25">
 
             </q-tab-panel>
 
@@ -104,7 +106,6 @@
             <gestion :service="currentService" />
           </q-tab-panel> -->
         </q-tab-panels>
-      
     </div>
 </div>
 </q-page>
@@ -128,8 +129,9 @@ const tab = ref('inspeccion')
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
         currentService.value = serviceSelected.value
+        tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'
     }
-})
+});
 
 onMounted( async () => {
     if (online.value) {
