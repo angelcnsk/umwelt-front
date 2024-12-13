@@ -6,7 +6,7 @@ export const useCapturasStore = defineStore('capturas', {
         return { 
             servicesList:[],
             currentService:{},
-            categories:[],
+            categorias:[],
             fechas_visita:[],
             visitSelected:null,
             showActa:false,
