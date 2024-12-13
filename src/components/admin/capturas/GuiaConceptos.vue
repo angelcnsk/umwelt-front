@@ -1,7 +1,7 @@
 <template>
     <q-card>
         <q-card-section>
-            <fechas-component :visitas="visitas" :changeVisit="configService" :categorias="categorias" />
+            <fechas-component :changeVisit="configService" :categorias="categorias" />
         </q-card-section>
         <q-card-section>
             
@@ -67,7 +67,7 @@ import {getEditorProps} from '../acta/editorProps'
 const $q = useQuasar();
 
 const storeCapturas = useCapturas();
-const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates, setVisitas, fechas_visita, visitSelected, showActa } = storeCapturas;
+const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, setFechas, setSelectVisitas, fechas_visita, visitSelected, showActa } = storeCapturas;
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
 
@@ -79,19 +79,9 @@ const props = defineProps({
     service: Object
 })
 
-const offline = inject('statusOnLine')
 const currentUser = inject('currentUser')
 const categorias = ref([])
 const service = toRef(props,'service')
-
-
-const dataActa = ref({})
-
-const visitas = ref([])
-
-const timeStamp = Date.now()
-const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
-// const visitSelected = ref(null)
 
 const observaciones = ref([])
 const result = ref([]);
@@ -266,20 +256,6 @@ const configService = async () => {
     }
 }
 
-const setFechas = async (value) => {
-    if(service.value.fechas != undefined){
-        const data = await getDates({service_id:service.value.id,
-            visita:visitSelected.value.valor
-        });
-        if(data){
-            fechas_visita.value = data
-        } else {
-            fechas_visita.value = service.value.fechas.find(visit => visit.id == visitSelected.value.id)
-        }
-        
-    }
-}
-
 const syncConceptResult = async () => {
     //busco conceptos pendientes de sincronizar
     pendingResult.value = result.value.length >0 ? result.value.filter((item) => item.status && item.status === 'pending') : [];
@@ -369,7 +345,7 @@ const getActa = (data) => {
 }
 
 onMounted( async () => {
-    setVisitas()
+    setSelectVisitas()
 })
 
 </script>

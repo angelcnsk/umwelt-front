@@ -12,7 +12,11 @@ export const useCapturasStore = defineStore('capturas', {
             showActa:false,
             textoActa:'',
             serviceSelected:null,
-            visitas:[]
+            visitas:[],
+            observaciones:[],
+            result:[],
+            pendingResult:[],
+            pendingObs:[]
         }
     },
     actions:{

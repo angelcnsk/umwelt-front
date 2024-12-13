@@ -61,16 +61,13 @@ import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, showActa } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setFechas, showActa, visitas } = storeCapturas;
 
 const props = defineProps({
-    visitas:Object,
     changeVisit: Function,
     categorias:Object
 });
 
-
-const visitas = toRef(props,'visitas');
 const categorias = toRef(props,'categorias');
 watch(visitSelected, () => {
     props.changeVisit();
@@ -224,6 +221,7 @@ const validatePrint = (doc) => {
         showActa.value = !showActa.value
         return false
     }
+    imprimir(doc);
 }
 
 const imprimir = (doc) => {
@@ -271,6 +269,7 @@ const saveDate = async (params) => {
 
 onMounted(async() => {
     visitSelected.value = visitas.value[0];
+    await setFechas();
 });
 
 </script>

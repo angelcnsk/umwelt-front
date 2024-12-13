@@ -12,7 +12,7 @@ import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 
 const storeCapturas = useCapturas();
-const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates,setVisitas, fechas_visita, visitSelected, showActa, visitas } = storeCapturas;
+const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, setFechas,setSelectVisitas, fechas_visita, visitSelected, showActa, visitas } = storeCapturas;
 
 const fechasComponent = defineAsyncComponent(() => import('src/components/admin/capturas/FechasComponent.vue'))
 
@@ -21,6 +21,6 @@ const configService = () => {
 }
 
 onMounted(() => {
-    setVisitas()
+    setSelectVisitas();
 })
 </script>

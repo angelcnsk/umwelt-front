@@ -13,7 +13,8 @@ export const useCapturas = () => {
         getServiceList, saveCaptures, setDateCapture,
         saveSectionFile, getCategoriesBackend
     } = capturasStore
-    const { servicesList,currentService, categories, fechas_visita, visitSelected, showActa, textoActa, serviceSelected, visitas} = storeToRefs(capturasStore)
+    const { servicesList,currentService, categories, fechas_visita, visitSelected, showActa, textoActa, serviceSelected, visitas, result,
+    pendingResult, pendingObs} = storeToRefs(capturasStore)
     
     const fetchCategories = async (params) => {
         try {
@@ -139,7 +140,7 @@ export const useCapturas = () => {
         }
     }
 
-    const setVisitas = () => {
+    const setSelectVisitas = () => {
         visitas.value = []
         let visita = 0
         const fechas = currentService.value.fechas.length == 0 ? 1 : currentService.value.fechas.length
@@ -153,9 +154,23 @@ export const useCapturas = () => {
         }
     }
 
+    const setFechas = async (value) => {
+        console.log(visitSelected.value)
+        if(currentService.value.fechas != undefined){
+            const data = await getDates({service_id:currentService.value.id,
+                visita:visitSelected.value.valor
+            });
+            if(data){
+                fechas_visita.value = data
+            } else {
+                fechas_visita.value = currentService.value.fechas.find(visit => visit.id == visitSelected.value.id)
+            }
+        }
+    }
+
 
     return {
-        servicesList,currentService,categories,fechas_visita, visitSelected,showActa,textoActa,serviceSelected,
-        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setVisitas
+        servicesList,currentService,categories,fechas_visita, visitSelected,showActa,textoActa,serviceSelected, visitas,
+        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setSelectVisitas, setFechas
     }
 }
