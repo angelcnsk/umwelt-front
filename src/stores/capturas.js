@@ -16,7 +16,10 @@ export const useCapturasStore = defineStore('capturas', {
             observaciones:[],
             result:[],
             pendingResult:[],
-            pendingObs:[]
+            pendingObs:[],
+            tab:'inspeccion',
+            recipientes:[],
+            recipienteSelected:null,
         }
     },
     actions:{

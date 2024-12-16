@@ -2,11 +2,10 @@ import { getData, readData, saveData } from '../../firebaseService';
 
 export async function getCategories(params) {
     try {
-        let path = params.product_id == 1 ? 'catalogos/nom02/' : 'catalogos/nom020/' 
         
-        if(params.visita >1) path = `servicios/${params.service_id}/visita_${params.visita}/categories`
+        if(params.visita >1) params.path = `servicios/${params.service_id}/visita_${params.visita}/categories`
         
-        const categorias = await getData(path);
+        const categorias = await getData(params.path);
         if(categorias){
             categorias.forEach((cat) => {
                 if(cat.conceptos){
@@ -25,7 +24,7 @@ export async function getCategories(params) {
 
 export async function getResult(params) {
     try {
-        return await readData(`servicios/${params.service_id}/visita_${params.visita}/result`);
+        return await readData(`servicios/${params.path}`);
     } catch (error) {
         console.log('error al obtener resultados', error)
     }
@@ -33,7 +32,7 @@ export async function getResult(params) {
 
 export async function getObservations(params) {
     try {
-        return await readData(`servicios/${params.service_id}/visita_${params.visita}/observaciones`);
+        return await readData(params.path);
     } catch (error) {
         console.log('error al obtener observaciones', error)
     }
@@ -49,7 +48,7 @@ export async function getActa(params) {
 
 export async function setConceptsValues(params) {
     try {
-        return await saveData(`servicios/${params.service_id}/visita_${params.visita}/result`, params.data)
+        return await saveData(params.path, params.data)
     } catch (error) {
         console.log('error al guardar lista de conceptos', error)
     }

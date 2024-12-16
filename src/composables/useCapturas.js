@@ -1,40 +1,43 @@
 import { storeToRefs } from 'pinia'
 import { useCapturasStore } from '../stores/capturas';
-import { useUsersStore } from '../stores/users';
+import { useUsers } from '../composables/useUsers';
 import { useIdb } from "../composables/idb/useIdb";
 import { getCategories, getObservations, getResult, getActa, setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
 import { updateData } from './firebase/firebaseService';
 import { computed } from 'vue';
 
 export const useCapturas = () => {
+    const {AppActiveUser} = useUsers()
     const capturasStore = useCapturasStore();
-    const userStore = useUsersStore();
     const idb = useIdb();
     const {getDataFromIndexedDB, saveDataToIndexedDB, removeItem} = idb;
+    
 
     const { 
         getServiceList, saveCaptures, setDateCapture,
         saveSectionFile, getCategoriesBackend
     } = capturasStore;
 
-    const {currentUser} = userStore;
     const { servicesList,currentService, categorias, fechas_visita, visitSelected, showActa, textoActa, serviceSelected, visitas, result,
-    pendingResult, pendingObs, observaciones} = storeToRefs(capturasStore)
+    pendingResult, pendingObs, observaciones, tab, recipientes, recipienteSelected} = storeToRefs(capturasStore)
     
     const fetchCategories = async (params) => {
         try {
-            let path = params.product_id == 1 ? 'Nom02Categories' : 'Nom020Categories'
-
+            let path = tab.value == 'inspeccion' ? 'Nom02Categories' : tab.value == 'guia22' ? 'Nom020Categories/22' : 'Nom020Categories/25';
+            
             if(params.visita > 1) path = `${params.service_id}/visita_${params.visita}/categories`
             
             let data = await getDataFromIndexedDB(path);
             if (!data) {
+                params.path = tab.value == 'inspeccion' ? 'catalogos/nom02/' : tab.value == 'guia22' ? 'catalogos/nom020/22' : 'catalogos/nom020/25';
                 // Si no hay datos en IndexedDB, obtenerlos desde Firebase
                 data = await getCategories(params);
+
                 if(!data){
                     data = await getCategoriesBackend({service_id:params.service_id, visita:params.visita});
                     if(data.status == 200) data = data.data.categorias
                 }
+                data = data.filter(cat => cat.conceptos && cat.conceptos.length>0)
                 // Guardar los datos en IndexedDB
                 await saveDataToIndexedDB(path, data);
               }
@@ -46,14 +49,14 @@ export const useCapturas = () => {
 
     const fetchResult = async (params) => {
         try {
-            let data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/result`);
-
+            let data = await getDataFromIndexedDB(params.path);
+            
             if(!data){
                 //firebase
                 data = await getResult(params);
                 if (data) {
                     // Guardar los datos en IndexedDB
-                    await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/result`, data);
+                    await saveDataToIndexedDB(params.path, data);
                 }
             } 
 
@@ -68,7 +71,7 @@ export const useCapturas = () => {
             let data = await getDataFromIndexedDB(`${params.service_id}/visita_${params.visita}/observations`);
 
             if(!data){
-                data = await getObservations(params)
+                data = await getObservations({path:`servicios/${params.service_id}/visita_${params.visita}/observaciones`})
                 if(data) await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/observations`, data);
             } 
             return data;
@@ -96,7 +99,7 @@ export const useCapturas = () => {
 
     const saveLocalResults = async (params) => {
         const serializableData = JSON.parse(JSON.stringify(params.data));
-        await saveDataToIndexedDB(`${params.service_id}/visita_${params.visita}/result`, serializableData);
+        await saveDataToIndexedDB(params.path, serializableData);
     }
 
     const saveLocalObservations = async (params) => {
@@ -160,7 +163,6 @@ export const useCapturas = () => {
     }
 
     const setFechas = async (value) => {
-        console.log(visitSelected.value)
         if(currentService.value.fechas != undefined){
             const data = await getDates({service_id:currentService.value.id,
                 visita:visitSelected.value.valor
@@ -195,11 +197,19 @@ export const useCapturas = () => {
             pendingResult.value.map(async(pending) => {
                 //path de nodo
                 const findIndex = result.value.findIndex((item) => item.concepto_id == pending.concepto_id);
-                const path = `servicios/${currentService.value.id}/visita_${visitSelected.value.valor}/result/${findIndex}`;
+
+                let path = '';
+                
+                if(currentService.value.product_id == 1){
+                    path = `servicios/${currentService.value.id}/visita_${visitSelected.value.valor}/result/${findIndex}`;
+                } else {
+                    path = `${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${recipienteSelected.value.value}/${tab.value}/result/${findIndex}`;
+                }
+                
                 
                 pending.status = !navigator.onLine ? 'pending' : 'completed';
                 //se actualiza en idb
-                await saveLocalResults({service_id:currentService.value.id, visita:visitSelected.value.valor, data:result.value});
+                await saveLocalResults({service_id:currentService.value.id, data:result.value, path:`${currentService.value.id}/visita_${visitSelected.value.valor}/result`});
     
                 //se actualiza en firebase
                 await updateData(path,pending);
@@ -243,13 +253,22 @@ export const useCapturas = () => {
         categorias.value.forEach((categoria) => {
             if(categoria.conceptos){
                 categoria.conceptos.forEach((concepto) => {
-                    if(concept.id == concepto.id) concepto.value = concept.value
+                    if(concept.id == concepto.id){
+                        concepto.value = concept.value;
+                        concepto.observaciones = concept.observaciones;
+                    }
                 })
             }
         })
         //path de nodo
         const findIndex = result.value.findIndex((item) => item.concepto_id == concept.id)
-        const path = `servicios/${currentService.value.id}/visita_${visitSelected.value.valor}/result/${findIndex}`;
+        let path = '';
+        if(currentService.value.product_id == 1){
+            path = `${currentService.value.id}/visita_${visitSelected.value.valor}/result`;
+        } else {
+            path = `${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${recipienteSelected.value.value}/${tab.value}/result`;
+        }
+        
         
         const flag = concept.value.includes('no_cumple');
         
@@ -263,12 +282,16 @@ export const useCapturas = () => {
             no_cumple:flag?1:0,
             status:!navigator.onLine ? 'pending' : 'completed'
         }
+
+        if(currentService.value.product_id == 2){
+            findConcept.observaciones = props.observaciones = concept.observaciones;
+        } 
         
         //se actualiza en idb
-        await saveLocalResults({service_id:currentService.value.id, visita:visitSelected.value.valor, data:result.value});
+        await saveLocalResults({path:path, data:result.value});
     
         //se actualiza en firebase
-        await updateData(path,props);   
+        await updateData(`servicios/${path}/${findIndex}`,props);   
     }
     
     const saveObservaciones = async (categoria) => {
@@ -290,26 +313,26 @@ export const useCapturas = () => {
         await updateData(path,{texto:categorias.value[categoria].observaciones});
     }
     
-    const configService = async () => {
+    const configNom02 = async () => {
         if(currentService.value.id != undefined){
             // categorias.value = []
-            setFechas()
+            await setFechas()
             //recupera categorías desde el catálogo
             categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor});
             
+            const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/result`
             //busca si hay resultados en firebase
-            result.value = await fetchResult({service_id:currentService.value.id,
-            product_id:currentService.value.product_id,visita:visitSelected.value.valor});
+            result.value = await fetchResult({path:localPath});
             //busca observaciones
             observaciones.value = await fetchObservations({service_id:currentService.value.id, product_id:currentService.value.product_id, visita:visitSelected.value.valor});
             
             //si no existen respuestas previamente guardadas las crea en firebase
-            if(result.value === undefined || result.value === null) {
+            if(result.value === undefined || result.value === null && categorias.value.length>0) {
                 const a_conceptos = [];
                 categorias.value.map((cat) => {
                     if(cat.conceptos){
                         const items = cat.conceptos.map((item) => {
-                            return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:currentUser.value.id}
+                            return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:AppActiveUser.value.id}
                         });
                         a_conceptos.push(...items);
                     }
@@ -318,14 +341,18 @@ export const useCapturas = () => {
                 const uniqueArray = a_conceptos.filter((item, index, self) =>
                     index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
                 );
+                result.value = uniqueArray
     
                 //guarda en firebase respuestas vacías
-                await setConceptsValues({service_id:currentService.value.id, data:uniqueArray, visita:visitSelected.value.valor, product_id:currentService.value.product_id,});
+                await setConceptsValues({
+                    path:`servicios/${localPath}`,
+                    data:uniqueArray
+                });
             }
     
             
             //si no existen observaciones para las categorías
-            if(observaciones.value === undefined || observaciones.value === null){
+            if(observaciones.value === undefined || observaciones.value === null && categorias.value.length>0){
                 const a_observations = categorias.value.reduce((acumulador, categoria) => {
                     acumulador[`categoria_id_${categoria.id}`] = { texto: categoria.observaciones };
                     return acumulador;
@@ -343,8 +370,10 @@ export const useCapturas = () => {
             }
     
             //ejecuta sync de conceptos y observaciones
-            await syncConceptResult();
-            await syncObservations();
+            if(result.value.length && observaciones.value.length && categorias.value.length){
+                await syncConceptResult();
+                await syncObservations();
+            }
     
             //se relacionan las respuestas con los conceptos correspondientes
             categorias.value.map((cat) => {
@@ -366,8 +395,76 @@ export const useCapturas = () => {
         }
     }
 
+    const configNom020 = async () => {
+        if(recipienteSelected.value != null){
+            categorias.value = []
+            // await setFechas()
+
+            //recupera categorías desde el catálogo
+            categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor});
+            
+            const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${recipienteSelected.value.value}/${tab.value}`
+            
+            //busca si hay resultados en firebase
+            result.value = await fetchResult({path:`${localPath}/result`});
+            
+            //si no existen respuestas previamente guardadas las crea en firebase
+            if(result.value === undefined || result.value === null && categorias.value.length>0) {
+                const a_conceptos = [];
+                categorias.value.map((cat) => {
+                    if(cat.conceptos){
+                        const items = cat.conceptos.map((item) => {
+                            return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:AppActiveUser.value.id,
+                            observaciones:''    
+                            }
+                        });
+                        a_conceptos.push(...items);
+                    }
+                });
+                //filtra listado de conceptos para evitar duplicados por conceptos compartidos
+                const uniqueArray = a_conceptos.filter((item, index, self) =>
+                    index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
+                );
+                
+                result.value = uniqueArray
+                //guarda en firebase respuestas vacías
+                await setConceptsValues({
+                    path:`servicios/${localPath}`,
+                    data:uniqueArray, 
+                });
+            }
+    
+            //ejecuta sync de conceptos y observaciones
+            if(result.value != null && result.value.length && categorias.value.length){
+                await syncConceptResult();
+            }
+    
+            //se relacionan las respuestas con los conceptos correspondientes
+            categorias.value.map((cat) => {
+                if(cat.conceptos){
+                    cat.conceptos.forEach((item) => {
+                        if(result.value){
+                            const match = result.value.find((element) => element.concepto_id == item.id)
+                            if(match){
+                                item.value = match.value == 1 ? [] : match.value
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    const setContainer = async () => {
+        const filter = serviceSelected.value.recipientes.filter((item) => item.visita_id === visitSelected.value.id );
+
+        recipientes.value = filter.map((item) => ({
+            value: item.id,
+            texto: item.name
+        }));
+    }
+
     return {
-        servicesList,currentService,categorias,fechas_visita, visitSelected,showActa,textoActa,serviceSelected, visitas,
-        getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setSelectVisitas, setFechas, disableOptions, syncConceptResult, syncObservations, changeValue, saveObservaciones, configService
+        servicesList,currentService,categorias,fechas_visita, visitSelected,showActa,textoActa,serviceSelected, visitas,tab,recipienteSelected,recipientes,getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setSelectVisitas, setFechas, disableOptions, syncConceptResult, syncObservations, changeValue, saveObservaciones, configNom02, configNom020, setContainer
     }
 }

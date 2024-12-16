@@ -90,21 +90,14 @@
           </q-tab-panel> -->
             
             <q-tab-panel v-if="currentService.product_id == 1" name="inspeccion">
-                <guia-conceptos :service="currentService" />
+                <guia-inspeccion :service="currentService"/>
             </q-tab-panel>
             <q-tab-panel v-if="currentService.product_id == 2" name="guia22">
-                <guia22 :service="currentService" /> 
+                <guia-nom20 :service="currentService"/> 
             </q-tab-panel>
             <q-tab-panel v-if="currentService.product_id == 2" name="guia25">
-
+                <guia-nom20 :service="currentService"/> 
             </q-tab-panel>
-
-          <!-- <q-tab-panel name="archivos">
-            <archivos :service="currentService" />
-          </q-tab-panel> -->
-          <!-- <q-tab-panel name="gestion">
-            <gestion :service="currentService" />
-          </q-tab-panel> -->
         </q-tab-panels>
     </div>
 </div>
@@ -116,15 +109,13 @@ import {onMounted, watch, ref, inject, defineAsyncComponent} from 'vue'
 
 import { useCapturas } from 'src/composables/useCapturas.js'
 
-const guiaConceptos = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaConceptos.vue'))
-const guia22 = defineAsyncComponent(() => import('src/components/admin/capturas/Guia22.vue'))
+const GuiaInspeccion = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaInspeccion.vue'));
+
+const GuiaNom20 = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaNom20.vue'));
 
 const storeCapturas = useCapturas();
-const { getServiceList, servicesList, currentService, serviceSelected } = storeCapturas
+const { getServiceList, servicesList, currentService, serviceSelected, tab, recipienteSelected } = storeCapturas
 const online = inject('statusOnLine')
-
-const tab = ref('inspeccion')
-
 
 watch(serviceSelected, async (item) => {
     if (serviceSelected.value !== null) {
@@ -132,6 +123,10 @@ watch(serviceSelected, async (item) => {
         tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'
     }
 });
+
+watch(tab,() => {
+    if(serviceSelected.value.product_id == 2) recipienteSelected.value = null
+})
 
 onMounted( async () => {
     if (online.value) {

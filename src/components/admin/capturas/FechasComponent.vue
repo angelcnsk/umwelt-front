@@ -1,13 +1,24 @@
 <template>
     <div class="row q-pa-sm">
-        <div class="col-xs-12 col-md-3">
+        <div class="col-xs-12 col-md-2">
             <q-select 
                 class="q-mr-md" 
-                style="width: 200px;" 
+                style="max-width: 180px;" 
                 :options="visitas"
                 option-label="texto"
                 v-model="visitSelected"
                 label="Visita"
+            />
+        </div>
+        <div class="col-xs-12 col-md-2" v-if="currentService.product_id == 2">
+            <q-select 
+                class="q-mr-md" 
+                style="max-width: 180px;" 
+                :options="recipientes"
+                option-label="texto"
+                option-value="value"
+                v-model="recipienteSelected"
+                label="Recipiente"
             />
         </div>
         <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-sm">
@@ -61,7 +72,7 @@ import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setFechas, showActa, visitas } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setFechas, setContainer,showActa, visitas, recipienteSelected, recipientes } = storeCapturas;
 
 const props = defineProps({
     changeVisit: Function,
@@ -70,8 +81,16 @@ const props = defineProps({
 
 const categorias = toRef(props,'categorias');
 watch(visitSelected, () => {
-    props.changeVisit();
+    if(currentService.value.product_id == 2){
+        setContainer();
+    } else {
+        props.changeVisit();
+    }
 });
+
+watch(recipienteSelected,() => {
+    props.changeVisit();
+})
 
 watch(fechas_visita, async (valor) => {
     if(valor.fecha_inicio != fechas_visita.value.fecha_inicio ||
@@ -184,7 +203,8 @@ const cleanData = async () => {
         })
         
         keys.map(async(key) => {
-            await cleanDataService(key)
+            console.log('paths', key)
+            // await cleanDataService(key)
         });
         
         // localStorage.removeItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`)
