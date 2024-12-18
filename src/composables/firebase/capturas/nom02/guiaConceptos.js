@@ -2,15 +2,15 @@ import { getData, readData, saveData } from '../../firebaseService';
 
 export async function getCategories(params) {
     try {
-        
-        if(params.visita >1) params.path = `servicios/${params.service_id}/visita_${params.visita}/categories`
-        
-        const categorias = await getData(params.path);
+        let path = params.path;
+        if(params.visita && params.visita>1) path = `servicios/${path}`;
+
+        const categorias = await getData(path);
         if(categorias){
             categorias.forEach((cat) => {
                 if(cat.conceptos){
                     cat.conceptos.forEach((concept) => {
-                        concept.value = [];
+                        concept.value = concept.value == 1 ? [] : concept.value;
                     })
                 }
             })

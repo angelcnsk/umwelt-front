@@ -72,7 +72,7 @@ import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setFechas, setContainer,showActa, visitas, recipienteSelected, recipientes } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setFechas, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
 
 const props = defineProps({
     changeVisit: Function,
@@ -81,6 +81,7 @@ const props = defineProps({
 
 const categorias = toRef(props,'categorias');
 watch(visitSelected, () => {
+    fechas_visita.value = []
     if(currentService.value.product_id == 2){
         setContainer();
     } else {
@@ -104,7 +105,7 @@ watch(fechas_visita, async (valor) => {
 
 const asyncSaveData = () => {
     const now = new Date();
-    
+    console.log('fechas', fechas_visita.value);
     if(!navigator.onLine){
         $q.notify({
             position:'top',
@@ -130,35 +131,64 @@ const asyncSaveData = () => {
 
     }).onOk(async data => {
 
-        if(textoActa.value == undefined || textoActa.value == ''){
+
+        if(fechas_visita.value.hora_inicio == undefined || fechas_visita.value.hora_inicio == null || fechas_visita.value.hora_inicio == '' || fechas_visita.value.hora_final == undefined || fechas_visita.value.hora_final == null || fechas_visita.value.hora_final == ''){
             $q.notify({
                 position:'top',
                 type:'negative',
-                message:'Falta el texto del acta'
+                message:'Para continuar ingresa hora inicio y final de la visita'
             })
             return false  
         }
-        
-        
-        const blob = new Blob([textoActa.value], { type: 'text/plain' });
-        const actaStore = await storeActa({ 
-            file:blob,
-            service_id: currentService.value.id,
-            visita: visitSelected.value.valor,
-            date:`${now.getFullYear()}_${now.getUTCMonth()+1}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
-        });
+        let saveData = null;
+        if(currentService.value.product_id == 1){
+            if(textoActa.value == undefined || textoActa.value == ''){
+                $q.notify({
+                    position:'top',
+                    type:'negative',
+                    message:'Falta el texto del acta'
+                })
+                return false  
+            }
+            const blob = new Blob([textoActa.value], { type: 'text/plain' });
+            const actaStore = await storeActa({ 
+                file:blob,
+                service_id: currentService.value.id,
+                visita: visitSelected.value.valor,
+                date:`${now.getFullYear()}_${now.getUTCMonth()+1}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
+            });
+            
+            saveData = await saveCaptures({
+                service_id: currentService.value.id, 
+                categorias:categorias.value, 
+                type:"conceptos",
+                visita: visitSelected.value.valor,
+                acta:actaStore.path,
+                storageId:actaStore.storageId,
+                finalizado:1,
+                fechas:fechas_visita.value,
+            });
+        } else {
+            if(recipienteSelected.value == undefined || recipienteSelected.value == null){
+                    $q.notify({
+                    position:'top',
+                    type:'negative',
+                    message:'Para continuar selecciona un recipiente'
+                })
+                return false  
+            }
 
-        const saveData = await saveCaptures({
-            service_id: currentService.value.id, 
-            categorias:categorias.value, 
-            type:"conceptos",
-            visita: visitSelected.value.valor,
-            acta:actaStore.path,
-            storageId:actaStore.storageId,
-            finalizado:1,
-            fechas:fechas_visita.value,
-        })
-
+            saveData = await saveCaptures({
+                service_id: currentService.value.id, 
+                categorias:categorias.value, 
+                type:"conceptos",
+                tab:tab.value,
+                container_id: recipienteSelected.value.value, 
+                visita: visitSelected.value.valor,
+                fechas:fechas_visita.value,
+            });
+        }
+        
         if(saveData.status == 200){
             $q.notify({
                 position:'top',
@@ -193,29 +223,57 @@ const cleanData = async () => {
             color: 'dark',
             label:'Cancelar'
         },
+        options:{
+            type: 'checkbox',
+            model: [],
+            items: [
+            { label: 'Eliminar toda la información del servicio', value: 'all', color: 'primary' }
+            ],
+        },
         persistent: true
     }).onOk(async data => {
+        if(data.includes('all')){
+            const key = `${currentService.value.id}/`;
+            console.log('key', key)
+            await cleanDataService({all:true, prefix:key})
+            return
+        } else {
+            const keys = [];
+            
+            if(currentService.value.product_id == 1){
+                visitas.value.map((visit) => {
+                    const claves = ['acta','result', 'fechas','observations'];        
+                    claves.map((key) => keys.push(`${currentService.value.id}/visita_${visit.valor}/${key}`))
+                })
+            
+            } else {
+                if(recipienteSelected.value == null){
+                    $q.notify({
+                        position:'top',
+                        type:'negative',
+                        message:'Para continuar elige un recipiente'
+                    });
+                    return
+                }
 
-        const keys = [];
-        visitas.value.map((visit) => {
-            const claves = ['acta','result', 'categories'];
-            claves.map((key) => keys.push(`${currentService.value.id}/visita_${visit.valor}/${key}`))
-        })
+                keys.push(`${currentService.value.id}/visita_${visitSelected.value.valor}/fechas`)
+                recipientes.value.map((container) => {
+                    keys.push(`${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${container.value}/guia22/result`);
+                    keys.push(`${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${container.value}/guia25/result`)
+                });
+            }
+            
+            keys.map(async(key) => {
+                await cleanDataService(key)
+            });
+        }
         
-        keys.map(async(key) => {
-            console.log('paths', key)
-            // await cleanDataService(key)
-        });
-        
-        // localStorage.removeItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`)
-        // localStorage.removeItem(`service_${service.value.id}_data`)
         $q.notify({
             position:'top',
             type:'positive',
             message:'Se borró la información guardada sin conexión'
-        })
-    })
-        
+        });
+    }); 
 }
 
 const validatePrint = (doc) => {
@@ -289,7 +347,7 @@ const saveDate = async (params) => {
 
 onMounted(async() => {
     visitSelected.value = visitas.value[0];
-    await setFechas();
+    // await setFechas();
 });
 
 </script>

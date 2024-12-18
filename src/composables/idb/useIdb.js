@@ -25,12 +25,32 @@ export const useIdb = () => {
         return result?.data || null;
     };
 
-    const removeItem = async (key) => {
+    const removeItem = async (params) => {
       const db = await getDatabase();
-      return db.transaction('data', 'readwrite')
-      .objectStore('data')
-      .delete(key);
+      const transaction = db.transaction('data', 'readwrite')
+      const objectStore = transaction.objectStore('data');
+      
+      if(params.all){
+        let cursor = await objectStore.openCursor();
+        while (cursor) {
+          if (cursor.key.startsWith(params.prefix)) {
+            await cursor.delete(); // Elimina el elemento si el prefijo coincide
+          }
+          cursor = await cursor.continue(); // Avanza al siguiente elemento
+        }
+
+        await transaction.done; // Asegúrate de que la transacción se complete
+        console.log(`Elementos con el prefijo "${params.prefix}" eliminados.`);
+        return true;
+      } else {
+        return db.transaction('data', 'readwrite')
+        .objectStore('data')
+        .delete(params.prefix);  
+      }
+      
     }
+
+    
 
     return {getDatabase, saveDataToIndexedDB, getDataFromIndexedDB, removeItem}
 }

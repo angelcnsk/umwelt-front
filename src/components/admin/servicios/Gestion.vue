@@ -28,9 +28,9 @@
             </div>
             
         </q-card-section>
-        <q-card-section>
+        <q-card-section v-if="service.product_id == 2">
             <q-separator spaced />
-                <div class="text-subtitle text-grey-8">Contenedores CSP CAT III</div>
+                <div class="text-subtitle text-grey-8">Recipientes RSP CAT III</div>
             <q-separator spaced />
             <contenedores :service="service" />
         </q-card-section>
@@ -266,14 +266,14 @@ watch(signatory, (value) => {
 
 const addVisit = (type) => {
     if(type == 'init'){
-        if(service.value.has_doc){
-            $q.notify({
-                position:'top',
-                type:'warning',
-                message:'Hay una visita en curso'
-            })
-            return false
-        }
+        // if(service.value.has_doc){
+        //     $q.notify({
+        //         position:'top',
+        //         type:'warning',
+        //         message:'Hay una visita en curso'
+        //     })
+        //     return false
+        // }
 
         if(!service.value.no_cumple){
             $q.notify({

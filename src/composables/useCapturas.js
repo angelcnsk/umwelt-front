@@ -23,25 +23,46 @@ export const useCapturas = () => {
     
     const fetchCategories = async (params) => {
         try {
+            let data = null;
             let path = tab.value == 'inspeccion' ? 'Nom02Categories' : tab.value == 'guia22' ? 'Nom020Categories/22' : 'Nom020Categories/25';
             
-            if(params.visita > 1) path = `${params.service_id}/visita_${params.visita}/categories`
+            if(params.visita > 1){
+                if(params.product_id == 1){
+                    path = `${params.service_id}/visita_${params.visita}/categories`
+                } else {
+                    path = `${params.service_id}/visita_${params.visita}/container_${params.container_id}/categories/${tab.value}`
+                }
+            }
+            data = await getDataFromIndexedDB(path);
             
-            let data = await getDataFromIndexedDB(path);
-            if (!data) {
-                params.path = tab.value == 'inspeccion' ? 'catalogos/nom02/' : tab.value == 'guia22' ? 'catalogos/nom020/22' : 'catalogos/nom020/25';
+            if (!data && params.visita == 1) {
+                params.path = tab.value == 'inspeccion' ? 'catalogos/nom02' : tab.value == 'guia22' ? 'catalogos/nom020/22' : 'catalogos/nom020/25';
                 // Si no hay datos en IndexedDB, obtenerlos desde Firebase
                 data = await getCategories(params);
-
+                
                 if(!data){
+                    //si no existen en fb se buscan en el backend
                     data = await getCategoriesBackend({service_id:params.service_id, visita:params.visita});
                     if(data.status == 200) data = data.data.categorias
                 }
-                data = data.filter(cat => cat.conceptos && cat.conceptos.length>0)
+                // console.log('no existen en backend visita1', data)
+                // data = data.filter(cat => cat.conceptos && cat.conceptos.length>0)
                 // Guardar los datos en IndexedDB
                 await saveDataToIndexedDB(path, data);
-              }
-              return data;
+            } else if (!data && params.visita > 1){
+                //buscar categorías en fb
+                params.path = `${params.service_id}/visita_${params.visita}/container_${params.container_id}/categories/${tab.value}`
+                
+                data = await getCategories(params);
+
+                if(!data){
+                    //si no existen en fb se buscan en el backend
+                    data = await getCategoriesBackend({service_id:params.service_id, visita:params.visita, container_id:params.container_id});
+                    if(data.status == 200) data = data.data.categorias
+                }
+            }
+                await saveDataToIndexedDB(path, data);
+                return data;
         } catch (error) {
             console.log('error IDB fetch categories', error)
         }
@@ -164,9 +185,11 @@ export const useCapturas = () => {
 
     const setFechas = async (value) => {
         if(currentService.value.fechas != undefined){
+            fechas_visita.value = [];
             const data = await getDates({service_id:currentService.value.id,
                 visita:visitSelected.value.valor
             });
+            
             if(data){
                 fechas_visita.value = data
             } else {
@@ -256,6 +279,7 @@ export const useCapturas = () => {
                     if(concept.id == concepto.id){
                         concepto.value = concept.value;
                         concepto.observaciones = concept.observaciones;
+                        concepto.no_cumple = concept.value.includes('no_cumple') ? 1:0;
                     }
                 })
             }
@@ -342,7 +366,7 @@ export const useCapturas = () => {
                     index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
                 );
                 result.value = uniqueArray
-    
+                
                 //guarda en firebase respuestas vacías
                 await setConceptsValues({
                     path:`servicios/${localPath}`,
@@ -366,6 +390,7 @@ export const useCapturas = () => {
     
                         await updateData(path,{texto:''});
                     })
+                    observaciones.value = a_observations;
                 }
             }
     
@@ -384,9 +409,10 @@ export const useCapturas = () => {
                 if(cat.conceptos){
                     cat.conceptos.forEach((item) => {
                         if(result.value){
-                            const match = result.value.find((element) => element.concepto_id == item.id)
+                            const match = result.value.find((element) => element.concepto_id == item.id);
                             if(match){
-                                item.value = match.value == 1 ? [] : match.value
+                                item.value = match.value == 1 ? [] : match.value;
+                                item.no_cumple = match.value == 1 ? 0 : match.value.includes('no_cumple') ? 1 : 0;
                             }
                         }
                     });
@@ -398,10 +424,12 @@ export const useCapturas = () => {
     const configNom020 = async () => {
         if(recipienteSelected.value != null){
             categorias.value = []
-            // await setFechas()
+            await setFechas()
 
             //recupera categorías desde el catálogo
-            categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor});
+            categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor, container_id:recipienteSelected.value.id});
+
+            categorias.value = categorias.value.filter(cat => cat.conceptos && cat.conceptos.length>0);
             
             const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${recipienteSelected.value.value}/${tab.value}`
             
@@ -429,7 +457,7 @@ export const useCapturas = () => {
                 result.value = uniqueArray
                 //guarda en firebase respuestas vacías
                 await setConceptsValues({
-                    path:`servicios/${localPath}`,
+                    path:`servicios/${localPath}/result`,
                     data:uniqueArray, 
                 });
             }
@@ -447,6 +475,8 @@ export const useCapturas = () => {
                             const match = result.value.find((element) => element.concepto_id == item.id)
                             if(match){
                                 item.value = match.value == 1 ? [] : match.value
+                                item.no_cumple = match.value == 1 ? 0 : match.value.includes('no_cumple') ? 1 : 0;
+                                item.observaciones = match.observaciones;
                             }
                         }
                     });
@@ -456,6 +486,8 @@ export const useCapturas = () => {
     }
 
     const setContainer = async () => {
+        recipientes.value = [];
+        recipienteSelected.value = null
         const filter = serviceSelected.value.recipientes.filter((item) => item.visita_id === visitSelected.value.id );
 
         recipientes.value = filter.map((item) => ({

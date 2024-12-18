@@ -49,7 +49,7 @@ export async function destroyFile(params) {
 
 export async function storeActa(params) {
     const storage = getStorage();
-    let folderPath = `services/service_${params.service_id}/actas/acta_visita${params.visita}_${params.date}.txt`
+    let folderPath = `services/service_${params.service_id}/actas/acta_visita_${params.visita}_${params.date}.txt`
     
     // Create a storage reference from our storage service
     const storageRef = ref(storage,`${folderPath}`);
