@@ -1,7 +1,7 @@
 <template>
   <div class="q-ma-sm" style="margin-top: 50px;" v-if="service.id != undefined">
     <div class="col-xs-12 col-md-2">
-      <q-btn class="q-mr-md " label="contenedor" icon-right="add" color="primary" @click="showDialog = !showDialog" />
+      <q-btn class="q-mr-md " label="Recipiente" icon-right="add" color="primary" @click="showDialog = !showDialog" />
     </div>
 
     <div class="row q-mt-lg">
@@ -39,12 +39,12 @@
       <q-card style="min-width: 450px;">
         <q-card-section>
           <div class="col-xs-12 col-md-4">
-              <q-input class="q-pa-sm" v-model="addContainer.name" label="Nombre contenedor" />
+              <q-input class="q-pa-sm" v-model="addContainer.name" label="Nombre Recipiente" />
           </div>
         </q-card-section>
         <q-card-section>
           <div class="col-xs-12 col-md-4">
-              <q-input class="q-pa-sm" v-model="addContainer.serial" label="ID / NS" />
+              <q-input class="q-pa-sm" v-model="addContainer.serial" label="TAG" />
           </div>
         </q-card-section>
         <q-card-section>
@@ -52,8 +52,11 @@
             <q-select 
               class="q-ma-sm" 
               :options="visitas"
+              option-value="id"
               option-label="label"
               v-model="addContainer.visita_id"
+              emit-value
+              map-options
               label="Visita"
             />
           </div>

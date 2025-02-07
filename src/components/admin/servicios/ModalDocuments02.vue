@@ -21,7 +21,7 @@
                         option-label="label"
                         option-value="id"
                         v-model="documentOptions.container"
-                        label="Contenedor"
+                        label="Recipiente"
                     />
                 </div>
             </q-card-section>
@@ -53,9 +53,7 @@ import { useServicios } from 'src/composables/useServicios.js';
 import { useQuasar } from "quasar";
 const {containers,serviceItem} = useServicios();
 const $q = useQuasar();
-const selectContainers = computed(() => containers.map((item) => {
-    return {id:item.id, label:item.name}
-}));
+
 const props = defineProps({
     show: Boolean,
 });

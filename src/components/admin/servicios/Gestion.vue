@@ -1,12 +1,12 @@
 <template>
 <div class="q-ma-md" style="margin-top: 50px;" v-if="service.id != undefined">
     <q-card>
-        <q-card-section>
+        <!-- <q-card-section>
             <q-separator spaced />
                 <div class="text-subtitle text-grey-8">Archivos</div>
             <q-separator spaced />
             <archivos :servicio_id="props.servicio_id" />
-        </q-card-section>
+        </q-card-section> -->
         <q-card-section>
             <q-separator spaced />
             <div class="text-subtitle text-grey-8">Gestión de visitas</div>
@@ -191,7 +191,7 @@
         </q-card>
     </q-dialog>
     <modal-acta :show="showActa" @closeModal="getActa" />
-    <modalDocuments20 :show="showDocs20" @closeModal="closeModalDoc20" :service="service" />
+    <modalDocuments02 :show="showDocs20" @closeModal="closeModalDoc20" :service="service" />
 </div>
 </template>
 
@@ -207,7 +207,7 @@ const modalActa = defineAsyncComponent(() => import('src/components/admin/acta/M
 
 const contenedores = defineAsyncComponent(() => import('src/components/admin/servicios/Contenedores.vue'))
 
-const modalDocuments20 = defineAsyncComponent(() => import('src/components/admin/servicios/ModalDocuments020.vue'))
+const modalDocuments02 = defineAsyncComponent(() => import('src/components/admin/servicios/ModalDocuments02.vue'))
 
 const props = defineProps({
     servicio_id: String,

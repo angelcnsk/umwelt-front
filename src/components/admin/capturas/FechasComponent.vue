@@ -51,28 +51,38 @@
                 Borrar datos sin conexión
             </q-tooltip>
         </q-btn>
-        <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="guía inspección" @click="validatePrint('guia inspeccion')">
+        <q-btn v-if="currentService.product_id == 1" class="q-mb-md q-ml-md" color="primary" icon="print" label="guía inspección" @click="validatePrint('guia inspeccion')">
             <q-tooltip>
                 Imprimir guía de inspección
             </q-tooltip>
         </q-btn>
-        <q-btn class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="validatePrint('acta')">
+        <q-btn v-if="currentService.product_id == 1" class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="validatePrint('acta')">
             <q-tooltip>
                 Imprimir Acta
             </q-tooltip>
         </q-btn>
+
+        <q-btn v-if="currentService.product_id == 2" class="q-mb-md q-ml-md" color="primary" icon="print" label="Documentos" @click="validatePrint('acta')">
+            <q-tooltip>
+               Imprimir Documentos
+            </q-tooltip>
+        </q-btn>
         
     </div>
+    <modalGuia20 :show="showGuia020" @closeModal="closeModalGuia020" :service="currentService" />
 </template>
 
 <script setup> 
-import { ref, toRef, onMounted, watch } from "vue";
+import { ref, toRef, onMounted, watch, defineAsyncComponent } from "vue";
 import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
+// import ModalGuiaNom020 from "./ModalGuiaNom020.vue";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
 const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setFechas, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
+
+const modalGuia20 = defineAsyncComponent(() => import('src/components/admin/capturas/ModalGuiaNom020.vue'))
 
 const props = defineProps({
     changeVisit: Function,
@@ -80,6 +90,8 @@ const props = defineProps({
 });
 
 const categorias = toRef(props,'categorias');
+const showGuia020 = ref(false)
+
 watch(visitSelected, () => {
     fechas_visita.value = []
     if(currentService.value.product_id == 2){
@@ -277,28 +289,47 @@ const cleanData = async () => {
 }
 
 const validatePrint = (doc) => {
-    if(currentService.value.id == undefined){
-        $q.notify({
-            position:'top',
-            type:'negative',
-            message:'Para continuar selecciona un servicio'
-        })
-        return false
-    }
+    if(currentService.value.product_id == 1){
+        if(currentService.value.id == undefined){
+            $q.notify({
+                position:'top',
+                type:'negative',
+                message:'Para continuar selecciona un servicio'
+            })
+            return false
+        }
 
-    if(visitSelected.value == null){
+        if(visitSelected.value == null){
+            $q.notify({
+                position:'top',
+                type:'negative',
+                message:'Para continuar selecciona una visita'
+            })
+            return false
+        }
+    } else {
+        showGuia020.value = !showGuia020.value;
+        return false;
+    }
+    
+
+    if(currentService.value.product_id == 2 && recipienteSelected.value == null){
         $q.notify({
             position:'top',
             type:'negative',
-            message:'Para continuar selecciona una visita'
+            message:'Para continuar selecciona un recipiente'
         })
         return false
+    } else if(currentService.value.product_id == 2 && recipienteSelected.value != null) {
+        
     }
 
     if(doc == 'acta'){
         showActa.value = !showActa.value
         return false
     }
+
+    
     imprimir(doc);
 }
 
@@ -338,6 +369,10 @@ const imprimir = (doc) => {
     }
 
     window.open(url,'_blank')
+}
+
+const closeModalGuia020= () => {
+    showGuia020.value = false
 }
 
 const saveDate = async (params) => {
