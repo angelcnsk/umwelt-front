@@ -291,7 +291,7 @@ const configService = async () => {
         //ejecuta sync de conceptos y observaciones
         await syncConceptResult();
         await syncObservations();
-            console.log('resultados', result.value)
+            // console.log('resultados', result.value)
 
         //se relacionan las respuestas con los conceptos correspondientes
         categorias.value.map((cat) => {
@@ -304,7 +304,7 @@ const configService = async () => {
                     if(result.value){
                         const match = result.value.find((element) => element.concepto_id == item.id)
                         if(match){
-                            item.value = match.value == 1 ? [] : match.value
+                            item.value = match.value == 1 || match.value == undefined ? [] : match.value;
                         }
                     }
                 });
