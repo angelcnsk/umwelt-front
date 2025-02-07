@@ -29,6 +29,7 @@ module.exports = configure(function (/* ctx */) {
       'axios',
       'signature',
       'firebase',
+      'sentry'
       // 'bootSw'
     ],
 
