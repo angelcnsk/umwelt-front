@@ -38,6 +38,9 @@ api.interceptors.response.use(
     error => {
         const requestData = error.config?.data;
         const responseData = error.response?.data;
+        const requestUrl = error.config?.url; // <-- Aquí obtienes la URL del request
+        const requestMethod = error.config?.method?.toUpperCase();
+        const responseStatus = error.response?.status;
 
         //Serializar el payload antes de enviarlo
         const safeRequestData = requestData

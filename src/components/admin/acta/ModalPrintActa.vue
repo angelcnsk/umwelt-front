@@ -4,25 +4,25 @@
             <q-card-section>
                 <span class="text-title">Personas que atienden la visita</span>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.persona1" label="Nombre persona 1" />
+                    <q-input class="q-pa-sm" v-model="dataActa.persona1" label="Nombre atiende la visita" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.cargo1" label="Cargo persona 1" />
+                    <q-input class="q-pa-sm" v-model="dataActa.cargo1" label="Cargo atiende la visita" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.persona2" label="Nombre persona 2" />
+                    <q-input class="q-pa-sm" v-model="dataActa.persona2" label="Nombre atiende la visita 2" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.cargo2" label="Cargo persona 2" />
+                    <q-input class="q-pa-sm" v-model="dataActa.cargo2" label="Cargo atiende la visita 2" />
                 </div>
                 <div class="col-xs-12 col-md-4">
                     <q-input class="q-pa-sm" v-model="dataActa.testigo1" label="Nombre testigo 1" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo1" label="Cargo testigo 1" />
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo1" label="Domicilio testigo 1" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo2" label="Nombre testigo 2" />
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo2" label="Domicilio testigo 2" />
                 </div>
                 <div class="col-xs-12 col-md-4">
                     <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo2" label="Cargo testigo 2" />
@@ -55,18 +55,19 @@ const imprimir = (doc) => {
         case 'acta':
             if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
                 || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
-                || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
-                || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
-                || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
-                || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
-                || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
-                || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
+                // || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
+                // || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
+                // || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
+                // || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
+                // || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
+                // || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
                 
             ){
                 $q.notify({
                     position:'top',
                     type:'negative',
-                    message:'Todos los campos son obligatorios'
+                    message:'Para continuar agrega al menos un nombre y cargo de quien atiende la visita',
+                    timeout:3000
                 })
                 return false
             }
