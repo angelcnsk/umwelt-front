@@ -11,8 +11,11 @@
                     expand-separator
                     icon="ads_click"
                     header-class="text-primary"
-                    :label="`${categoria.texto}`" v-for="(categoria,index) in categorias" :key="index"
+                    :label="`${categoria.texto}`" v-for="(categoria,index) in categorias" 
+                    :key="index"
                     style="border: .2px solid gray"
+                    :model-value="openIndex === index"
+                    @click="toggleExpansion(index)"
                 >
                 <q-separator />
                 <div v-if="categoria.conceptos && categoria.conceptos.length > 0" style="height: 150px; overflow-y: scroll; border:1px solid">
@@ -105,7 +108,7 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, toRef, inject, provide, defineAsyncComponent} from 'vue';
+import {ref, computed, onMounted, toRef, inject, provide, defineAsyncComponent, watch, nextTick} from 'vue';
 import { useQuasar, date } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
@@ -130,7 +133,7 @@ const currentUser = inject('currentUser')
 const categorias = ref([])
 const service = toRef(props,'service')
 
-
+const openIndex = ref(null)
 const dataActa = ref({})
 
 const visitas = ref([])
@@ -145,6 +148,16 @@ const pendingResult = ref([]);
 const pendingObs = ref([])
 
 provide('currentVisit', visitSelected);
+
+const toggleExpansion = async (index) => {
+  if (openIndex.value === index) {
+    openIndex.value = null; // Cierra el actual si se hace clic en él
+  } else {
+    openIndex.value = null; // Cierra cualquier otro abierto primero
+    await nextTick(); // Espera a que Vue actualice el DOM antes de abrir el nuevo
+    openIndex.value = index; // Ahora abre el nuevo
+  }
+};
 
 const setNoCumple = () => {
     //se recorren los conceptos y si alguno incluye la opción no cumple, se guarda bandera para identificar puntos que no cumplen
@@ -330,8 +343,8 @@ const setFechas = async (value) => {
 const syncConceptResult = async () => {
     //busco conceptos pendientes de sincronizar
     pendingResult.value = result.value.filter((item) => item.status && item.status === 'pending');
-    console.log('async', result.value);
-    console.log('async2', pendingResult.value);
+    // console.log('async', result.value);
+    // console.log('async2', pendingResult.value);
     if(pendingResult.value.length>0){
         pendingResult.value.map(async(pending) => {
             //path de nodo
