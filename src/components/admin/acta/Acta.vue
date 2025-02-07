@@ -147,7 +147,6 @@ const configText = () => {
                     textoExtra.value+= textoEntrevistas
                 }
                 else if(categoria.extra == 'declaracion'){
-                    console.log('entra cuantas veces', categoria)
                     textoExtra.value+= '<br><span><strong>'+categoria.texto+'</strong></span> <br>'
                     textoExtra.value+= categoria.observaciones
                 } 
