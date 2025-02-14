@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import * as Sentry from "@sentry/vue";
 
 let domain = import.meta.env.VITE_api_host
 // console.log('domain',domain, import.meta.env.VITE_api_host)
@@ -35,6 +36,29 @@ export default boot(({ app }) => {
 api.interceptors.response.use(
     res => res,
     error => {
+        const requestData = error.config?.data;
+        const responseData = error.response?.data;
+        const requestUrl = error.config?.url; // <-- Aquí obtienes la URL del request
+        const requestMethod = error.config?.method?.toUpperCase();
+        const responseStatus = error.response?.status;
+
+        //Serializar el payload antes de enviarlo
+        const safeRequestData = requestData
+            ? JSON.stringify(requestData, null, 2)
+            : "No request data";
+        const safeResponseData = responseData
+            ? JSON.stringify(responseData, null, 2)
+            : "No response data";
+
+        Sentry.captureException(error, {
+            extra: {
+                url: requestUrl,
+                method: requestMethod,
+                requestBody: requestData, // Aquí ves el payload enviado
+                responseStatus,
+                responseData, // Respuesta del servidor si está disponible
+            },
+        });
         if (error && error.response.status === 401) {
         //si el token venció cierra sesión y dirige al login
             window.location.replace('/logout')

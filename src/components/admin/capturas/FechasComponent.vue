@@ -41,7 +41,7 @@
                 Guarda información en tu equipo
             </q-tooltip>
         </q-btn> -->
-        <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="asyncSaveData('manual')">
+        <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="asyncSaveData('manual')" :disable="disableSave">
             <q-tooltip>
                 Guarda información en el servidor
             </q-tooltip>
@@ -89,6 +89,7 @@ const props = defineProps({
     categorias:Object
 });
 
+const disableSave = ref(false)
 const categorias = toRef(props,'categorias');
 const showGuia020 = ref(false)
 
@@ -152,6 +153,18 @@ const asyncSaveData = () => {
             })
             return false  
         }
+        
+        disableSave.value = true;
+        $q.loading.show();
+                
+        const blob = new Blob([textoActa.value], { type: 'text/plain' });
+        const actaStore = await storeActa({ 
+            file:blob,
+            service_id: currentService.value.id,
+            visita: visitSelected.value.valor,
+            date:`${now.getFullYear()}_${now.getUTCMonth()+1}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
+        });
+
         let saveData = null;
         if(currentService.value.product_id == 1){
             if(textoActa.value == undefined || textoActa.value == ''){
@@ -207,7 +220,15 @@ const asyncSaveData = () => {
                 type:'positive',
                 message:'Se guardó la información en el servidor'
             });
+        } else {
+            $q.notify({
+                position:'top',
+                type:'negative',
+                message:'Error al guardar la información en el servidor'
+            });
         }
+        disableSave.value = false;
+        $q.loading.hide()
     });
 }
 
@@ -328,9 +349,7 @@ const validatePrint = (doc) => {
         showActa.value = !showActa.value
         return false
     }
-
-    
-    imprimir(doc);
+    imprimir(doc)
 }
 
 const imprimir = (doc) => {
