@@ -91,7 +91,8 @@ const props = defineProps({
 
 const disableSave = ref(false)
 const categorias = toRef(props,'categorias');
-const showGuia020 = ref(false)
+const showGuia020 = ref(false);
+const showGuia02 = ref(false);
 
 watch(visitSelected, () => {
     fechas_visita.value = []
@@ -382,7 +383,7 @@ const imprimir = (doc) => {
             .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
             .join('&');
             
-            url = `${url}reportes/getreport/?service_id=${currentService.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
+            url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
             showActa.value = false
             dataActa.value = {}
     }
@@ -392,6 +393,10 @@ const imprimir = (doc) => {
 
 const closeModalGuia020= () => {
     showGuia020.value = false
+}
+
+const closeModalGuia02= () => {
+    showGuia02.value = false
 }
 
 const saveDate = async (params) => {

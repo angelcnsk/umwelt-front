@@ -75,7 +75,7 @@ const imprimir = (doc) => {
             .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
             .join('&');
             
-            url = `${url}reportes/getreport/?service_id=${currentService.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
+            url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
             
             dataActa.value = {}
             submitClose();

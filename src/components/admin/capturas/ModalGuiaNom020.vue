@@ -42,7 +42,7 @@
                     <q-input v-model="documentOptions.atiende" label="Nombre atendió visita" />
                 </div>
                 <div class="col-xs-12 q-pa-sm">
-                    <q-input v-model="documentOptions.cargo_atiende" label="Cargo atendió visita" />
+                    <q-input v-model="documentOptions.cargo" label="Cargo atendió visita" />
                 </div>
 
                 <div class="col-xs-12 q-pa-sm">
@@ -117,9 +117,9 @@ const validateGetDoc = () => {
     }
     let url = ''
     if(documentOptions.value.document.value == 3){
-        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${service.value.id}&document=${documentOptions.value.document.value}&visita_id=${documentOptions.value.visit.id}&container_id=${documentOptions.value.container.id}&reporte=${documentOptions.value.document.value}&atiende=${documentOptions.value.atiende}&cargo=${documentOptions.value.cargo}&testigo1=${documentOptions.value.testigo1}&domicilio_testigo1=${documentOptions.value.domicilio_testigo1}&testigo2=${documentOptions.value.testigo2}&domicilio_testigo2=${documentOptions.value.domicilio_testigo2}`
+        url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${service.value.id}&document=${documentOptions.value.document.value}&visita_id=${documentOptions.value.visit.id}&container_id=${documentOptions.value.container.id}&reporte=${documentOptions.value.document.value}&atiende=${documentOptions.value.atiende}&cargo=${documentOptions.value.cargo}&testigo1=${documentOptions.value.testigo1}&domicilio_testigo1=${documentOptions.value.domicilio_testigo1}&testigo2=${documentOptions.value.testigo2}&domicilio_testigo2=${documentOptions.value.domicilio_testigo2}`
     } else {
-        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${service.value.id}&document=${documentOptions.value.document.value}&visita_id=${documentOptions.value.visit.id}&container_id=${documentOptions.value.container.id}&reporte=${documentOptions.value.document.value}`
+        url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${service.value.id}&document=${documentOptions.value.document.value}&visita_id=${documentOptions.value.visit.id}&container_id=${documentOptions.value.container.id}&reporte=${documentOptions.value.document.value}`
     }
     
 

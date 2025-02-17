@@ -29,7 +29,17 @@
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="et" label="E.T." color="orange" />
                         </div>
                         <div class="q-pa-md">
-                            <q-input v-model="concepto.observaciones" label="Observaciones" @change="changeValue(index, i)" />
+                            <q-editor
+                                @blur="changeValue(index, i)"
+                                v-model="concepto.observaciones"
+                                ref="editors"
+                                min-height="1rem"
+                                max-height="3rem"
+                                :toolbar="[
+                                    ['bold', 'italic', 'underline'],
+                                    ['subscript', 'superscript'] // Puedes agregarlo directamente
+                                ]"
+                            />
                         </div>
                     </div>
                 </div>

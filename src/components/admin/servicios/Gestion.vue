@@ -401,7 +401,7 @@ const getDocument = (type) => {
             break;
     }
     
-    let url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&visita_id=${visitSelected.value.id}`
+    let url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${servicio_id.value}&reporte=${req}&visita_id=${visitSelected.value.id}`
     if(req==4){
         if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''
             || dataDictamen.value.emite == undefined || dataDictamen.value.emite == ''
@@ -424,7 +424,7 @@ const getDocument = (type) => {
             return encodeURIComponent(key) + '=' + encodeURIComponent(value);
         }).join('&');
 
-        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
+        url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showDictamen.value = false
         dataDictamen.value = {}
         dataDictamen.value.representante = service.value.representante
@@ -433,22 +433,22 @@ const getDocument = (type) => {
     if(req==2){
         if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
             || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
-            || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
-            || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
-            || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
-            || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
-            || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
-            || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
+            // || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
+            // || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
+            // || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
+            // || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
+            // || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
+            // || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
             
         ){
-            notify('Todos los campos son requeridos', 'negative')
+            notify('Para continuar agrega al menos un nombre y cargo de quien atiende la visita', 'negative')
             return false
         }
         const queryString = Object.keys(dataActa.value)
             .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
             .join('&');
             
-        url = `${import.meta.env.VITE_api_host}reportes/getreport/?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
+        url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showActa.value = false
         dataActa.value = {}
     }
