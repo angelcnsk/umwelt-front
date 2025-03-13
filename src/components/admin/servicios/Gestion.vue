@@ -290,14 +290,14 @@ const addVisit = (type) => {
     
 
     if(type == 'create'){
-        if(offline.value){
-            $q.notify({
-                position:'top',
-                type:'warning',
-                message:'Para agregar una visita es necesario tener conexión a internet'
-            })
-            return false
-        }
+        // if(offline.value){
+        //     $q.notify({
+        //         position:'top',
+        //         type:'warning',
+        //         message:'Para agregar una visita es necesario tener conexión a internet'
+        //     })
+        //     return false
+        // }
 
         if(visita.value.owner == null || visita.value.owner == ''){
             $q.notify({
