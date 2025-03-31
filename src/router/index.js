@@ -11,15 +11,7 @@ import routes from './routes'
  * with the Router instance.
  */
 
-
-//se tienen que agregar las rutas que se definieron en el archivo routes
-const rutas = routes.routes
-
-//usuario con sesión activa
-const token = localStorage.backendToken != undefined ? JSON.parse(localStorage.getItem('backendToken')) : null
-// console.log(token, JSON.parse(localStorage.getItem('sessionToken')))
-
-export default route(function (/* { store, ssrContext } */ ssrContext) {
+export default route(function (/* { store, ssrContext } */) {
   const createHistory = process.env.MODE === 'ssr'
     ? createMemoryHistory
     : process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory
@@ -45,16 +37,16 @@ export default route(function (/* { store, ssrContext } */ ssrContext) {
   //   })
   // }
   
-  function getMenus () {
-    return new Promise((resolve, reject) => {
-      const items = JSON.parse(localStorage.getItem('userInfo'))
-      if (items.menus !== null && items.menus !== undefined) {
-        resolve(true)
-      } else {
-        return reject(false)
-      }
-    })
-  }
+  // function getMenus () {
+  //   return new Promise((resolve, reject) => {
+  //     const items = JSON.parse(localStorage.getItem('userInfo'))
+  //     if (items.menus !== null && items.menus !== undefined) {
+  //       resolve(true)
+  //     } else {
+  //       return reject(false)
+  //     }
+  //   })
+  // }
   
   function checkRole (roles, rule) {
     if(!roles.includes('user')){

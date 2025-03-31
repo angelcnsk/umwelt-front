@@ -67,7 +67,7 @@ const $q = useQuasar();
 const storeCapturas = useCapturas();
 const { setSelectVisitas, changeValue, saveObservaciones, configNom02, disableOptions, categorias, visitSelected, showActa } = storeCapturas;
 
-const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
+const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/ActaEditor.vue'))
 
 const modalActa = defineAsyncComponent(() => import('src/components/admin/acta/ModalPrintActa.vue'))
 
@@ -81,7 +81,7 @@ const service = toRef(props,'service')
 
 provide('currentVisit', visitSelected);
 
-const getActa = (data) => {
+const getActa = () => {
     showActa.value = false    
 }
 

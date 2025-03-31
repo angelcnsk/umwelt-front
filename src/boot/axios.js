@@ -43,10 +43,10 @@ api.interceptors.response.use(
         const responseStatus = error.response?.status;
 
         //Serializar el payload antes de enviarlo
-        const safeRequestData = requestData
+        requestData
             ? JSON.stringify(requestData, null, 2)
             : "No request data";
-        const safeResponseData = responseData
+        responseData
             ? JSON.stringify(responseData, null, 2)
             : "No response data";
 

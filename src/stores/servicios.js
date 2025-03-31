@@ -75,8 +75,7 @@ export const useServiciosStore = defineStore('servicios', {
             return new Promise((resolve, reject) => {
               api.get(url, options).then((response) => {
                 this.serviceItem = response.data.dataService
-                this.serviceItem.requester_avatar = this.serviceItem.requester_avatar
-                this.serviceItem.owner_avatar = this.serviceItem.owner_avatar
+                
                 resolve()
               }).catch((error) => { reject(error) })
             })
@@ -124,9 +123,7 @@ export const useServiciosStore = defineStore('servicios', {
         },
         async selectStaff (payload) {
             payload.type = 'select'
-            // commit('SELECT_STATFF', payload)
-        
-            const userSelect = state.staff[payload.index]
+            const userSelect = this.staff[payload.index]
         
             const userData = {
               avatar: userSelect.avatar,
@@ -150,7 +147,6 @@ export const useServiciosStore = defineStore('servicios', {
             //   data.user.FSId = resDB.id
             //   payload.FSId = resDB.id
             //   payload.type = 'update'
-            //   commit('SELECT_STATFF', payload)
             // }
             const url = 'spa/setStaff'
             const options = {
@@ -222,7 +218,6 @@ export const useServiciosStore = defineStore('servicios', {
             }
             return new Promise((resolve, reject) => {
               api.get(url, options).then((response) => {
-                // commit('SET_DEPARTMENTS_LIST', response.data)
                 resolve(response)
               }).catch((error) => { reject(error) })
             })
@@ -239,7 +234,7 @@ export const useServiciosStore = defineStore('servicios', {
               }).catch((error) => { reject(error) })
             })
         },
-        getSignatoryList (req) {
+        getSignatoryList () {
             const url = 'spa/signatoryList'
             const options = {
             //   params:payload
@@ -278,9 +273,9 @@ export const useServiciosStore = defineStore('servicios', {
         async newVisit (payload){
           const url = 'spa/addVisit'
             
-          const options = {
-            params:{}
-          }
+          // const options = {
+          //   params:{}
+          // }
           
           return new Promise((resolve, reject) => {
             api.post(url,payload).then((response) => {
@@ -295,9 +290,9 @@ export const useServiciosStore = defineStore('servicios', {
         async addContainers (payload){
           const url = 'spa/addContainer'
           console.log('payload', payload)  
-          const options = {
-            params:{}
-          }
+          // const options = {
+          //   params:{}
+          // }
           
           return new Promise((resolve, reject) => {
             api.post(url,payload).then((response) => {

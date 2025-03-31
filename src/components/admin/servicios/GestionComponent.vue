@@ -23,7 +23,7 @@
                     />
                 </div>
                 <div class="col-xs-12 col-md-2">
-                    <q-btn class="q-mr-md q-mt-md" label="visita" icon-right="add" color="primary" @click="addVisit('init')" />
+                    <q-btn class="q-mr-md q-mt-md" label="visita" icon-right="add" color="primary" @click="toggleNuevaVisita" />
             </div>
             </div>
             
@@ -102,38 +102,40 @@
             </div>
         </q-card-section>
     </q-card>
-    <q-dialog v-model="nuevaVisita" ref="modalVisita" >
+    <q-dialog v-model="showAddVisit" ref="modalVisita" >
         <q-card class="q-dialog-plugin" style="min-width: 900px;">
             <q-card-section>
                 <div class="text-h6">Agregar visita</div>
                 <div class="row">
                     <div class="col-xs-12 col-md-3 d-inline-block q-mt-lg q-ml-md">
-                        <q-input v-model="visita.from" filled type="date" hint="Fecha inicial" />
+                        <q-input v-model="newVisitObj.from" filled type="date" hint="Fecha inicial" />
                     </div>
                     <div class="col-xs-12 col-md-3 d-inline-block q-mt-lg q-ml-md">
-                        <q-input v-model="visita.to" filled type="date" hint="Fecha final" />
+                        <q-input v-model="newVisitObj.to" filled type="date" hint="Fecha final" />
                     </div>
                     <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-md">
-                        <q-input v-model="visita.inicio" filled type="time" hint="Hora inicio" />
+                        <q-input v-model="newVisitObj.inicio" filled type="time" hint="Hora inicio" />
                     </div>
                     <div class="col-xs-12 col-md-2 d-inline-block q-mt-lg q-ml-md">
-                        <q-input v-model="visita.fin" filled type="time" hint="Hora final" />
+                        <q-input v-model="newVisitObj.fin" filled type="time" hint="Hora final" />
                     </div>
                 </div>
                 <div class="row q-pa-md">
                     <div class="col-md-3 col-xs-12 q-pa-sm">
                         <q-select
-                            v-model="visita.owner" 
-                            :model-value="visita.owner"
+                            v-model="newVisitObj.owner_id" 
+                            :model-value="newVisitObj.owner_id"
+                            use-input
                             hide-selected
                             fill-input
-                            use-input
                             input-debounce="0"
                             :options="owners"
                             option-label="label"
                             @filter="filterStaff"
-                            
                             label="Responsable"
+                            option-value="value"
+                            emit-value
+                            map-options
                         >
                             <template v-slot:no-option>
                             <q-item>
@@ -146,7 +148,7 @@
                     </div>
                 </div>
                 <div class="row q-pa-md justify-end">
-                    <q-btn label="Guardar" color="primary" @click="addVisit('create')"/>
+                    <q-btn label="Guardar" color="primary" @click="addVisit"/>
                 </div>
             </q-card-section>
         </q-card>
@@ -200,12 +202,12 @@
 import {ref, computed, watch, onMounted, defineAsyncComponent, inject} from 'vue';
 import { useQuasar } from "quasar";
 import { useServicios } from 'src/composables/useServicios.js'
-
-const archivos = defineAsyncComponent(() => import('src/components/admin/servicios/Archivos.vue'))
+import { useCapturas } from 'src/composables/useCapturas.js'
+import { useVisits } from 'src/composables/useVisits.js'
 
 const modalActa = defineAsyncComponent(() => import('src/components/admin/acta/ModalPrintActa.vue'))
 
-const contenedores = defineAsyncComponent(() => import('src/components/admin/servicios/Contenedores.vue'))
+const contenedores = defineAsyncComponent(() => import('src/components/admin/servicios/ContenedoresList.vue'))
 
 const modalDocuments02 = defineAsyncComponent(() => import('src/components/admin/servicios/ModalDocuments02.vue'))
 
@@ -213,18 +215,16 @@ const props = defineProps({
     servicio_id: String,
 })
 
-const servicio_id = ref(props.servicio_id)
-
 const $q = useQuasar();
-
+const offline = inject('statusOnLine');
+const visitSelected = ref(null);
+const servicio_id = ref(props.servicio_id);
+const { addVisit, toggleNuevaVisita, showAddVisit, setServiceDates, newVisitObj } = useVisits(offline, visitSelected, servicio_id);
 const storeServicios = useServicios();
-const { generarNumDictamen, newVisit, getStaff, staff, closeServiceStatus } = storeServicios
-const offline = inject('statusOnLine')
-const visitas = ref([])
-const visitSelected = ref(null)
-const nuevaVisita = ref(false)
-const currentVisit = ref(false)
-const visita = ref({})
+const storeCapturas = useCapturas();
+const { getStaff, staff, closeServiceStatus } = storeServicios;
+const { visitas } = storeCapturas;
+
 const owners = ref([])
 const status = ref(false)
 const showDictamen = ref(false)
@@ -237,9 +237,7 @@ const dataDictamen = ref({
 const showActa = ref(false)
 const showDocs20 = ref(false)
 const dataActa = ref({})
-
 const service = inject('servicio')
-
 const visitasText = ref([])
 
 const notify = (msg, type) => {
@@ -254,7 +252,7 @@ const signatory = computed(() =>{
     return props.signatory
 })
 
-const listFechas = computed(() => visitasText.value.join('<br>'))
+// const listFechas = computed(() => visitasText.value.join('<br>'))
 
 const signatario = ref({elabora:'', revisa:''})
 
@@ -264,93 +262,7 @@ watch(signatory, (value) => {
     }
 })
 
-const addVisit = (type) => {
-    if(type == 'init'){
-        // if(service.value.has_doc){
-        //     $q.notify({
-        //         position:'top',
-        //         type:'warning',
-        //         message:'Hay una visita en curso'
-        //     })
-        //     return false
-        // }
-
-        if(!service.value.no_cumple){
-            $q.notify({
-                position:'top',
-                type:'warning',
-                message:'No es necesario agregar una visita, todos los puntos cumplen'
-            })
-            return false
-        }
-
-        nuevaVisita.value = true
-        return true
-    }
-    
-
-    if(type == 'create'){
-        // if(offline.value){
-        //     $q.notify({
-        //         position:'top',
-        //         type:'warning',
-        //         message:'Para agregar una visita es necesario tener conexión a internet'
-        //     })
-        //     return false
-        // }
-
-        if(visita.value.owner == null || visita.value.owner == ''){
-            $q.notify({
-                position:'top',
-                type:'negative',
-                message:'Para continuar selecciona un responsable'
-            })
-            return false
-        }
-
-        $q.dialog({
-            title: '¿Deseas agregar otra visita?',
-            message: '',
-            ok: {
-                push: true,
-                label:'Continuar'
-            },
-            cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-            },
-            persistent: true
-        }).onOk(async data => {
-
-            // visitas.value.push({valor:visitas.value.length+1, texto:`Visita ${visitas.value.length+1}` })
-            const addVisit = await newVisit({service_id:servicio_id.value, 
-                visita:visita.value, 
-                owner_id:visita.value.owner.value
-            })
-            
-            if(addVisit.status == 200){
-                if(addVisit.data.msg){
-                    $q.notify({
-                        position:'top',
-                        type:'warning',
-                        message:'No es necesario agregar una visita, todos los puntos cumplen'
-                    })
-                } else {
-                    setDates()
-                    $q.notify({
-                        position:'top',
-                        type:'positive',
-                        message:'Se agregó una nueva visita'
-                    })
-                }
-            }
-
-        })  
-    }
-}
-
-const filterStaff = (val, update, abort) => {
+const filterStaff = (val, update) => {
     if (val === '') {
         update(() => {
             owners.value = staff.value
@@ -469,12 +381,8 @@ const changeStatus = async() => {
     })
 }
 
-const setDates = () => {
-    visitas.value = service.value.fechas.map((item) => {return {id:item.id, texto:`Visita ${item.visita}`}})
-}
-
 const setDataService = () => {
-    setDates()
+    setServiceDates();
     status.value = service.value.status == 'abierto'
     dataDictamen.value.representante = service.value.representante
     
@@ -506,7 +414,9 @@ const closeModalDoc20 = () => {
     showDocs20.value = false
 }
 
+
 onMounted(async () => {
+    newVisitObj.value.service_id = servicio_id.value
     await getStaff({owner_service:true})
     setTimeout(() => {
         setDataService()

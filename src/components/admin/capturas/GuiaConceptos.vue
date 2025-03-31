@@ -108,8 +108,8 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, toRef, inject, provide, defineAsyncComponent, watch, nextTick} from 'vue';
-import { useQuasar, date } from "quasar";
+import {ref, computed, onMounted, toRef, inject, provide, defineAsyncComponent, nextTick} from 'vue';
+import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
 import { updateData } from 'src/composables/firebase/firebaseService';
@@ -118,7 +118,7 @@ const $q = useQuasar();
 const storeCapturas = useCapturas();
 const { saveDataCategories, fetchCategories, fetchResult, saveLocalObservations, saveLocalResults, fetchObservations, getDates, fechas_visita, visitSelected, showActa } = storeCapturas;
 
-const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/Acta.vue'))
+const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/ActaEditor.vue'))
 
 const modalActa = defineAsyncComponent(() => import('src/components/admin/acta/ModalPrintActa.vue'))
 
@@ -128,20 +128,14 @@ const props = defineProps({
     service: Object
 })
 
-const offline = inject('statusOnLine')
+inject('statusOnLine')
 const currentUser = inject('currentUser')
 const categorias = ref([])
 const service = toRef(props,'service')
 
 const openIndex = ref(null)
-const dataActa = ref({})
 
 const visitas = ref([])
-
-const timeStamp = Date.now()
-const formattedString = date.formatDate(timeStamp, 'YYYY/MM/DD')
-// const visitSelected = ref(null)
-
 const observaciones = ref([])
 const result = ref([]);
 const pendingResult = ref([]);
@@ -160,25 +154,20 @@ const toggleExpansion = async (index) => {
 };
 
 const setNoCumple = () => {
-    //se recorren los conceptos y si alguno incluye la opción no cumple, se guarda bandera para identificar puntos que no cumplen
-    return new Promise((resolve) => {
-        categorias.value.forEach(categoria => {
-            if(categoria.conceptos){
-                categoria.conceptos.forEach(concepto => {
-                    if(concepto.value.includes('no_cumple')) concepto.no_cumple = 1
-                    else concepto.no_cumple = 0
-                })
-            }
-        });
-        resolve()
-    })
-}
+    for (const categoria of categorias.value) {
+        if (!categoria.conceptos) continue; // Evita iterar si no hay conceptos
 
-const setService = (type) => {
+        for (const concepto of categoria.conceptos) {
+            concepto.no_cumple = concepto.value.includes('no_cumple') ? 1 : 0;
+        }
+    }
+};
+
+const setService = () => {
     //al seleccionar el servicio se buscan el total de visitas y se hace el set para mostrar el select de visitas
     if(service.value.id != undefined){
         visitas.value = []
-        let visita = 0
+        // let visita = 0
         const fechas = service.value.fechas.length == 0 ? 1 : service.value.fechas.length
         
         for (let index = 0; index < fechas; index++) {
@@ -186,25 +175,27 @@ const setService = (type) => {
                 {   valor:service.value.fechas[index].visita, 
                     texto:`Visita ${service.value.fechas[index].visita}`, id:service.value.fechas[index].id
                 })
-            visita++
+            // visita++
         }
     }
 }
 
-const changeValue = async (categoria, concepto) => {
+    const changeValue = async (categoria, concepto) => {
     //recibe los indices de cada uno
     const concept = categorias.value[categoria].conceptos[concepto]
     //se busca el concepto en la matriz principal
     const findConcept = result.value.find((item) => item.concepto_id == concept.id)
     
     //se busca el concepto en todas las categorias y se actualiza el valor
-    categorias.value.forEach((categoria) => {
-        if(categoria.conceptos){
-            categoria.conceptos.forEach((concepto) => {
-                if(concept.id == concepto.id) concepto.value = concept.value
-            })
-        }
-    })
+    setNoCumple();
+    // for (const categoria of categorias.value) {
+    //     if (!categoria.conceptos) continue; // Evita iterar si no hay conceptos
+
+    //     for (const concepto of categoria.conceptos) {
+    //         if (concept.id === concepto.id) concepto.value = concept.value;
+    //         concepto.no_cumple = concepto.value.includes('no_cumple') ? 1 : 0;
+    //     }
+    // }
     //path de nodo
     const findIndex = result.value.findIndex((item) => item.concepto_id == concept.id)
     const path = `servicios/${service.value.id}/visita_${visitSelected.value.valor}/result/${findIndex}`;
@@ -326,7 +317,7 @@ const configService = async () => {
     }
 }
 
-const setFechas = async (value) => {
+const setFechas = async () => {
     if(service.value.fechas != undefined){
         const data = await getDates({service_id:service.value.id,
             visita:visitSelected.value.valor
@@ -387,23 +378,23 @@ const syncObservations = async () => {
     }
 }
 
-const bloquearVisita = computed(() => {
-    const splitDate = fechas_visita.value.to.split('-')
-    const fecha_final = date.buildDate({year:splitDate[0], month:splitDate[1], date:splitDate[2]})
-    return new Date() < fecha_final
-})
+// const bloquearVisita = computed(() => {
+//     const splitDate = fechas_visita.value.to.split('-')
+//     const fecha_final = date.buildDate({year:splitDate[0], month:splitDate[1], date:splitDate[2]})
+//     return new Date() < fecha_final
+// })
 
-const setLocal = async (type) => {
-    if(service.value.categorias != undefined){
-        const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
+// const setLocal = async () => {
+//     if(service.value.categorias != undefined){
+//         const data = JSON.parse(localStorage.getItem(`service_${service.value.id}_categorias_visita_${visitSelected.value.valor}`))
         
-        if(data != null){
-            categorias.value = data.categorias
-            visitSelected.value = visitas.value[0]
-            fechas_visita.value = data.fechas
-        } else categorias.value = service.value.categorias;
-    }
-}
+//         if(data != null){
+//             categorias.value = data.categorias
+//             visitSelected.value = visitas.value[0]
+//             fechas_visita.value = data.fechas
+//         } else categorias.value = service.value.categorias;
+//     }
+// }
 
 
 
@@ -449,7 +440,7 @@ const fonts = ref({
     verdana: 'Verdana'
 })
 
-const getActa = (data) => {
+const getActa = () => {
     showActa.value = false    
 }
 

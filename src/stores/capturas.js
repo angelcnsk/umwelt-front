@@ -46,7 +46,7 @@ export const useCapturasStore = defineStore('capturas', {
             //   params:payload
             }
             // const dataCapture = JSON.parse(localStorage.getItem(capturas))
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
               api.post(url, payload, options).then((response) => {
                 if(response.data == undefined){
                   resolve(response)
@@ -99,6 +99,17 @@ export const useCapturasStore = defineStore('capturas', {
           return new Promise((resolve, reject) => {
             api.get(url, options).then((response) => {
               resolve(response)
+            }).catch((error) => { reject(error) })
+          })
+        },
+        async serviceAddVisit (payload){
+          const url = 'spa/addVisit'          
+          return new Promise((resolve, reject) => {
+            api.post(url,payload).then((response) => {
+              if(response.data.fechas){
+                this.currentService.fechas =response.data.fechas;
+              }
+                resolve(response)
             }).catch((error) => { reject(error) })
           })
         },

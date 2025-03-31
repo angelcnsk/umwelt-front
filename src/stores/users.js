@@ -20,28 +20,27 @@ export const useUsersStore = defineStore('users', {
   },
   actions: {
     profileUpdate (payload) {
-      const user = auth.currentUser
-      return new Promise(async (resolve, reject) => {
-        
+      return new Promise(async (resolve, reject) => { 
         const url = 'spa/updateUser'
         const token = JSON.parse(localStorage.getItem('backendToken'))
         const options = {
           headers:{'Authorization': `Bearer ${token.accessToken}`}
         }
-        // return new Promise((resolve, reject) => {
-        const response = await api.post(url, payload, options)
-        resolve(response)
+        
+        api.post(url, payload, options)
+          .then(response => resolve(response))
+          .catch(error => reject(error));
       })
     },
     login (payload) {
-      return new Promise(async (resolve, reject) => {
+      return new Promise(async (resolve) => {
         const response = await api.post('/login', payload)
           if(response.data.error){
             resolve(response)
           } else {
               const token = JSON.stringify(response.data)
               localStorage.setItem('backendToken', token)
-              const provider = new GoogleAuthProvider();
+              new GoogleAuthProvider();
               
               try {
                 const credential = GoogleAuthProvider.credential(null, response.data.googleToken);
@@ -85,7 +84,7 @@ export const useUsersStore = defineStore('users', {
     createUser (payload) {
       //crea el usuario en mysql
       payload.password = '12345678'
-      return new Promise(async(resolve, reject) => {
+      return new Promise(async(resolve) => {
         const url = 'spa/createUser'
         const options = {
           // headers:{'Authorization': `Bearer ${token.accessToken}`}
@@ -94,7 +93,7 @@ export const useUsersStore = defineStore('users', {
         resolve(responseBack.data)
       })
     },
-    fetchUsers (req) {
+    fetchUsers () {
       const url = 'spa/usersList'
       
       const options = {
@@ -182,7 +181,6 @@ export const useUsersStore = defineStore('users', {
       return new Promise((resolve, reject) => {
         api.delete(url, options)
           .then((response) => {
-            commit('REMOVE_RECORD', userId)
             resolve(response)
           })
           .catch((error) => { reject(error) })
@@ -250,9 +248,7 @@ export const useUsersStore = defineStore('users', {
           clone: true
         }
       }
-  
-      await commit('CLEAN_ACTIVE_USER')
-  
+
       const response = await api.get(url, options)
       localStorage.setItem('backendToken', JSON.stringify(response.data))
       window.location.replace(`${location.href}`)
@@ -277,7 +273,7 @@ export const useUsersStore = defineStore('users', {
         // params:payload
       }
       return new Promise((resolve, reject) => {
-        api.post(url, payload,options).then((response) => {
+        api.post(url, payload,options).then(() => {
           resolve(true)
         })
           .catch((error) => { reject(error) })

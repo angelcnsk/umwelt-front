@@ -41,46 +41,53 @@
                 Guarda información en tu equipo
             </q-tooltip>
         </q-btn> -->
-        <q-btn class="q-mb-md" color="primary" icon="save" label="guardar" @click="asyncSaveData('manual')" :disable="disableSave">
-            <q-tooltip>
-                Guarda información en el servidor
-            </q-tooltip>
-        </q-btn>
-        <q-btn class="q-mb-md q-ml-md" color="primary" icon="delete_outline" label="Borrar" @click="cleanData('manual')">
-            <q-tooltip>
-                Borrar datos sin conexión
-            </q-tooltip>
-        </q-btn>
-        <q-btn v-if="currentService.product_id == 1" class="q-mb-md q-ml-md" color="primary" icon="print" label="guía inspección" @click="validatePrint('guia inspeccion')">
-            <q-tooltip>
-                Imprimir guía de inspección
-            </q-tooltip>
-        </q-btn>
-        <q-btn v-if="currentService.product_id == 1" class="q-mb-md q-ml-md" color="primary" icon="print" label="Acta" @click="validatePrint('acta')">
-            <q-tooltip>
-                Imprimir Acta
-            </q-tooltip>
-        </q-btn>
+        <div class="col-xs-12">
+            <q-btn-dropdown color="primary" outline label="Acciones">
+                <q-list>
+                    <q-item clickable v-close-popup @click="addVisitInspector" >
+                        <q-item-section>
+                            <q-item-label>Agregar visita</q-item-label>
+                        </q-item-section>
+                    </q-item>
+                    <q-item clickable v-close-popup @click="asyncSaveData('manual')" :disable="disableSave">
+                        <q-item-section>
+                            <q-item-label>Guardar</q-item-label>
+                        </q-item-section>
+                    </q-item>
 
-        <q-btn v-if="currentService.product_id == 2" class="q-mb-md q-ml-md" color="primary" icon="print" label="Documentos" @click="validatePrint('acta')">
-            <q-tooltip>
-               Imprimir Documentos
-            </q-tooltip>
-        </q-btn>
-        
+                    <q-item clickable v-close-popup @click="cleanData('manual')">
+                        <q-item-section>
+                            <q-item-label>Borrar</q-item-label>
+                        </q-item-section>
+                    </q-item>
+
+                    <q-item clickable v-close-popup @click="validatePrint('guia inspeccion')">
+                        <q-item-section>
+                            <q-item-label>Guía de inspección</q-item-label>
+                        </q-item-section>
+                    </q-item>
+                    <q-item clickable v-close-popup @click="validatePrint('acta')">
+                        <q-item-section>
+                            <q-item-label>Acta</q-item-label>
+                        </q-item-section>
+                    </q-item>
+                </q-list>
+            </q-btn-dropdown>
+        </div>
     </div>
     <modalGuia20 :show="showGuia020" @closeModal="closeModalGuia020" :service="currentService" />
 </template>
 
 <script setup> 
-import { ref, toRef, onMounted, watch, defineAsyncComponent } from "vue";
-import { useQuasar, date } from "quasar";
+import { ref, toRef, onMounted, watch, defineAsyncComponent, inject } from "vue";
+import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
+import { useVisits } from 'src/composables/useVisits.js';
 // import ModalGuiaNom020 from "./ModalGuiaNom020.vue";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setFechas, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
 
 const modalGuia20 = defineAsyncComponent(() => import('src/components/admin/capturas/ModalGuiaNom020.vue'))
 
@@ -89,12 +96,16 @@ const props = defineProps({
     categorias:Object
 });
 
+const offline = inject('statusOnLine');
 const disableSave = ref(false)
 const categorias = toRef(props,'categorias');
 const showGuia020 = ref(false);
-const showGuia02 = ref(false);
+const dataActa = ref({});
+
+const { addVisitInspector } = useVisits(offline, currentService.value.id, visitSelected);
 
 watch(visitSelected, () => {
+    console.log('se cambió la visita', visitSelected.value);
     fechas_visita.value = []
     if(currentService.value.product_id == 2){
         setContainer();
@@ -143,7 +154,7 @@ const asyncSaveData = () => {
         },
         persistent: true,
 
-    }).onOk(async data => {
+    }).onOk(async () => {
 
 
         if(fechas_visita.value.hora_inicio == undefined || fechas_visita.value.hora_inicio == null || fechas_visita.value.hora_inicio == '' || fechas_visita.value.hora_final == undefined || fechas_visita.value.hora_final == null || fechas_visita.value.hora_final == ''){
@@ -158,22 +169,16 @@ const asyncSaveData = () => {
         disableSave.value = true;
         $q.loading.show();
                 
-        const blob = new Blob([textoActa.value], { type: 'text/plain' });
-        const actaStore = await storeActa({ 
-            file:blob,
-            service_id: currentService.value.id,
-            visita: visitSelected.value.valor,
-            date:`${now.getFullYear()}_${now.getUTCMonth()+1}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
-        });
-
         let saveData = null;
         if(currentService.value.product_id == 1){
             if(textoActa.value == undefined || textoActa.value == ''){
                 $q.notify({
                     position:'top',
                     type:'negative',
-                    message:'Falta el texto del acta'
-                })
+                    message:'Falta el texto del actass'
+                });
+                $q.loading.hide();
+                disableSave.value = false;
                 return false  
             }
             const blob = new Blob([textoActa.value], { type: 'text/plain' });
@@ -265,7 +270,7 @@ const cleanData = async () => {
             ],
         },
         persistent: true
-    }).onOk(async data => {
+    }).onOk(async (data) => {
         if(data.includes('all')){
             const key = `${currentService.value.id}/`;
             console.log('key', key)
@@ -343,7 +348,7 @@ const validatePrint = (doc) => {
         })
         return false
     } else if(currentService.value.product_id == 2 && recipienteSelected.value != null) {
-        
+        console.log('recipienteSelected', recipienteSelected.value)
     }
 
     if(doc == 'acta'){
@@ -361,7 +366,7 @@ const imprimir = (doc) => {
             url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
             break;
 
-        case 'acta':
+        case 'acta':{
             if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
                 || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
                 || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
@@ -386,6 +391,8 @@ const imprimir = (doc) => {
             url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
             showActa.value = false
             dataActa.value = {}
+        }
+            
     }
 
     window.open(url,'_blank')
@@ -395,14 +402,14 @@ const closeModalGuia020= () => {
     showGuia020.value = false
 }
 
-const closeModalGuia02= () => {
-    showGuia02.value = false
-}
-
-const saveDate = async (params) => {
+const saveDate = async () => {
     const props = {service_id:fechas_visita.value.service_id, visita:fechas_visita.value.visita, data:fechas_visita.value}
     await saveDates(props)
 }
+
+watch(currentService.value.fechas, async () => {
+    console.log('currentService', currentService.value);
+},{deep:true});
 
 onMounted(async() => {
     visitSelected.value = visitas.value[0];

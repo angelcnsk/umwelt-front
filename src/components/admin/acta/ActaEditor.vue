@@ -63,7 +63,7 @@ const configText = () => {
         //     { label: 'Cerrar servicio', value: 'cerrado', color: 'secondary' }
         //   ]
         // },
-    }).onOk(async data => {
+    }).onOk(async () => {
         textoDocumental.value = '<br><span><strong> INSPECCIÓN DOCUMENTAL</span></strong><br>'
         textoFisica.value = '<br><span><strong>INSPECCIÓN FÍSICA</span></strong><br>'
         textoActa.value = ''

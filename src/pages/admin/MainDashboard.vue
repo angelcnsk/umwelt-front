@@ -23,7 +23,7 @@
   
   <script setup>
   //seguir el mismo ejemplo para crear todo como componente
-  import {onMounted, ref} from 'vue'
+  import {ref} from 'vue'
   import { mensajes } from 'src/composables/firebase/notificaciones'
 
   const notifications = ref(mensajes)

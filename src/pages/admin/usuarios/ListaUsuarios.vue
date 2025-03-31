@@ -78,15 +78,15 @@
 </template>
   
 <script setup>
-  //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent, computed, onMounted, watch, ref} from 'vue'
-  import { useUsers } from 'src/composables/useUsers.js'
-  import { useQuasar } from "quasar";
-  import { useRoute, useRouter } from 'vue-router';
+//seguir el mismo ejemplo para crear todo como componente
+import {onMounted, watch, ref, watchEffect} from 'vue'
+import { useUsers } from 'src/composables/useUsers.js'
+import { useQuasar } from "quasar";
+import { useRouter } from "vue-router";
 
 const $store = useUsers();
 const $q = useQuasar();
-const router = useRouter()
+const router = useRouter();
 
 const {AppActiveUser, createUser, fetchUsers, users} = $store
 const agregar_usuario = ref(false)    
@@ -100,13 +100,18 @@ const columns = ref([
     {name: 'role', label: 'Role', field: 'role', align:'center'},
     {name: 'active', label: 'Status', field: 'active', align:'center'}
 ])
+const permisos = ref([]);
 
-const permisos = computed(async () => {
-    return await AppActiveUser.value.permissions
-})
+watchEffect(async () => {
+  permisos.value = await obtenerPermisos();
+});
+
+async function obtenerPermisos() {
+  return AppActiveUser.value.permissions;
+}
 
 watch(permisos, async (newVal) => {
-    const find = await newVal
+    const find = newVal
     agregar_usuario.value = find.find((permiso) => permiso === 'agregar_usuario')
 })
 

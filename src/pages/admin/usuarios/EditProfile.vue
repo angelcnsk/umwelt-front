@@ -91,7 +91,7 @@
 import {onMounted, ref, computed, watch} from 'vue'
 import { useUsers } from 'src/composables/useUsers';
 import SignaturePad from "vue3-signature-pad";
-import { Notify, useQuasar } from "quasar";
+import { useQuasar } from "quasar";
   
 const miPad = SignaturePad
 const $q = useQuasar()
@@ -160,7 +160,7 @@ const save = () => {
         label:'Cancelar'
         },
         persistent: true
-    }).onOk(async data => {
+    }).onOk(async () => {
         const sign = getSignature()
     
         // const firma = new FormData

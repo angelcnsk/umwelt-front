@@ -78,14 +78,14 @@
 
 
 <script setup>
-import {computed, onMounted, watch, ref, inject, provide} from 'vue'
-import { useQuasar, date } from "quasar";
+import {computed, onMounted, watch, ref, inject, provide, watchEffect} from 'vue'
+import { useQuasar } from "quasar";
 import { useRoute } from "vue-router";
 
 import { useUsers } from 'src/composables/useUsers.js'
 import { useServicios } from 'src/composables/useServicios.js'
 
-import gestion from 'src/components/admin/servicios/Gestion.vue'
+import gestion from 'src/components/admin/servicios/GestionComponent.vue'
 
 const storeUsers = useUsers();
 const storeServicios = useServicios();
@@ -93,7 +93,7 @@ const $q = useQuasar();
 const $router = useRoute()
 
 const { AppActiveUser } = storeUsers
-const { getService, serviceItem, closeServiceStatus, generarNumDictamen } = storeServicios
+const { serviceItem, getService,closeServiceStatus, generarNumDictamen } = storeServicios
 
 const generar_ot = ref(false)
 const incognit = inject('incognit')
@@ -106,35 +106,31 @@ const notify = (msg, type) => {
     })
 }
 
-const fecha1 = ref(null)
-const fecha2 = ref(null)
-const fecha3 = ref(null)
-
-const fecha_reconocimiento = ref('')
-const fecha_inicio = ref('')
-const fecha_fin = ref('')
-
 const servicio = computed(() => {
     return serviceItem.value
 })
 
 provide('servicio', serviceItem)
 
-const setTime = async () => {
-    // fecha_reconocimiento.value = servicio.value.recognition_date.split('-')
-    fecha_inicio.value = servicio.value.start_date.split('-')
-    fecha_fin.value = servicio.value.end_date.split('-')
+// const setTime = async () => {
+//     // fecha_reconocimiento.value = servicio.value.recognition_date.split('-')
+//     fecha_inicio.value = servicio.value.start_date.split('-')
+//     fecha_fin.value = servicio.value.end_date.split('-')
 
-    // fecha1.value = date.formatDate(new Date(fecha_reconocimiento.value[0], fecha_reconocimiento.value[1]-1, fecha_reconocimiento.value[2]), 'YYYY/MM/DD')
-    fecha2.value = date.formatDate(new Date(fecha_inicio.value[0], fecha_inicio.value[1]-1, fecha_inicio.value[2]), 'YYYY/MM/DD')
-    fecha3.value = date.formatDate(new Date(fecha_fin.value[0], fecha_fin.value[1]-1, fecha_fin.value[2]), 'YYYY/MM/DD')
+//     // fecha1.value = date.formatDate(new Date(fecha_reconocimiento.value[0], fecha_reconocimiento.value[1]-1, fecha_reconocimiento.value[2]), 'YYYY/MM/DD')
+//     fecha2.value = date.formatDate(new Date(fecha_inicio.value[0], fecha_inicio.value[1]-1, fecha_inicio.value[2]), 'YYYY/MM/DD')
+//     fecha3.value = date.formatDate(new Date(fecha_fin.value[0], fecha_fin.value[1]-1, fecha_fin.value[2]), 'YYYY/MM/DD')
+// }
+
+const permisos = ref([]);
+
+watchEffect(async () => {
+  permisos.value = await obtenerPermisos();
+});
+
+async function obtenerPermisos() {
+  return AppActiveUser.value.permissions;
 }
-
-const permisos = ref([])
-
-watch(AppActiveUser, (valor) => {
-    permisos.value = valor.permissions
-})
 
 watch(permisos, (newVal) => {
     if(newVal != undefined){
@@ -159,7 +155,7 @@ const update = async () => {
             label:'Cancelar'
         },
         persistent: true
-    }).onOk(async data => {
+    }).onOk(async () => {
         const registro = await closeServiceStatus({servicio_id: servicio.value.id, reg_stps:servicio.value.reg_stps})
 
         if(registro.status == 200) notify('Se guardo el registro correctamente','positive')
@@ -181,7 +177,7 @@ const generarFolio = () => {
             label:'Cancelar'
             },
             persistent: true
-            }).onOk(async app => {
+            }).onOk(async () => {
 
             const getfolio = await generarNumDictamen({servicio_id:servicio.value.id, generar_folio:true, folio:servicio.value.folio})
             if(getfolio.status == 200){

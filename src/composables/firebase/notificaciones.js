@@ -1,5 +1,5 @@
 import {db, auth} from 'boot/firebase'
-import { getDatabase, ref as refb, set, onValue, push, update } from "firebase/database";
+import { getDatabase, ref as refb, onValue, push, update } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref } from "vue";
 

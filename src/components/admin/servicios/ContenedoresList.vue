@@ -141,7 +141,7 @@
                 label:'Cancelar'
             },
             persistent: true
-    }).onOk(async data => {
+    }).onOk(async () => {
       addContainer.value.service_id = service.value.id;
       addContainer.value.product_id = service.value.product_id;
       
@@ -179,7 +179,7 @@
                 label:'Cancelar'
             },
             persistent: true
-    }).onOk(async data => {
+    }).onOk(async () => {
       const removeRsp = await removeContainer(
         {service_id:service.value.id, id:row.id}
       )

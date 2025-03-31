@@ -15,7 +15,7 @@ export const useCapturas = () => {
 
     const { 
         getServiceList, saveCaptures, setDateCapture,
-        saveSectionFile, getCategoriesBackend
+        saveSectionFile, getCategoriesBackend, serviceAddVisit
     } = capturasStore;
 
     const { servicesList,currentService, categorias, fechas_visita, visitSelected, showActa, textoActa, serviceSelected, visitas, result,
@@ -171,7 +171,7 @@ export const useCapturas = () => {
 
     const setSelectVisitas = () => {
         visitas.value = []
-        let visita = 0
+        // let visita = 0
         const fechas = currentService.value.fechas.length == 0 ? 1 : currentService.value.fechas.length
         
         for (let index = 0; index < fechas; index++) {
@@ -179,11 +179,11 @@ export const useCapturas = () => {
                 {   valor:currentService.value.fechas[index].visita, 
                     texto:`Visita ${currentService.value.fechas[index].visita}`, id:currentService.value.fechas[index].id
                 })
-            visita++
+            // visita++
         }
     }
 
-    const setFechas = async (value) => {
+    const setFechas = async () => {
         if(currentService.value.fechas != undefined){
             fechas_visita.value = [];
             const data = await getDates({service_id:currentService.value.id,
@@ -497,6 +497,6 @@ export const useCapturas = () => {
     }
 
     return {
-        servicesList,currentService,categorias,fechas_visita, visitSelected,showActa,textoActa,serviceSelected, visitas,tab,recipienteSelected,recipientes,getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setSelectVisitas, setFechas, disableOptions, syncConceptResult, syncObservations, changeValue, saveObservaciones, configNom02, configNom020, setContainer
+        servicesList,currentService, categorias,fechas_visita, visitSelected,showActa,textoActa,serviceSelected, visitas,tab,recipienteSelected,recipientes,getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setSelectVisitas, setFechas, disableOptions, syncConceptResult, syncObservations, changeValue, saveObservaciones, configNom02, configNom020, setContainer, serviceAddVisit
     }
 }

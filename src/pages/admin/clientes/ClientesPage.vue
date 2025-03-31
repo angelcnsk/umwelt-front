@@ -86,7 +86,7 @@
   
 <script setup>
   //seguir el mismo ejemplo para crear todo como componente
-import {computed, onMounted, watch, ref} from 'vue'
+import {onMounted, watch, ref, watchEffect} from 'vue'
 import { useClientes } from 'src/composables/useClientes.js'
 import { useUsers } from 'src/composables/useUsers.js'
 import { useQuasar } from "quasar";
@@ -114,9 +114,15 @@ const columns = ref([
     {name: 'status', label: 'Estatus', field: 'status', align:'center'}
 ])
 
-const permisos = computed(async () => {
-    return AppActiveUser.value.permissions
-})
+const permisos = ref([]);
+
+watchEffect(async () => {
+  permisos.value = await obtenerPermisos();
+});
+
+async function obtenerPermisos() {
+  return AppActiveUser.value.permissions;
+}
 
 watch(permisos, async (newVal) => {
     const find = await newVal

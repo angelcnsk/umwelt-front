@@ -1,6 +1,4 @@
-import {auth, storage} from 'boot/firebase'
 import { getStorage, ref, uploadBytes, deleteObject } from "firebase/storage";
-import { onAuthStateChanged } from "firebase/auth";
 import { useServicios } from "../useServicios";
 
 const serviceStore = useServicios()
@@ -16,7 +14,6 @@ export async function loadFile(params) {
     // Create a storage reference from our storage service
     const storageRef = ref(storage,`${folderPath}`);
 
-    let error = false
     const upload = await uploadBytes(storageRef, params.files)
     console.log(upload)
     
@@ -42,7 +39,8 @@ export async function destroyFile(params) {
             return await removeFile({id:params.id})
         } 
     }
-    catch (error) {
+    catch (e) {
+        console.log(e)
         return {data:{error:true}}
     }
 }
@@ -54,7 +52,6 @@ export async function storeActa(params) {
     // Create a storage reference from our storage service
     const storageRef = ref(storage,`${folderPath}`);
 
-    let error = false
     const upload = await uploadBytes(storageRef, params.file)
     console.log(upload)
     

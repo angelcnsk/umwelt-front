@@ -82,7 +82,7 @@ const props = defineProps({
     show: Boolean,
 });
 const mostrar = toRef(props, 'show')
-const ver = ref(mostrar == true);
+const ver = ref(mostrar.value == true);
 const emits = defineEmits(['closeModal']);
 
 const visitas = computed(() => {

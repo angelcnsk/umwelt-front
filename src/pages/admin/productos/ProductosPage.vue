@@ -183,35 +183,28 @@
   
 <script setup>
   //seguir el mismo ejemplo para crear todo como componente
-import {computed, onMounted, watch, ref} from 'vue'
+import {onMounted, watch, ref, watchEffect} from 'vue'
 
 import { useUsers } from 'src/composables/useUsers.js'
 import { useServicios } from 'src/composables/useServicios.js'
-import { useQuasar } from "quasar";
 
 const storeUsers = useUsers();
 const storeServicios = useServicios();
-const $q = useQuasar();
+const { AppActiveUser } = storeUsers;
 
+const { productos, getProductos } = storeServicios;
+const agregar_producto = ref(false);
 
-const { AppActiveUser } = storeUsers
+const addProduct = ref(false);
+const permisos = ref([]);
 
-const { productos, getProductos } = storeServicios
-const agregar_producto = ref(false)
+watchEffect(async () => {
+  permisos.value = await obtenerPermisos();
+});
 
-const addProduct = ref(false)
-const Categoria = ref([{label: 'Ambiente laboral', value: 1}, {label: 'Fuentes fijas', value: 2}])
-
-const notify = (msg, type) => {
-    $q.notify({
-        position:'top',
-        type,
-        message:msg
-    })
+async function obtenerPermisos() {
+  return AppActiveUser.value.permissions;
 }
-const permisos = computed(async () => {
-    return AppActiveUser.value.permissions
-})
 
 watch(permisos, async (newVal) => {
     const find = await newVal

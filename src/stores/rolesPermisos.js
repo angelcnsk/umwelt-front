@@ -11,7 +11,7 @@ export const usePermisosStore = defineStore('rolesPermisos', {
         }
     },
     actions:{
-        getRoles (req) {
+        getRoles () {
             const url = 'spa/getRoles'
             
             const options = {
@@ -42,7 +42,7 @@ export const usePermisosStore = defineStore('rolesPermisos', {
                 })
             })
         },
-        getModules (req) {
+        getModules () {
             const url = 'spa/getModules'
             
             const options = {
@@ -55,7 +55,7 @@ export const usePermisosStore = defineStore('rolesPermisos', {
               }).catch((error) => { reject(error) })
             })
         },
-        getPermissions (req) {
+        getPermissions () {
             const url = 'spa/getPermissions'
             
             const options = {
@@ -100,7 +100,6 @@ export const usePermisosStore = defineStore('rolesPermisos', {
             }
             return new Promise((resolve, reject) => {
               api.post(url, payload, options).then((response) => {
-                // commit('SET_MODULES_LIST',response.data);
                 resolve(response)
               }).catch((error) => { reject(error) })
             })

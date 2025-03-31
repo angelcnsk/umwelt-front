@@ -72,9 +72,8 @@
 
 <script setup>
 import { ref, computed, toRef, watch } from "vue";
-import { useServicios } from 'src/composables/useServicios.js';
 import { useQuasar } from "quasar";
-const {containers,serviceItem} = useServicios();
+
 const $q = useQuasar();
 
 const props = defineProps({
@@ -83,7 +82,7 @@ const props = defineProps({
 });
 const mostrar = toRef(props, 'show');
 const service = toRef(props, 'service');
-const ver = ref(mostrar == true);
+const ver = ref(mostrar.value == true);
 const emits = defineEmits(['closeModal']);
 
 const visitas = computed(() => {

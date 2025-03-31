@@ -37,7 +37,7 @@
 
 <script setup>
 import {ref, watch, toRef} from 'vue';
-import { useQuasar, date } from "quasar";
+import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js';
 const storeCapturas = useCapturas();
 const { currentService, visitSelected } = storeCapturas;
@@ -52,7 +52,7 @@ const imprimir = (doc) => {
             url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
             break;
 
-        case 'acta':
+        case 'acta':{
             if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
                 || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
                 // || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
@@ -79,6 +79,8 @@ const imprimir = (doc) => {
             
             dataActa.value = {}
             submitClose();
+        }
+            
     }
 
     window.open(url,'_blank')
@@ -89,16 +91,16 @@ const props = defineProps({
     show: Boolean,
 })
 const mostrar = toRef(props, 'show')
-const ver = ref(mostrar == true)
+const ver = ref(mostrar.value == true)
 
 const dataActa = ref({})
 
 const emits = defineEmits(['closeModal']);
 
-const submitData = () => {
-    // emits('closeModal',dataActa)
-    imprimir(showActa.value)
-}
+// const submitData = () => {
+//     // emits('closeModal',dataActa)
+//     imprimir(showActa.value)
+// }
 
 const submitClose = () => {
     ver.value = false

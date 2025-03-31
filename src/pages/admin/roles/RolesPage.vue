@@ -29,7 +29,7 @@
                                     class="cursor-pointer"
                                 >
                                     <q-tooltip self="top start" :offset="[100, 10]">
-                                        <p v-for="user in props.row.usuarios">{{user.name}}</p>
+                                        <p v-for="user in props.row.usuarios" :key="user.id">{{user.name}}</p>
                                     </q-tooltip>
                                 </q-chip> 
                             </q-td>
@@ -51,29 +51,22 @@
 
 <script>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
+  import {defineComponent,watchEffect, onMounted, watch, ref} from 'vue'
   import { useUsers } from 'src/composables/useUsers.js'
   import { usePermisos } from 'src/composables/usePermisos.js'
-  import { useQuasar } from "quasar";
-  import { useRoute, useRouter } from 'vue-router';
+  import { useRouter } from 'vue-router';
 
   export default defineComponent({
-    name: 'rolesPage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
+    name: 'rolesPage', 
     setup() {
         const $store = useUsers();
         const $permisos = usePermisos();
-        const $q = useQuasar();
-        const router = useRouter()
+        const router = useRouter();
 
-        const {AppActiveUser, createUser, fetchUsers, users} = $store
+        const {AppActiveUser} = $store
         const {roles, getRoles} = $permisos
         
         const agregar_usuario = ref(false)    
-        const showNewUser = ref(false)
-        const newUser = ref({})
         const filter = ref('')
         const columns = ref([
             {name: 'role', label: 'Role',field: 'role', align:'center'},
@@ -82,9 +75,15 @@
             {name: 'acciones', label: 'Acciones', align:'center'}
         ])
 
-        const permisos = computed(async () => {
-            return await AppActiveUser.value.permissions
-        })
+        const permisos = ref([]);
+
+        watchEffect(async () => {
+        permisos.value = await obtenerPermisos();
+        });
+
+        async function obtenerPermisos() {
+        return AppActiveUser.value.permissions;
+        }
         
         watch(permisos, async (newVal) => {
             const find = await newVal

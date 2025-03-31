@@ -122,7 +122,7 @@ const autoSave = async (type) => {
                 objUpdate.push(document)
             })
         })
-        const update = await updateRowDoc(objUpdate)        
+        await updateRowDoc(objUpdate)        
         setTimeout(() => {
             dialog.value = false
         }, 2000);

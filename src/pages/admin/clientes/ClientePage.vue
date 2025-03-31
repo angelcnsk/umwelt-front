@@ -465,15 +465,13 @@
 import { useRoute } from "vue-router";
 import { ref, onMounted, computed, watch } from "vue";
 import { useClientes } from "src/composables/useClientes"; 
-import { useDialogPluginComponent, useQuasar } from "quasar";
+import { useQuasar } from "quasar";
 
 const $q = useQuasar()
 const $router = useRoute()
-const {getCities, getStates, fetchClient, getMainClient, addFactory,newAddress,
-    updateClient, editClient, clientesPrincipales, cities, states, createContact
+const {getCities, getStates, fetchClient, newAddress,
+    updateClient, editClient, clientesPrincipales, cities, states, createContact, getClients
 } = useClientes()
-
-const {  dialogRef, onDialogHide, onDialogOK, onDialogCancel  } = useDialogPluginComponent()
 
 const cliente = computed(() => {
     return editClient
@@ -485,12 +483,10 @@ const clientes = ref([])
 
 const isMain = ref(true)
 
-const clienteSelected = ref(null)
-const stateSelected = ref(null)
-const citySelected = ref(null)
-const addPlanta = ref(false)
+const stateSelected = ref(null);
+const citySelected = ref(null);
+const addPlanta = ref(false);
 
-const plantaName = ref('')
 const address = ref({areas:[], equipoSeguridad:[], acta:false, notarial:false, copias:{representate:false, persona:false, testigo1:false, testigo2:false} })
 
 const addContact = ref(false)
@@ -530,12 +526,12 @@ watch(clientesPrincipales, (newVal) => {
 watch(cliente, (newVal) => {
     dataClient.value = newVal
 })
-
-const setModel = async (val) => {
-    await getMainClient({cliente:val})
-    clienteSelected.value = val
-    console.log(clienteSelected)
-}
+// TODO revisar flujo
+// const setModel = async (val) => {
+//     await getMainClient({cliente:val})
+//     clienteSelected.value = val
+//     console.log(clienteSelected)
+// }
 
 watch(stateSelected, async (val) =>{
     if(!disableFactory.value){
@@ -548,15 +544,15 @@ watch(stateSelected, async (val) =>{
 })
 
 
-const filterFn = (val, update, abort) => {
-    update(() => {
-        const needle = val.toLocaleLowerCase()
-        clientes.value = clientesPrincipales.value
-        console.log(clientesPrincipales)
-    })
-}
+// const filterFn = (val, update, abort) => {
+//     update(() => {
+//         const needle = val.toLocaleLowerCase()
+//         clientes.value = clientesPrincipales.value
+//         console.log(clientesPrincipales)
+//     })
+// }
 
-const filterState = (val, update, abort) => {
+const filterState = (val, update) => {
     console.log(val)
     update(
     () => {
@@ -571,7 +567,7 @@ const filterState = (val, update, abort) => {
     )
 }
 
-const filterCity = (val, update, abort) => {
+const filterCity = (val, update) => {
     update(() => {
         if (val === '') {
             ciudades.value = cities.value
@@ -584,11 +580,6 @@ const filterCity = (val, update, abort) => {
         // ciudades.value = cities.value
     })
 }
-
-const searchClient = async (val, update, abort) => {
-    await getMainClient({cliente:clienteSelected.value})
-}
-
 
 const getData = async () => {
     dataClient.value = editClient.value
@@ -622,7 +613,7 @@ const addressAdd = () => {
         label:'Cancelar'
         },
         persistent: true
-    }).onOk(async data => {
+    }).onOk(async () => {
         // address.value.client_id = factory.value.id
         address.value.city_id = citySelected.value.id
         address.value.client_id = $router.params.id
@@ -713,7 +704,7 @@ const updateRFC = async () => {
         label:'Cancelar'
         },
         persistent: true
-    }).onOk(async data => {
+    }).onOk(async () => {
         
         const crearCliente = await updateClient({
             id:dataClient.value.id,
@@ -739,7 +730,6 @@ const updateRFC = async () => {
                 message:'El cliente se actualizó correctamente'
             })
             getClients()
-            newClient.value = {}
         }
 
     })
@@ -750,7 +740,7 @@ const editContact = (row) => {
     addContact.value = true
 }
 
-watch(addContact, (newVal) => {
+watch(addContact, () => {
     if(!addContact.value){
         contact.value = {}
     }
@@ -771,7 +761,7 @@ const saveContact = async () => {
         label:'Cancelar'
         },
         persistent: true
-    }).onOk(async data => {
+    }).onOk(async () => {
         
         contact.value.client_id = dataClient.value.id
         const crearContacto = await createContact(contact.value)

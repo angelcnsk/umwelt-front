@@ -55,7 +55,7 @@ import {onMounted, defineAsyncComponent, toRef} from 'vue';
 import { useCapturas } from 'src/composables/useCapturas.js'
 
 const storeCapturas = useCapturas();
-const { setSelectVisitas, changeValue, configNom020, disableOptions, categorias, visitSelected, showActa, recipienteSelected } = storeCapturas;
+const { setSelectVisitas, changeValue, configNom020, disableOptions, categorias, recipienteSelected } = storeCapturas;
 
 const props = defineProps({
     service: Object,

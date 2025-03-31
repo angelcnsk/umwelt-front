@@ -51,26 +51,20 @@
 
 <script>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
-  import { useUsers } from 'src/composables/useUsers.js'
+  import {defineComponent, onMounted, ref} from 'vue'
   import { usePermisos } from 'src/composables/usePermisos.js'
   import { useQuasar } from "quasar";
   import { useRoute, useRouter } from 'vue-router';
 
   export default defineComponent({
     name: 'asignarRolesPage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
     setup() {
-        const $store = useUsers();
         const $permisos = usePermisos();
         const $q = useQuasar();
         const router = useRouter()
         const $route = useRoute();
 
-        const {AppActiveUser, createUser, fetchUsers, users} = $store
-        const {role, modulos, permisos, getRoles, getModules, getRole, getPermissions, addPermissionsToRole} = $permisos
+        const {role, modulos, permisos, getModules, getRole, getPermissions, addPermissionsToRole} = $permisos
         
         const filter = ref('')
         const columns = ref([
@@ -125,7 +119,7 @@
                         label:'Cancelar'
                     },
                     persistent: true
-            }).onOk(async result => {
+            }).onOk(async () => {
                 const guardar = await addPermissionsToRole({
                     role_id: $route.params.id, 
                     permissions_ids:permisosAsignar.value

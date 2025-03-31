@@ -105,8 +105,7 @@
 </template>
 
 <script setup>
-import {onMounted, watch, ref, inject, defineAsyncComponent} from 'vue'
-
+import {onMounted, watch, inject, defineAsyncComponent} from 'vue'
 import { useCapturas } from 'src/composables/useCapturas.js'
 
 const GuiaInspeccion = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaInspeccion.vue'));
@@ -114,10 +113,10 @@ const GuiaInspeccion = defineAsyncComponent(() => import('src/components/admin/c
 const GuiaNom20 = defineAsyncComponent(() => import('src/components/admin/capturas/GuiaNom20.vue'));
 
 const storeCapturas = useCapturas();
-const { getServiceList, servicesList, currentService, serviceSelected, tab, recipienteSelected } = storeCapturas
-const online = inject('statusOnLine')
+const { getServiceList, servicesList, currentService, serviceSelected, tab, recipienteSelected } = storeCapturas;
+const online = inject('statusOnLine');
 
-watch(serviceSelected, async (item) => {
+watch(serviceSelected, async () => {
     if (serviceSelected.value !== null) {
         currentService.value = serviceSelected.value
         tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'

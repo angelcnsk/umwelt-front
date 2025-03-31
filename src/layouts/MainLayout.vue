@@ -141,12 +141,12 @@ if(darkMode.value != null){
 }
 // console.log($q.dark)
 // calling here; equivalent to when component is created
-const setDarkMode = () => {
-  darkMode.value = !darkMode.value
-  icon.value = darkMode.value ? 'sunny' : 'bedtime'
-  localStorage.setItem('darkMode', darkMode.value)
-  $q.dark.set(darkMode.value)
-}
+// const setDarkMode = () => {
+//   darkMode.value = !darkMode.value
+//   icon.value = darkMode.value ? 'sunny' : 'bedtime'
+//   localStorage.setItem('darkMode', darkMode.value)
+//   $q.dark.set(darkMode.value)
+// }
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value

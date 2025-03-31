@@ -51,19 +51,18 @@
 
 <script setup>
   //seguir el mismo ejemplo para crear todo como componente
-import { computed, onMounted, watch, ref} from 'vue'
+import { computed, onMounted, ref} from 'vue'
 import { useUsers } from 'src/composables/useUsers.js'
 import { usePermisos } from 'src/composables/usePermisos.js'
 import { useQuasar } from "quasar";
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { recovery } from '../../../composables/firebase/auth'
 
 const $q = useQuasar()
 const route = useRoute()
-const {fetchUser, setStatusUser, user_edit, AppActiveUser} = useUsers()
+const {fetchUser, user_edit, AppActiveUser} = useUsers()
 const { getRoles, roles, addRolesToUser } = usePermisos()
 const userData = computed(() => user_edit.value)
-const statusUser = ref(true)
 const selectedRoles = ref([])
 
 const assigmentRolesToUser = async () => {
@@ -127,24 +126,24 @@ const resetPass = () => {
         })
     }
 }
+// TODO revisar si se puede hacer un watch a la propiedad active de userData
+// watch(statusUser, async (value) => {
+//     const msgStatus = value === false ? 'inactivó' : 'activó'
+//     const data = {id:userData.value.id, status:value}
+//     const setStatus = await setStatusUser(data)
 
-watch(statusUser, async (value) => {
-    const msgStatus = value === false ? 'inactivó' : 'activó'
-    const data = {id:userData.value.id, status:value}
-    const setStatus = await setStatusUser(data)
+//     $q.notify({
+//         position:'top',
+//         type: 'positive',
+//         message: `Se ${msgStatus} al usuario`
+//     })
 
-    $q.notify({
-        position:'top',
-        type: 'positive',
-        message: `Se ${msgStatus} al usuario`
-    })
-
-})
+// })
 
 onMounted(async () => {
     await fetchUser(route.params.id)
     await getRoles()
-    statusUser.value = userData.value.active == 1
+    // statusUser.value = userData.value.active == 1
     userData.value.roles.forEach((item) => {
         selectedRoles.value.push(item.id)
     })

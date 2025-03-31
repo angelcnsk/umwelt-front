@@ -63,26 +63,19 @@
 
 <script>
   //seguir el mismo ejemplo para crear todo como componente
-  import {defineComponent,defineAsyncComponent, computed, onMounted, watch, ref} from 'vue'
-  import { useUsers } from 'src/composables/useUsers.js'
+  import {defineComponent, onMounted, ref} from 'vue'
   import { usePermisos } from 'src/composables/usePermisos.js'
   import { useQuasar } from "quasar";
-  import { useRoute, useRouter } from 'vue-router';
-
+  import { useRouter } from "vue-router";
+  
   export default defineComponent({
     name: 'permisosPage',
-    // components: {
-    //   CardSocial: defineAsyncComponent(() => import('components/cards/CardSocial.vue')),
-    // },
     setup() {
-        const $store = useUsers();
         const $permisos = usePermisos();
         const $q = useQuasar();
-        const router = useRouter()
-        const $route = useRoute();
-
-        const {AppActiveUser, createUser, fetchUsers, users} = $store
-        const {role, modulos, permisos, getRoles, getModules, getRole, getPermissions, addPermissionsToRole, savePermission} = $permisos
+        const router = useRouter();
+        
+        const {role, modulos, permisos, getModules, getPermissions,  savePermission} = $permisos
         
         const filter = ref('')
         const columns = ref([
@@ -141,7 +134,7 @@
                         label:'Cancelar'
                     },
                     persistent: true
-            }).onOk(async result => {
+            }).onOk(async () => {
                 const guardar = await savePermission(permiso.value)
                 await setPermisos()
                 if(guardar.status == 200){

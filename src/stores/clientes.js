@@ -14,7 +14,7 @@ export const useClientesStore = defineStore('clientes', {
         }
     },
     actions:{
-        getClients (req) {
+        getClients () {
             const options = {
               params:{
               }
@@ -51,7 +51,6 @@ export const useClientesStore = defineStore('clientes', {
             return new Promise((resolve, reject) => {
               if (payload !== '') {
                 api.get(url, options).then((response) => {
-                  commit('SET_ACTIVITY_LIST', response.data)
                   resolve(response.data)
                 }).catch((error) => { reject(error) })
               } else {
@@ -72,7 +71,7 @@ export const useClientesStore = defineStore('clientes', {
               }).catch((error) => { reject(error) })
             })
           },
-        getStates (req) {
+        getStates () {
             const url = 'spa/getEstados'
             const options = {
             //   params: {id:companyId}
@@ -102,7 +101,7 @@ export const useClientesStore = defineStore('clientes', {
             const options = {              
             //   params: payload
             }
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
               api.post(url, payload, options)
                 .then((response) => {
                   resolve(response)
@@ -114,7 +113,7 @@ export const useClientesStore = defineStore('clientes', {
           const options = {              
           //   params: payload
           }
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             api.post(url, payload, options)
               .then((response) => {
                 resolve(response)
@@ -126,7 +125,7 @@ export const useClientesStore = defineStore('clientes', {
           const options = {              
           //   params: payload
           }
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             api.post(url, payload, options)
               .then((response) => {
                 resolve(response)
@@ -139,7 +138,7 @@ export const useClientesStore = defineStore('clientes', {
             //   params: payload
             }
             console.log('payload', payload)
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
               api.post(url, payload, options)
                 .then((response) => {
                   resolve(response)
@@ -151,7 +150,7 @@ export const useClientesStore = defineStore('clientes', {
           const options = {
           //   params: payload
           }
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             api.post(url, payload, options)
               .then((response) => {
                 resolve(response)

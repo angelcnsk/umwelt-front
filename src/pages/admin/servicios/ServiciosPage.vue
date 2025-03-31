@@ -160,7 +160,7 @@
   
 <script setup>
   //seguir el mismo ejemplo para crear todo como componente
-  import {computed, onMounted, watch, ref} from 'vue'
+  import {onMounted, watch, ref, watchEffect} from 'vue'
   import { useClientes } from 'src/composables/useClientes.js'
   import { useUsers } from 'src/composables/useUsers.js'
   import { useServicios } from 'src/composables/useServicios.js'
@@ -176,8 +176,8 @@ const $q = useQuasar();
 const router = useRouter();
 
 const { AppActiveUser } = storeUsers
-const {getClients, clients, createClient} = storeClientes
-const { staff, getStaff, getService, servicesList, productos, getProductos, getServices, newService } = storeServicios
+const {clients, getClients} = storeClientes
+const { staff, getStaff, servicesList, productos, getProductos, getServices, newService } = storeServicios;
 
 
 const agregar_servicio = ref(false)
@@ -257,18 +257,25 @@ const notify = (msg, type) => {
         message:msg
     })
 }
-const permisos = computed(async () => {
-    return AppActiveUser.value.permissions
-})
+const permisos = ref([]);
 
-watch(permisos, async (newVal) => {
-    const find = await newVal
+watchEffect(async () => {
+  const permisosObtenidos = await obtenerPermisos();
+  permisos.value = permisosObtenidos || []; // Evita que sea undefined
+});
+
+async function obtenerPermisos() {
+  return AppActiveUser.value.permissions;
+}
+
+watch(permisos, () => {
+    const find = permisos.value != undefined ? permisos.value : [];
     agregar_servicio.value = find.find((permiso) => permiso === 'agregar_servicio')
     
-    editar_servicio.value = AppActiveUser.value.permissions.find((permiso) => permiso === 'editar_servicio')
+    editar_servicio.value = find.find((permiso) => permiso === 'editar_servicio')
 })
 
-watch( () => service,(currValue, prevValue) => {
+watch( () => service,(currValue) => {
     // second param, watcher callback
     if(currValue.value.client){
         plantasArr.value = currValue.value.client.plantas
@@ -321,7 +328,7 @@ const saveService = async() => {
             label:'Cancelar'
             },
             persistent: true
-            }).onOk(async data => {
+            }).onOk(async () => {
         
             // service.value.recognition_date = date.formatDate(service.value.date_recognition, 'YYYY-MM-DD')
             // service.value.start_date = date.formatDate(service.value.date_start, 'YYYY-MM-DD')
@@ -354,7 +361,7 @@ const saveService = async() => {
     }
 }
 
-const filterFn = (val, update, abort) => {
+const filterFn = (val, update) => {
     if (val === '') {
         update(() => {
             clientes.value = clients.value
@@ -368,7 +375,7 @@ const filterFn = (val, update, abort) => {
     })
 }
 
-const filterStaff = (val, update, abort) => {
+const filterStaff = (val, update) => {
     if (val === '') {
         update(() => {
             owners.value = staff.value
@@ -382,7 +389,7 @@ const filterStaff = (val, update, abort) => {
     })
 }
 
-const filterPlanta = (val, update, abort) => {
+const filterPlanta = (val, update) => {
     if (val === '') {
         update(() => {
             plantas.value = plantasArr.value
