@@ -33,12 +33,14 @@ register(process.env.SERVICE_WORKER_FILE, {
 
     // Forzar activación inmediata del nuevo SW
     if (registration.waiting) {
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-      registration.waiting.addEventListener('statechange', (e) => {
-        if (e.target.state === 'activated') {
+      registration.waiting.addEventListener('statechange', (event) => {
+        if (event.target.state === 'activated') {
+          console.log('✅ Nuevo SW activado, recargando...')
           window.location.reload()
         }
       })
+       // Mandar mensaje al SW para forzar activación
+       registration.waiting.postMessage({ type: 'SKIP_WAITING' })
     }
   },
 
