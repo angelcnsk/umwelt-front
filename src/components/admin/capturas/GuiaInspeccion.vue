@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import {onMounted, toRef, provide, defineAsyncComponent} from 'vue';
+import {onMounted, toRef, provide, defineAsyncComponent, watch} from 'vue';
 import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import {getEditorProps} from '../acta/editorProps'
@@ -80,6 +80,11 @@ const props = defineProps({
 const service = toRef(props,'service')
 
 provide('currentVisit', visitSelected);
+watch(service, () => {
+    if (service.value != undefined) {
+        visitSelected.value = [];
+    }
+}, { immediate: true })
 
 const getActa = () => {
     showActa.value = false    
