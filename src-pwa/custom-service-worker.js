@@ -13,9 +13,14 @@ import {NetworkFirst, StaleWhileRevalidate, CacheFirst} from 'workbox-strategies
 import { CacheableResponse } from 'workbox-cacheable-response'
 import { ExpirationPlugin } from 'workbox-expiration'
 
-self.skipWaiting()
-clientsClaim()
+self.skipWaiting();
+clientsClaim();
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+});
 
 registerRoute(
     new RegExp('https://api.umwelt.apeironws.com/api/'), 

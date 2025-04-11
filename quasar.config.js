@@ -59,21 +59,12 @@ export default defineConfig((/* ctx */) => {
       vueRouterMode: 'history', // available values: 'hash', 'history'
       publicPath: '/',
       distDir: 'dist',
-      // vueRouterBase,
-      // vueDevtools,
-      // vueOptionsAPI: false,
-
-      // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
-      // analyze: true,
-      // env: {},
-      // rawDefine: {}
-      // ignorePublicFolder: true,
-      // minify: false,
-      // polyfillModulePreload: true,
-      // distDir
-
-      // extendViteConf (viteConf) {},
-      // viteVuePluginOptions: {},
+      
+      filenames: {
+        app: ({ hash }) => `app.${hash}.js`,
+        chunk: ({ hash }) => `chunk.${hash}.js`,
+        css: ({ hash }) => `style.${hash}.css`
+      },
 
       vitePlugins: [
         ['vite-plugin-checker', {

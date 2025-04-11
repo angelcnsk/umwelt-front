@@ -34,9 +34,11 @@ register(process.env.SERVICE_WORKER_FILE, {
     // Forzar activación inmediata del nuevo SW
     if (registration.waiting) {
       registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-
-      // Opcional: recargar automáticamente
-      window.location.reload()
+      registration.waiting.addEventListener('statechange', (e) => {
+        if (e.target.state === 'activated') {
+          window.location.reload()
+        }
+      })
     }
   },
 

@@ -111,10 +111,12 @@ watch(visitSelected, () => {
         setContainer();
     } else {
         props.changeVisit();
+        console.log('visitSelected', visitSelected.value);
     }
 });
 
 watch(recipienteSelected,() => {
+    console.log('visitSelected', visitSelected.value);
     props.changeVisit();
 })
 

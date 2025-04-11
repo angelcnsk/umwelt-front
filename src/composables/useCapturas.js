@@ -340,6 +340,11 @@ export const useCapturas = () => {
     }
     
     const configNom02 = async () => {
+        //se limpian los datos de la visita
+        categorias.value = [];
+        result.value = [];
+        observaciones.value = [];
+        
         $q.loading.show({
             message: 'Cargando servicio...'
         });
@@ -436,66 +441,80 @@ export const useCapturas = () => {
     }
 
     const configNom020 = async () => {
+        //se limpian los datos de la visita
+        categorias.value = [];
+        result.value = [];
+        observaciones.value = [];
+        
+        $q.loading.show({
+            message: 'Cargando servicio...'
+        });
+
         if(recipienteSelected.value != null){
-            categorias.value = []
-            await setFechas()
+            try {
+                await setFechas()
 
-            //recupera categorías desde el catálogo
-            categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor, container_id:recipienteSelected.value.id});
+                //recupera categorías desde el catálogo
+                categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor, container_id:recipienteSelected.value.id});
 
-            categorias.value = categorias.value.filter(cat => cat.conceptos && cat.conceptos.length>0);
-            
-            const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${recipienteSelected.value.value}/${tab.value}`
-            
-            //busca si hay resultados en firebase
-            result.value = await fetchResult({path:`${localPath}/result`});
-            
-            //si no existen respuestas previamente guardadas las crea en firebase
-            if(result.value === undefined || result.value === null && categorias.value.length>0) {
-                const a_conceptos = [];
-                categorias.value.map((cat) => {
-                    if(cat.conceptos){
-                        const items = cat.conceptos.map((item) => {
-                            return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:AppActiveUser.value.id,
-                            observaciones:''    
-                            }
-                        });
-                        a_conceptos.push(...items);
-                    }
-                });
-                //filtra listado de conceptos para evitar duplicados por conceptos compartidos
-                const uniqueArray = a_conceptos.filter((item, index, self) =>
-                    index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
-                );
+                categorias.value = categorias.value.filter(cat => cat.conceptos && cat.conceptos.length>0);
                 
-                result.value = uniqueArray
-                //guarda en firebase respuestas vacías
-                await setConceptsValues({
-                    path:`servicios/${localPath}/result`,
-                    data:uniqueArray, 
-                });
-            }
-    
-            //ejecuta sync de conceptos y observaciones
-            if(result.value != null && result.value.length && categorias.value.length){
-                await syncConceptResult();
-            }
-    
-            //se relacionan las respuestas con los conceptos correspondientes
-            categorias.value.map((cat) => {
-                if(cat.conceptos){
-                    cat.conceptos.forEach((item) => {
-                        if(result.value){
-                            const match = result.value.find((element) => element.concepto_id == item.id)
-                            if(match){
-                                item.value = match.value == 1 ? [] : match.value
-                                item.no_cumple = match.value == 1 ? 0 : match.value.includes('no_cumple') ? 1 : 0;
-                                item.observaciones = match.observaciones;
-                            }
+                const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/contenedor_${recipienteSelected.value.value}/${tab.value}`
+                
+                //busca si hay resultados en firebase
+                result.value = await fetchResult({path:`${localPath}/result`});
+                
+                //si no existen respuestas previamente guardadas las crea en firebase
+                if(result.value === undefined || result.value === null && (categorias.value && categorias.value.length>0)) {
+                    const a_conceptos = [];
+                    categorias.value.map((cat) => {
+                        if(cat.conceptos){
+                            const items = cat.conceptos.map((item) => {
+                                return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:AppActiveUser.value.id,
+                                observaciones:''    
+                                }
+                            });
+                            a_conceptos.push(...items);
                         }
                     });
+                    //filtra listado de conceptos para evitar duplicados por conceptos compartidos
+                    const uniqueArray = a_conceptos.filter((item, index, self) =>
+                        index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
+                    );
+                    
+                    result.value = uniqueArray
+                    //guarda en firebase respuestas vacías
+                    await setConceptsValues({
+                        path:`servicios/${localPath}/result`,
+                        data:uniqueArray, 
+                    });
                 }
-            });
+        
+                //ejecuta sync de conceptos y observaciones
+                if(result.value != null && result.value.length && categorias.value.length){
+                    await syncConceptResult();
+                }
+        
+                //se relacionan las respuestas con los conceptos correspondientes
+                categorias.value.map((cat) => {
+                    if(cat.conceptos){
+                        cat.conceptos.forEach((item) => {
+                            if(result.value){
+                                const match = result.value.find((element) => element.concepto_id == item.id)
+                                if(match){
+                                    item.value = (match.value == 1 || !match.value) ? [] : match.value
+                                    item.no_cumple = (match.value == 1 || !match.value) ? 0 : match.value.includes('no_cumple') ? 1 : 0;
+                                    item.observaciones = match.observaciones;
+                                }
+                            }
+                        });
+                    }
+                });
+                $q.loading.hide();
+            } catch (error) {
+                $q.loading.hide();
+                console.log('Error al cargar servicio en configNom02:', error.message, error.stack);
+            }
         }
     }
 
