@@ -79,7 +79,7 @@
 </template>
 
 <script setup> 
-import { ref, toRef, onMounted, watch, defineAsyncComponent, inject } from "vue";
+import { ref, onMounted, toRef, watch, defineAsyncComponent, inject } from "vue";
 import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
@@ -87,7 +87,7 @@ import { useVisits } from 'src/composables/useVisits.js';
 // import ModalGuiaNom020 from "./ModalGuiaNom020.vue";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setContainer,showActa, visitas, recipienteSelected, recipientes, tab, categorias } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
 
 const modalGuia20 = defineAsyncComponent(() => import('src/components/admin/capturas/ModalGuiaNom020.vue'))
 
@@ -95,7 +95,7 @@ const props = defineProps({
     changeVisit: Function,
     categorias:Object
 });
-
+const categorias = toRef(props,'categorias');
 const offline = inject('statusOnLine');
 const disableSave = ref(false)
 

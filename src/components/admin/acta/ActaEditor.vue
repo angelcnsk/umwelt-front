@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import {ref, inject, toRef, onMounted} from 'vue';
+import {ref, toRef, onMounted} from 'vue';
 import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { getEditorProps } from "./editorProps";

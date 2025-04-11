@@ -58,14 +58,14 @@
 </template>
 
 <script setup>
-import {onMounted, toRef, provide, defineAsyncComponent, watch} from 'vue';
+import {onMounted, toRef, defineAsyncComponent, watch} from 'vue';
 import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import {getEditorProps} from '../acta/editorProps'
 const $q = useQuasar();
 
 const storeCapturas = useCapturas();
-const { setSelectVisitas, changeValue, saveObservaciones, configNom02, disableOptions, categorias, visitSelected, showActa } = storeCapturas;
+const { setSelectVisitas, changeValue, saveObservaciones, configNom02, disableOptions, categorias, showActa } = storeCapturas;
 
 const contentActa = defineAsyncComponent(() => import('src/components/admin/acta/ActaEditor.vue'))
 
