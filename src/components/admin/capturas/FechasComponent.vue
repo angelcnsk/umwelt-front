@@ -105,7 +105,7 @@ const dataActa = ref({});
 const { addVisitInspector } = useVisits(offline, currentService.value.id, visitSelected);
 
 watch(visitSelected, () => {
-    console.log('se cambió la visita', visitSelected.value);
+    
     fechas_visita.value = []
     if(currentService.value.product_id == 2){
         setContainer();
@@ -130,7 +130,7 @@ watch(fechas_visita, async (valor) => {
 
 const asyncSaveData = () => {
     const now = new Date();
-    console.log('fechas', fechas_visita.value);
+    
     if(!navigator.onLine){
         $q.notify({
             position:'top',

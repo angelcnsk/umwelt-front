@@ -5,8 +5,10 @@ import { useIdb } from "../composables/idb/useIdb";
 import { getCategories, getObservations, getResult, getActa, setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
 import { updateData } from './firebase/firebaseService';
 import { computed } from 'vue';
+import { useQuasar } from "quasar";
 
 export const useCapturas = () => {
+    const $q = useQuasar();
     const {AppActiveUser} = useUsers()
     const capturasStore = useCapturasStore();
     const idb = useIdb();
@@ -338,86 +340,98 @@ export const useCapturas = () => {
     }
     
     const configNom02 = async () => {
+        $q.loading.show({
+            message: 'Cargando servicio...'
+        });
         if(currentService.value.id != undefined){
-            // categorias.value = []
-            await setFechas()
-            //recupera categorías desde el catálogo
-            categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor});
-            
-            const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/result`
-            //busca si hay resultados en firebase
-            result.value = await fetchResult({path:localPath});
-            //busca observaciones
-            observaciones.value = await fetchObservations({service_id:currentService.value.id, product_id:currentService.value.product_id, visita:visitSelected.value.valor});
-            
-            //si no existen respuestas previamente guardadas las crea en firebase
-            if(result.value === undefined || result.value === null && categorias.value.length>0) {
-                const a_conceptos = [];
-                categorias.value.map((cat) => {
-                    if(cat.conceptos){
-                        const items = cat.conceptos.map((item) => {
-                            return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:AppActiveUser.value.id}
-                        });
-                        a_conceptos.push(...items);
-                    }
-                });
-                //filtra listado de conceptos para evitar duplicados por conceptos compartidos
-                const uniqueArray = a_conceptos.filter((item, index, self) =>
-                    index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
-                );
-                result.value = uniqueArray
+            try {
+                // categorias.value = []
+                await setFechas()
+                //recupera categorías desde el catálogo
+                categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor});
                 
-                //guarda en firebase respuestas vacías
-                await setConceptsValues({
-                    path:`servicios/${localPath}`,
-                    data:uniqueArray
-                });
-            }
-    
-            
-            //si no existen observaciones para las categorías
-            if(observaciones.value === undefined || observaciones.value === null && categorias.value.length>0){
-                const a_observations = categorias.value.reduce((acumulador, categoria) => {
-                    acumulador[`categoria_id_${categoria.id}`] = { texto: categoria.observaciones };
-                    return acumulador;
-                }, {});
+                const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/result`
+                //busca si hay resultados en firebase
+                result.value = await fetchResult({path:localPath});
+                //busca observaciones
+                observaciones.value = await fetchObservations({service_id:currentService.value.id, product_id:currentService.value.product_id, visita:visitSelected.value.valor});
                 
-                await saveLocalObservations({service_id:currentService.value.id, visita:visitSelected.value.valor, data:a_observations});
-                //se guarda en firebase
-                if(a_observations){
-                    categorias.value.map(async (item, index) => {
-                        const path = `servicios/${currentService.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[index].id}`
-    
-                        await updateData(path,{texto:''});
-                    })
-                    observaciones.value = a_observations;
-                }
-            }
-    
-            //ejecuta sync de conceptos y observaciones
-            if(result.value.length && observaciones.value.length && categorias.value.length){
-                await syncConceptResult();
-                await syncObservations();
-            }
-    
-            //se relacionan las respuestas con los conceptos correspondientes
-            categorias.value.map((cat) => {
-                if(observaciones.value){
-                    cat.observaciones = (Object.keys(observaciones.value).length > 0 && observaciones.value[`categoria_id_${cat.id}`])  ? observaciones.value[`categoria_id_${cat.id}`].texto : ''
-                } else cat.observaciones = ''
-                
-                if(cat.conceptos){
-                    cat.conceptos.forEach((item) => {
-                        if(result.value){
-                            const match = result.value.find((element) => element.concepto_id == item.id);
-                            if(match){
-                                item.value = match.value == 1 ? [] : match.value;
-                                item.no_cumple = match.value == 1 ? 0 : match.value.includes('no_cumple') ? 1 : 0;
-                            }
+                //si no existen respuestas previamente guardadas las crea en firebase
+                if ((result.value === undefined || result.value === null) && (categorias.value && categorias.value.length > 0)) {
+                    const a_conceptos = [];
+                    categorias.value.map((cat) => {
+                        if(cat.conceptos){
+                            const items = cat.conceptos.map((item) => {
+                                return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:AppActiveUser.value.id}
+                            });
+                            a_conceptos.push(...items);
                         }
                     });
+                    //filtra listado de conceptos para evitar duplicados por conceptos compartidos
+                    const uniqueArray = a_conceptos.filter((item, index, self) =>
+                        index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
+                    );
+                    result.value = uniqueArray
+                    
+                    //guarda en firebase respuestas vacías
+                    await setConceptsValues({
+                        path:`servicios/${localPath}`,
+                        data:uniqueArray
+                    });
                 }
-            });
+        
+                
+                //si no existen observaciones para las categorías
+                if(observaciones.value === undefined || observaciones.value === null && (categorias.value && categorias.value.length>0)){
+                    const a_observations = categorias.value.reduce((acumulador, categoria) => {
+                        acumulador[`categoria_id_${categoria.id}`] = { texto: categoria.observaciones };
+                        return acumulador;
+                    }, {});
+                    
+                    await saveLocalObservations({service_id:currentService.value.id, visita:visitSelected.value.valor, data:a_observations});
+                    //se guarda en firebase
+                    if(a_observations){
+                        await Promise.all(
+                            categorias.value.map(async (item, index) => {
+                                const path = `servicios/${currentService.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[index].id}`
+            
+                                await updateData(path,{texto:''});
+                            })
+                        )
+                        observaciones.value = a_observations;
+                    }
+                }
+        
+                //ejecuta sync de conceptos y observaciones
+                if(result.value.length && observaciones.value.length && categorias.value.length){
+                    await syncConceptResult();
+                    await syncObservations();
+                }
+        
+                //se relacionan las respuestas con los conceptos correspondientes
+                categorias.value.map((cat) => {
+                    if(observaciones.value){
+                        cat.observaciones = (Object.keys(observaciones.value).length > 0 && observaciones.value[`categoria_id_${cat.id}`])  ? observaciones.value[`categoria_id_${cat.id}`].texto : ''
+                    } else cat.observaciones = ''
+                    
+                    if(cat.conceptos){
+                        cat.conceptos.forEach((item) => {
+                            if(result.value){
+                                const match = result.value.find((element) => element.concepto_id == item.id);
+                                
+                                if(match){
+                                    item.value = (match.value == 1 || !match.value) ? [] : match.value;
+                                    item.no_cumple = (match.value == 1 || !match.value) ? 0 : match.value.includes('no_cumple') ? 1 : 0;
+                                }
+                            }
+                        });
+                    }
+                });
+                $q.loading.hide();
+            } catch (error) {
+                $q.loading.hide();
+                console.log('Error al cargar servicio en configNom02:', error.message, error.stack);
+            }
         }
     }
 
