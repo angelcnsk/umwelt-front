@@ -26,8 +26,8 @@ export default defineConfig((/* ctx */) => {
       'axios',
       'signature',
       'firebase',
-      'sentry'
-      // 'bootSw'
+      'sentry',
+      'bootSw'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -147,15 +147,15 @@ export default defineConfig((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
-      // swFilename: 'sw.js',
-      // manifestFilename: 'manifest.json',
-      // extendManifestJson (json) {},
-      // useCredentialsForManifestTag: true,
-      // injectPwaMetaTags: false,
-      // extendPWACustomSWConf (esbuildConf) {},
-      // extendGenerateSWOptions (cfg) {},
-      // extendInjectManifestOptions (cfg) {}
+      workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
+      swFilename: 'sw.js',
+      manifestFilename: 'manifest.json',
+      extendManifestJson (json) {},
+      useCredentialsForManifestTag: true,
+      injectPwaMetaTags: false,
+      extendPWACustomSWConf (esbuildConf) {},
+      extendGenerateSWOptions (cfg) {},
+      extendInjectManifestOptions (cfg) {}
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova
