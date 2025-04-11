@@ -1,5 +1,5 @@
 # Utiliza la imagen de Node.js para la etapa de construcción
-FROM node:18-alpine AS build-stage
+FROM node:20-alpine3.18 AS build-stage
 
 # Establece el directorio de trabajo
 WORKDIR /app
@@ -8,13 +8,16 @@ WORKDIR /app
 COPY package*.json ./
 COPY package-lock.json ./
 
+# 3. Instala Quasar CLI globalmente primero (opcional, también puede ir en el Dockerfile de producción si solo sirve archivos)
+RUN npm install -g @quasar/cli
+
 # Instala las dependencias de la aplicación
-RUN npm install
-RUN npm -g add @quasar/cli
+RUN npm install --ignore-scripts
 
 # Copia el resto de los archivos de la aplicación
 COPY . .
 
+RUN quasar prepare
 # Construye la aplicación Quasar en modo PWA
 RUN quasar build -m pwa
 
