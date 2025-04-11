@@ -27,8 +27,17 @@ register(process.env.SERVICE_WORKER_FILE, {
     // console.log('New content is downloading.')
   },
 
-  updated (/* registration */) {
+  updated (registration) {
     // console.log('New content is available; please refresh.')
+    console.log('✅ Nueva versión lista para ser usada')
+
+    // Forzar activación inmediata del nuevo SW
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+
+      // Opcional: recargar automáticamente
+      window.location.reload()
+    }
   },
 
   offline () {
