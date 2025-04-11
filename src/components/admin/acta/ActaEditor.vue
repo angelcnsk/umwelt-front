@@ -23,14 +23,14 @@ import { getEditorProps } from "./editorProps";
 const $q = useQuasar();
 
 const storeCapturas = useCapturas();
-const {fetchActa, saveActa,textoActa} = storeCapturas;
+const {fetchActa, saveActa, textoActa, visitSelected} = storeCapturas;
 
 const props = defineProps({
     service: Object,
     categorias: Object,
 });
 
-const visita = inject('currentVisit');
+const visita = visitSelected;
 const service = toRef(props,'service');
 const categorias = toRef(props,'categorias');
 
@@ -124,6 +124,7 @@ const extraFn = ref({
 })
 
 onMounted(async() => {
+    console.log('onMounted acta', visita.value)
     textoActa.value = await fetchActa({service_id:service.value.id, visita:visita.value.valor})
     textoActa.value = textoActa.value == null ? '' : textoActa.value
 })

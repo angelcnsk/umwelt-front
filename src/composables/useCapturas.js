@@ -183,6 +183,7 @@ export const useCapturas = () => {
                 })
             // visita++
         }
+        visitSelected.value = visitas.value[0];   
     }
 
     const setFechas = async () => {
@@ -353,6 +354,7 @@ export const useCapturas = () => {
                 // categorias.value = []
                 await setFechas()
                 //recupera categorías desde el catálogo
+                console.log('visitSelected.value__', visitSelected.value)
                 categorias.value = await fetchCategories({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor});
                 
                 const localPath = `${currentService.value.id}/visita_${visitSelected.value.valor}/result`

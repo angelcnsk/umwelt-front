@@ -87,7 +87,7 @@ import { useVisits } from 'src/composables/useVisits.js';
 // import ModalGuiaNom020 from "./ModalGuiaNom020.vue";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setContainer,showActa, visitas, recipienteSelected, recipientes, tab, categorias } = storeCapturas;
 
 const modalGuia20 = defineAsyncComponent(() => import('src/components/admin/capturas/ModalGuiaNom020.vue'))
 
@@ -98,15 +98,15 @@ const props = defineProps({
 
 const offline = inject('statusOnLine');
 const disableSave = ref(false)
-const categorias = toRef(props,'categorias');
+
 const showGuia020 = ref(false);
 const dataActa = ref({});
 
 const { addVisitInspector } = useVisits(offline, currentService.value.id, visitSelected);
 
 watch(visitSelected, () => {
-    
-    fechas_visita.value = []
+    console.log('cambia visita seleccionada?', visitSelected.value);
+    // fechas_visita.value = []
     if(currentService.value.product_id == 2){
         setContainer();
     } else {
@@ -414,7 +414,10 @@ watch(currentService.value.fechas, async () => {
 },{deep:true});
 
 onMounted(async() => {
+    console.log('visitselected', visitSelected.value);
+    console.log('visitas', visitas.value);
     visitSelected.value = visitas.value[0];
+    props.changeVisit();
     // await setFechas();
 });
 

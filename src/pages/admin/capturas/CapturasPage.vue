@@ -118,7 +118,7 @@ const online = inject('statusOnLine');
 
 watch(serviceSelected, async () => {
     if (serviceSelected.value !== null) {
-        currentService.value = serviceSelected.value
+        currentService.value = serviceSelected.value;
         tab.value = currentService.value.product_id == 1 ? 'inspeccion' : 'guia22'
     }
 });

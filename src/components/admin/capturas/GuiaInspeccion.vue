@@ -79,19 +79,18 @@ const props = defineProps({
 
 const service = toRef(props,'service')
 
-provide('currentVisit', visitSelected);
-watch(service, () => {
+watch(service, async () => {
     if (service.value != undefined) {
-        visitSelected.value = [];
+        setSelectVisitas();
     }
-}, { immediate: true })
+})
 
 const getActa = () => {
     showActa.value = false    
 }
 
 onMounted( async () => {
-    setSelectVisitas()
+    setSelectVisitas();
 })
 
 </script>
