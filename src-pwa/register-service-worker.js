@@ -1,6 +1,7 @@
 import { register } from 'register-service-worker'
 import { Notify } from "quasar";
 
+let waitingServiceWorker = null
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
 // ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
@@ -31,9 +32,10 @@ register(process.env.SERVICE_WORKER_FILE, {
   updated (registration) {
     // console.log('New content is available; please refresh.')
     console.log('✅ Nueva versión lista para ser usada')
+    waitingServiceWorker = registration.waiting
 
     // Forzar activación inmediata del nuevo SW
-    if (registration.waiting) {
+    if (waitingServiceWorker) {
       Notify.create({
         message: 'Hay una nueva versión disponible.',
         color: 'primary',
@@ -44,14 +46,14 @@ register(process.env.SERVICE_WORKER_FILE, {
             color: 'white',
             handler: () => {
               // Esperar a que se active el nuevo SW y luego recargar
-              registration.waiting.addEventListener('statechange', (event) => {
+              waitingServiceWorker.addEventListener('statechange', (event) => {
                 if (event.target.state === 'activated') {
                   window.location.reload()
                 }
               })
 
               // Forzar que el nuevo SW se active
-              registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+              waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' })
             }
           },
           {
