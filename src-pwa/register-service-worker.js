@@ -1,4 +1,5 @@
 import { register } from 'register-service-worker'
+import { Notify } from "quasar";
 
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
@@ -33,14 +34,32 @@ register(process.env.SERVICE_WORKER_FILE, {
 
     // Forzar activación inmediata del nuevo SW
     if (registration.waiting) {
-      registration.waiting.addEventListener('statechange', (event) => {
-        if (event.target.state === 'activated') {
-          console.log('✅ Nuevo SW activado, recargando...')
-          window.location.reload()
-        }
+      Notify.create({
+        message: 'Hay una nueva versión disponible.',
+        color: 'primary',
+        timeout: 0, // permanece hasta que el usuario interactúe
+        actions: [
+          {
+            label: 'Actualizar',
+            color: 'white',
+            handler: () => {
+              // Esperar a que se active el nuevo SW y luego recargar
+              registration.waiting.addEventListener('statechange', (event) => {
+                if (event.target.state === 'activated') {
+                  window.location.reload()
+                }
+              })
+
+              // Forzar que el nuevo SW se active
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+            }
+          },
+          {
+            label: 'Ignorar',
+            color: 'white'
+          }
+        ]
       })
-       // Mandar mensaje al SW para forzar activación
-       registration.waiting.postMessage({ type: 'SKIP_WAITING' })
     }
   },
 

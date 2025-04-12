@@ -82,3 +82,11 @@ registerRoute(
     { denylist: [/sw\.js$/, /workbox-(.)*\.js$/] }
   )
 );
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then(clients => {
+      clients.forEach(client => client.navigate(client.url))
+    })
+  )
+})
