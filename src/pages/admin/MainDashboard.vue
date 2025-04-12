@@ -5,14 +5,6 @@
             <q-card>
               <q-card-section>
                 Notificaciones
-                <q-circular-progress
-            size="100"
-            :thickness="parseInt(1)"
-            color="primary"
-            class="q-mt-md"
-            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
-            :indeterminate="true"
-          />
               </q-card-section>
               <q-separator  inset />
               <q-card-section ripple>
