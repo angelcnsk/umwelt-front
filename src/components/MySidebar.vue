@@ -10,19 +10,21 @@
     <q-scroll-area class="fit">
       <q-list>
         <q-item clickable @click="toggleMini" class="q-pt-md q-pb-md">
-          <q-item-section avatar>
-            <q-icon name="menu" />
+          <q-item-section avatar v-if="miniState">
+            <q-avatar square size="25px">
+                <img :src="collapse" />
+            </q-avatar>
           </q-item-section>
           <q-item-section v-if="!miniState">
-            <q-item-label>Collapse</q-item-label>
+            <q-item-label><q-img :src="logo" width="150px" /></q-item-label>
           </q-item-section>
         </q-item>
 
         <q-separator spaced />
 
-        <q-item-label header class="q-ml-md" v-if="!miniState">
+        <!-- <q-item-label header class="q-ml-md" v-if="!miniState">
           Navigation
-        </q-item-label>
+        </q-item-label> -->
 
         <q-item
           v-for="link in links"
@@ -48,6 +50,8 @@
 
 <script setup>
 import { ref } from 'vue'
+import logo from 'src/assets/images/logo-umwelt.png';
+import collapse from 'src/assets/images/icon-menu.png';
 
 const drawerOpen = ref(true)
 const miniState = ref(false)
