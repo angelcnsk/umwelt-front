@@ -1,113 +1,61 @@
 <template>
-  <q-layout view="hHr LpR lFr">
-    <q-header elevated class="bg-white text-dark">
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          @click="toggleLeftDrawer"
-          icon="menu"
-          aria-label="Menu"
-          color="orange"
+  <q-layout view="lHh Lpr lFf">
+    <!-- Header -->
+    <q-header elevated class="bg-white text-black q-px-md q-pt-sm q-pb-sm">
+    <q-toolbar class="q-px-md">
+
+      <!-- Botón menú -->
+      <q-btn flat dense round icon="menu" @click="drawerOpen = !drawerOpen" class="q-mr-md" />
+
+      <!-- Search bar -->
+      <div class="row items-center bg-grey-2 q-px-md q-py-xs rounded-borders" style="flex: 1; max-width: 500px;">
+        <q-icon name="search" class="q-mr-sm" />
+        <q-input 
+          dense 
+          borderless 
+          placeholder="Search"
+          v-model="search"
         />
-        <q-toolbar-title class="text-primary">
-          <span class="text-bold">Umwelt</span>
-        </q-toolbar-title>
-        <q-space/>
-        <div class="q-gutter-sm row items-center no-wrap">
-          <q-icon name="wifi_off" color="red" size="md" v-if="!online">
-            <q-tooltip max-width="200px" self="top middle" class="bg-red" >
-              Sin conexión a internet, funcionalidad limitada
-            </q-tooltip>
-          </q-icon>
-          <q-btn round dense flat color="primary" icon="notifications">
-            <q-badge color="red" text-color="white" floating>
-              {{notifications.unread}}
-            </q-badge>
-            <q-menu
-            >
-              <q-list style="min-width: 100px">
-                <q-item clickable 
-                  v-ripple 
-                  v-for="(notify, i) in notifications.items" 
-                  :key="i"
-                  @click="viewNotify(notify)"
-                >
-                  <q-item-section>
-                    <div>
-                      <q-badge color="red-5" v-if="!notify.view">No leído</q-badge>
-                      <q-badge color="green-3" v-else>Leído</q-badge>
-                    </div>
-                    <div class="q-pa-sm ">
-                      {{notify.notify}}
-                    </div>
-                    
-                  </q-item-section>
-                </q-item>
-                <q-card class="text-center no-shadow no-border">
-                  <q-btn label="View All" style="max-width: 120px !important;" flat dense
-                         class="text-indigo-8"></q-btn>
-                </q-card>
-              </q-list>
-            </q-menu>
-          </q-btn>
-          
-        </div>
-      </q-toolbar>
-    </q-header>
-
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      elevated
-      color="primary"
-      class=" text-grey-8"
-    >
-
-      <div class="row justify-center q-mt-md">
-        <q-btn round flat>
-            <q-avatar size="56px" @click="$router.push('/admin/profile')">
-              <!-- <img src="https://cdn.quasar.dev/img/boy-avatar.png"> -->
-              <img :src="AppActiveUser.avatar" v-if="AppActiveUser.avatar != null">
-              <img v-else :src="incognit" >
-            </q-avatar>
-            <q-menu class="text-green text-center"
-            >
-            </q-menu>
-          </q-btn>
       </div>
-      <div class="row justify-center q-mt-sm">
-        <p>{{ AppActiveUser.email }}</p>
-      </div>
-      <div class="row justify-center">
-        <p class="text-caption text-primary">{{ AppActiveUser.role }}</p>
-      </div>
-      <q-list >
-        <q-expansion-item v-for="(menu,index) in menus" :key="index" :icon="menu.icon" :label="menu.title" class="q-pa-sm" >
-          <q-list v-for="(item, i) in menu.children" :key="i"  class="q-pl-lg">
-            <q-item :to="item.route" active-class="q-item-no-link-highlighting">
-            <q-item-section avatar>
-              <q-icon name="arrow_right"/>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ item.title }}</q-item-label>
-            </q-item-section>
-          </q-item>
-          </q-list>
-        </q-expansion-item>
-        <q-item to="/logout" active-class="q-item-no-link-highlighting" class="q-pa-sm">
-            <q-item-section avatar class="q-pa-md">
-              <q-icon name="logout" :class="{'text-primary': darkMode, 'text-dark':!darkMode}" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Cerrar sesión</q-item-label>
-            </q-item-section>
-          </q-item>
-      </q-list>
-    </q-drawer>
 
-    <q-page-container :class="{'bg-grey-5': darkMode, '':!darkMode}">
+      <q-space />
+
+      <!-- Botones lado derecho -->
+      <div class="row items-center q-gutter-md">
+
+        <!-- Modo Claro/Oscuro -->
+        <q-btn flat round dense icon="light_mode" />
+
+        <!-- Cambiar idioma -->
+        <q-btn flat round dense>
+          <q-icon name="translate" color="indigo-7" />
+        </q-btn>
+
+        <!-- Grid de apps -->
+        <q-btn flat round dense icon="grid_view" />
+
+        <!-- Notificaciones con badge -->
+        <q-btn flat round dense icon="notifications">
+          <q-badge color="red" floating>2</q-badge>
+        </q-btn>
+
+        <!-- Avatar usuario -->
+        <q-avatar size="32px">
+          <img src="https://randomuser.me/api/portraits/women/1.jpg" />
+          <!-- Online green dot -->
+          <q-badge color="green" rounded floating />
+        </q-avatar>
+
+      </div>
+
+    </q-toolbar>
+  </q-header>
+
+    <!-- Sidebar -->
+    <my-sidebar v-model="drawerOpen" />
+
+    <!-- Contenido principal -->
+    <q-page-container>
       <router-view />
     </q-page-container>
   </q-layout>
@@ -118,9 +66,10 @@ import { useQuasar } from 'quasar'
 
 import { ref, onMounted, provide } from 'vue'
 import { useUsers } from 'src/composables/useUsers.js'
-import { getNotify, setNotifyView } from 'src/composables/firebase/notificaciones'
+import { getNotify } from 'src/composables/firebase/notificaciones';
+import MySidebar from 'components/MySidebar.vue';
 
-const leftDrawerOpen = ref(false)
+const drawerOpen = ref(false)
 const $q = useQuasar()
 const $store = useUsers();
 const {fetchUser, menus, AppActiveUser} = $store
@@ -148,13 +97,13 @@ if(darkMode.value != null){
 //   $q.dark.set(darkMode.value)
 // }
 
-const toggleLeftDrawer = () => {
-  leftDrawerOpen.value = !leftDrawerOpen.value
-}
+// const toggleLeftDrawer = () => {
+//   leftDrawerOpen.value = !leftDrawerOpen.value
+// }
 
-const viewNotify = async (item) => {
-  setNotifyView(item)
-}
+// const viewNotify = async (item) => {
+//   setNotifyView(item)
+// }
 
 const online = ref(navigator.onLine) // con internet true sin internet false
 
@@ -187,3 +136,9 @@ onMounted(async() => {
 
 
 </script>
+
+<style scoped>
+.rounded-borders {
+  border-radius: 10px;
+}
+</style>

@@ -8,3 +8,17 @@
 .d-inline{
     display:inline-block
 }
+
+.q-item {
+    border-radius: 8px;
+    margin: 4px 8px;
+    padding: 8px 12px;
+}
+  
+.q-item--active {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+  
+.q-drawer {
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
