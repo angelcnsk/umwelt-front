@@ -1,11 +1,15 @@
 <template>
-  <q-layout view="lHh lpR lFf" class="bg-grey-2 q-pa-sm">
+  <q-layout view="lHh lpR lFf" class="q-pa-sm"
+    :class="{'bg-white': !$q.dark.isActive, 'bg-grey-2': $q.dark.isActive}"
+  >
     <!-- Header -->
-    <q-header  class="bg-grey-2 text-black q-px-lg  q-mt-md q-mb-md">
-      
-    <q-toolbar elevated class="q-px-md q-pa-sm rounded-borders" 
-      :class="{'bg-white': !$q.dark.isActive, 'bg-grey-9': $q.dark.isActive}"
+    <q-header  class="text-black q-px-lg  q-mt-md q-mb-md"
+      :class="{'bg-white': !$q.dark.isActive, 'bg-grey-2': $q.dark.isActive}"
     >
+      <q-card>
+        <q-toolbar elevated class="q-px-md q-pa-sm rounded-borders" 
+          :class="{'bg-white': !$q.dark.isActive, 'bg-grey-9': $q.dark.isActive}"
+        >
 
       <!-- Botón menú -->
       <q-btn flat dense round color="grey-5" icon="menu" @click="drawerOpen = !drawerOpen" class="q-mr-md" />
@@ -52,8 +56,10 @@
 
       </div>
 
-    </q-toolbar>
-  </q-header>
+    </q-toolbar>  
+      </q-card>  
+    
+    </q-header>
 
     <!-- Sidebar -->
     <my-sidebar v-model="drawerOpen" :menus="menus" />

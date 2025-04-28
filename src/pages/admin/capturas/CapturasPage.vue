@@ -16,7 +16,8 @@
         :class="$q.dark.isActive ? 'q-dark' : 'q-light'"
         v-if="Object.entries(currentService).length==0"
     >
-        <div class="q-pa-md">
+        <q-card>
+            <div class="q-pa-md">
             <q-item style="max-width: 300px">
             <q-item-section avatar>
                 <q-skeleton type="QAvatar" />
@@ -62,6 +63,7 @@
             </q-item-section>
             </q-item>
         </div>
+        </q-card>
     </div>
     <div v-else>
         <q-tabs
