@@ -3,7 +3,9 @@
     <!-- Header -->
     <q-header  class="bg-grey-2 text-black q-px-lg  q-mt-md q-mb-md">
       
-    <q-toolbar elevated class="bg-white q-px-md q-pa-sm rounded-borders">
+    <q-toolbar elevated class="q-px-md q-pa-sm rounded-borders" 
+      :class="{'bg-white': !$q.dark.isActive, 'bg-grey-9': $q.dark.isActive}"
+    >
 
       <!-- Botón menú -->
       <q-btn flat dense round color="grey-5" icon="menu" @click="drawerOpen = !drawerOpen" class="q-mr-md" />
@@ -26,18 +28,18 @@
       <div class="row items-center q-gutter-md">
 
         <!-- Modo Claro/Oscuro -->
-        <q-btn flat round dense icon="light_mode" />
+        <q-btn flat round dense :icon="Dark.isActive ? 'light_mode' : 'dark_mode'" :color="Dark.isActive ? 'white' : 'indigo-7' " @click="toggleDarkMode" />
 
         <!-- Cambiar idioma -->
-        <q-btn flat round dense>
+        <!-- <q-btn flat round dense>
           <q-icon name="translate" color="indigo-7" />
-        </q-btn>
+        </q-btn> -->
 
         <!-- Grid de apps -->
-        <q-btn flat round dense icon="grid_view" />
+        <!-- <q-btn flat round dense icon="grid_view" /> -->
 
         <!-- Notificaciones con badge -->
-        <q-btn flat round dense icon="notifications">
+        <q-btn flat round dense icon="notifications" color="primary">
           <q-badge color="red" floating>2</q-badge>
         </q-btn>
 
@@ -64,7 +66,7 @@
 </template>
 
 <script setup>
-import { useQuasar } from 'quasar'
+import { useQuasar, Dark } from 'quasar'
 
 import { ref, onMounted, provide } from 'vue'
 import { useUsers } from 'src/composables/useUsers.js'
@@ -85,23 +87,15 @@ const user = JSON.parse(localStorage.getItem('userInfo'))
 // const search = ref('')
 $q.dark.set(false)
 
-// console.log($q.dark)
+
 if(darkMode.value != null){
   icon.value = darkMode.value ? 'sunny' : 'bedtime'
   $q.dark.set(darkMode.value)
 }
-// console.log($q.dark)
-// calling here; equivalent to when component is created
-// const setDarkMode = () => {
-//   darkMode.value = !darkMode.value
-//   icon.value = darkMode.value ? 'sunny' : 'bedtime'
-//   localStorage.setItem('darkMode', darkMode.value)
-//   $q.dark.set(darkMode.value)
-// }
-
-// const toggleLeftDrawer = () => {
-//   leftDrawerOpen.value = !leftDrawerOpen.value
-// }
+function toggleDarkMode() {
+  Dark.toggle();
+  localStorage.setItem('darkMode', Dark.isActive ? 'true' : 'false')
+}
 
 // const viewNotify = async (item) => {
 //   setNotifyView(item)
@@ -114,6 +108,11 @@ provide('currentUser', AppActiveUser)
 provide('incognit', incognit)
 
 onMounted(async() => {
+  const savedDarkMode = localStorage.getItem('darkMode')
+  if (savedDarkMode !== null) {
+    Dark.set(savedDarkMode === 'true')
+  }
+
   window.addEventListener('offline',() => {
     online.value = navigator.onLine;
     console.log('desconectado')

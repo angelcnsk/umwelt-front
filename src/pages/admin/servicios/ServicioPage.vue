@@ -7,7 +7,7 @@
             <q-breadcrumbs-el label="Servicio" icon="file_open" />        
         </q-breadcrumbs>
     </div>
-    <div class="q-pa-md">
+    <div class="q-pa-md" :class="$q.dark.isActive ? 'q-dark' : 'q-light'">
         <q-card rounded class="q-mb-md">
             <q-card-section>
                 <div class="col">

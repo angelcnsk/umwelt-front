@@ -5,7 +5,8 @@
     side="left"
     bordered
     :mini="miniState"
-    class="bg-white text-primary"
+    class="text-primary"
+    :class="$q.dark.isActive ? 'q-dark' : 'q-light'"
   >
     <q-scroll-area class="fit">
       <q-list>
@@ -21,8 +22,7 @@
         </q-item>
 
         <q-separator spaced />
-
-|    
+    
         <q-expansion-item
           v-for="(link,index) in links"
           :key="index"

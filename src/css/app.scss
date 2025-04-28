@@ -1,4 +1,11 @@
 /* app global css */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+body, .q-page, .q-layout, .q-header, .q-drawer {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .modal__medium{
     min-width: 78%;
     height: 100vh;

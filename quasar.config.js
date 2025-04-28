@@ -88,6 +88,7 @@ export default defineConfig((/* ctx */) => {
       config: {
         'Notify':{},
         'loading': {},
+        'dark': 'auto'
       },
       plugins: [
         'Notify',

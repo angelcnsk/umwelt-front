@@ -1,5 +1,6 @@
 <template>
-<q-page class="q-pa-sm">
+<q-page class="q-mt-md">
+
 <div class="q-pa-md">
     <q-card rounded class="q-mb-md">
         <q-card-section>
@@ -11,7 +12,10 @@
         </q-card-section>
     </q-card>
     
-    <div class="q-mt-md" v-if="Object.entries(currentService).length==0">
+    <div class="q-mt-md"
+        :class="$q.dark.isActive ? 'q-dark' : 'q-light'"
+        v-if="Object.entries(currentService).length==0"
+    >
         <div class="q-pa-md">
             <q-item style="max-width: 300px">
             <q-item-section avatar>
