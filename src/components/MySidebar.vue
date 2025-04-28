@@ -15,73 +15,102 @@
                 <img :src="collapse" />
             </q-avatar>
           </q-item-section>
-          <q-item-section v-if="!miniState">
+          <q-item-section v-if="!miniState" class="flex flex-center">
             <q-item-label><q-img :src="logo" width="150px" /></q-item-label>
           </q-item-section>
         </q-item>
 
         <q-separator spaced />
 
-        <!-- <q-item-label header class="q-ml-md" v-if="!miniState">
-          Navigation
-        </q-item-label> -->
-
-        <q-item
-          v-for="link in links"
-          :key="link.label"
-          clickable
-          v-ripple
-          :active="link.label === current"
-          active-class="bg-primary text-white"
-          @click="setActive(link.label)"
+|    
+        <q-expansion-item
+          v-for="(link,index) in links"
+          :key="index"
+          @click="setActive(index)"
+          
+          :icon="link.icon"
+          class="item-expansion-menu text-grey-8" 
+          :label="link.title"
+          :model-value="current === index"
         >
-          <q-item-section avatar>
-            <q-icon :name="link.icon" />
-          </q-item-section>
-
-          <q-item-section v-if="!miniState">
-            <q-item-label>{{ link.label }}</q-item-label>
-          </q-item-section>
-        </q-item>
+            <q-list v-for="(item, i) in link.children" 
+                :key="i"  
+                class="q-pl-md"
+            >
+                <q-item :to="item.route"
+                    clickable
+                    v-ripple="{ early: true }"
+                    :class="[
+                        'q-item-no-link-highlighting',
+                        route.path === item.route ? 'bg-selected text-white' : ''
+                    ]"
+                >
+                    <q-item-section avatar>
+                        <div class="row items-center q-gutter-sm">
+                            <q-icon color="grey-8" size="12px"  name="
+                                radio_button_unchecked"/>
+                            <q-item-label>{{ item.title }}</q-item-label>
+                        </div>
+                    </q-item-section>
+                </q-item>
+            </q-list>
+        </q-expansion-item>
       </q-list>
     </q-scroll-area>
   </q-drawer>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref, toRef, watch } from 'vue'
 import logo from 'src/assets/images/logo-umwelt.png';
 import collapse from 'src/assets/images/icon-menu.png';
+import { useRoute } from 'vue-router'
 
-const drawerOpen = ref(true)
-const miniState = ref(false)
-const current = ref('Home')
+const props = defineProps({
+    menus: Object,
+});
 
-const links = [
-  { label: 'Home', icon: 'home' },
-  { label: 'Customers', icon: 'groups' },
-  { label: 'Library', icon: 'photo_library' },
-  { label: 'Settings', icon: 'settings' },
-  { label: 'Calendar', icon: 'event' },
-  { label: 'Cards', icon: 'credit_card' },
-  { label: 'Charts', icon: 'bar_chart' },
-  { label: 'Login', icon: 'login' },
-  { label: 'Profile', icon: 'person' },
-  { label: 'Dashboard 1', icon: 'dashboard' },
-  { label: 'Recent Orders', icon: 'shopping_cart' }
-]
+const items = toRef(props, 'menus');
+const drawerOpen = ref(true);
+const miniState = ref(false);
+const current = ref(null);
+const links = computed(() => items.value);
+const route = useRoute() // Saber la ruta actual
+const basePath = computed(() => {
+  const fullPath = route.fullPath
+  const parts = fullPath.split('/').filter(p => p) // Quita strings vacíos
+  if (parts.length >= 2) {
+    return `/${parts[0]}/${parts[1]}`
+  }
+  return fullPath
+})
 
-function setActive(label) {
-  current.value = label
+function setActive(index) {
+  current.value = current.value === index ? null : index
 }
+
+watch(links, () => {
+    for (let i = 0; i < links.value.length; i++) {
+        const link = links.value[i]
+        
+        if (link.children && link.children.some(child => child.route === basePath.value)) {
+            current.value = i
+            return i // el índice del menú que se va a expandir
+        }
+    }
+}); 
 
 function toggleMini() {
   miniState.value = !miniState.value
 }
+
 </script>
 
 <style scoped>
 .q-drawer {
   width: 260px;
+}
+.bg-selected {
+  background: linear-gradient(90deg,rgba(147, 180, 58, 1) 0%, rgba(253, 134, 29, 1) 0%, rgba(252, 176, 69, 1) 100%);
 }
 </style>

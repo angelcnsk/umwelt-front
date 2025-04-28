@@ -1,22 +1,24 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh lpR lFf" class="bg-grey-2 q-pa-sm">
     <!-- Header -->
-    <q-header elevated class="bg-white text-black q-px-md q-pt-sm q-pb-sm">
-    <q-toolbar class="q-px-md">
+    <q-header  class="bg-grey-2 text-black q-px-lg  q-mt-md q-mb-md">
+      
+    <q-toolbar elevated class="bg-white q-px-md q-pa-sm rounded-borders">
 
       <!-- Botón menú -->
-      <q-btn flat dense round icon="menu" @click="drawerOpen = !drawerOpen" class="q-mr-md" />
+      <q-btn flat dense round color="grey-5" icon="menu" @click="drawerOpen = !drawerOpen" class="q-mr-md" />
 
       <!-- Search bar -->
-      <div class="row items-center bg-grey-2 q-px-md q-py-xs rounded-borders" style="flex: 1; max-width: 500px;">
+      <!-- <div class="row items-center bg-grey-2 q-px-md q-py-xs rounded-borders" style="flex: 1; max-width: 500px;">
         <q-icon name="search" class="q-mr-sm" />
         <q-input 
           dense 
           borderless 
-          placeholder="Search"
+          placeholder="Buscar..."
           v-model="search"
+          style="flex: 1;"
         />
-      </div>
+      </div> -->
 
       <q-space />
 
@@ -52,7 +54,7 @@
   </q-header>
 
     <!-- Sidebar -->
-    <my-sidebar v-model="drawerOpen" />
+    <my-sidebar v-model="drawerOpen" :menus="menus" />
 
     <!-- Contenido principal -->
     <q-page-container>
@@ -80,7 +82,7 @@ const notifications = ref([])
 const icon = ref('')
 const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
 const user = JSON.parse(localStorage.getItem('userInfo'))
-
+// const search = ref('')
 $q.dark.set(false)
 
 // console.log($q.dark)
@@ -131,7 +133,7 @@ onMounted(async() => {
     AppActiveUser.value = user
     menus.value = AppActiveUser.value.menus
   }
-  
+  console.log('AppActiveUser', menus.value)
 })
 
 
