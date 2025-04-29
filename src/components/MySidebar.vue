@@ -1,4 +1,5 @@
 <template>
+
   <q-drawer
     show-if-above
     v-model="drawerOpen"
@@ -8,19 +9,21 @@
     class="text-primary"
     :class="$q.dark.isActive ? 'q-dark' : 'q-light'"
   >
+    <div id="mainLogo">
+      <q-item clickable @click="toggleMini" class="q-pt-md q-pb-md">
+        <q-item-section avatar v-if="miniState">
+          <q-avatar square size="25px">
+              <img :src="collapse" />
+          </q-avatar>
+        </q-item-section>
+        <q-item-section v-if="!miniState" class="flex flex-center">
+          <q-item-label><q-img :src="logo" width="150px" /></q-item-label>
+        </q-item-section>
+        </q-item>
+    </div>
+
     <q-scroll-area class="fit">
       <q-list>
-        <q-item clickable @click="toggleMini" class="q-pt-md q-pb-md">
-          <q-item-section avatar v-if="miniState">
-            <q-avatar square size="25px">
-                <img :src="collapse" />
-            </q-avatar>
-          </q-item-section>
-          <q-item-section v-if="!miniState" class="flex flex-center">
-            <q-item-label><q-img :src="logo" width="150px" /></q-item-label>
-          </q-item-section>
-        </q-item>
-
         <q-separator spaced />
     
         <q-expansion-item
@@ -61,7 +64,7 @@
 </template>
 
 <script setup>
-import { computed, ref, toRef, watch } from 'vue'
+import { computed, onMounted, ref, toRef, watch } from 'vue'
 import logo from 'src/assets/images/logo-umwelt.png';
 import collapse from 'src/assets/images/icon-menu.png';
 import { useRoute } from 'vue-router'
@@ -104,6 +107,13 @@ function toggleMini() {
   miniState.value = !miniState.value
 }
 
+onMounted(() => {
+  const drawer = document.querySelector('aside.q-drawer.q-drawer--left');
+  if(drawer){
+    drawer.classList.add('fixed');
+  }
+})
+
 </script>
 
 <style scoped>
@@ -112,5 +122,8 @@ function toggleMini() {
 }
 .bg-selected {
   background: linear-gradient(90deg,rgba(147, 180, 58, 1) 0%, rgba(253, 134, 29, 1) 0%, rgba(252, 176, 69, 1) 100%);
+}
+aside.q-drawer.q-drawer--left.q-drawer--bordered.q-drawer--dark.q-dark.q-drawer--standard.q-drawer--top-padding{
+  position: fixed !important;
 }
 </style>

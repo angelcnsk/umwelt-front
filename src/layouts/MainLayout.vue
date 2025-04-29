@@ -1,11 +1,9 @@
 <template>
   <q-layout view="lHh lpR lFf" class="q-pa-sm"
-    :class="{'bg-white': !$q.dark.isActive, 'bg-grey-2': $q.dark.isActive}"
+    :class="{'bg-white': !$q.dark.isActive, 'bg-grey-10': $q.dark.isActive}"
   >
     <!-- Header -->
-    <q-header  class="text-black q-px-lg  q-mt-md q-mb-md"
-      :class="{'bg-white': !$q.dark.isActive, 'bg-grey-2': $q.dark.isActive}"
-    >
+    <q-header  class="text-black q-px-lg  q-mt-md q-mb-md bg-transparent">
       <q-card>
         <q-toolbar elevated class="q-px-md q-pa-sm rounded-borders" 
           :class="{'bg-white': !$q.dark.isActive, 'bg-grey-9': $q.dark.isActive}"
