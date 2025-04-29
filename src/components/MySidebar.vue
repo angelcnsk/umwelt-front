@@ -5,12 +5,15 @@
     v-model="drawerOpen"
     side="left"
     bordered
+    :breakpoint="400"
     :mini="miniState"
+    @mouseenter="miniState = false"
+    @mouseleave="miniState = true"
     class="text-primary"
     :class="$q.dark.isActive ? 'q-dark' : 'q-light'"
   >
     <div id="mainLogo">
-      <q-item clickable @click="toggleMini" class="q-pt-md q-pb-md">
+      <q-item clickable @click="$router.push({name:'index-admin'})" class="q-pt-md q-pb-md">
         <q-item-section avatar v-if="miniState">
           <q-avatar square size="25px">
               <img :src="collapse" />
@@ -22,7 +25,7 @@
         </q-item>
     </div>
 
-    <q-scroll-area class="fit">
+    <q-scroll-area style="height: calc(100% - 150px);">
       <q-list>
         <q-separator spaced />
     
@@ -75,7 +78,7 @@ const props = defineProps({
 
 const items = toRef(props, 'menus');
 const drawerOpen = ref(true);
-const miniState = ref(false);
+const miniState = ref(true);
 const current = ref(null);
 const links = computed(() => items.value);
 const route = useRoute() // Saber la ruta actual
@@ -102,10 +105,6 @@ watch(links, () => {
         }
     }
 }); 
-
-function toggleMini() {
-  miniState.value = !miniState.value
-}
 
 onMounted(() => {
   const drawer = document.querySelector('aside.q-drawer.q-drawer--left');
