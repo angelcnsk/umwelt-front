@@ -522,13 +522,16 @@ export const useCapturas = () => {
 
     const setContainer = async () => {
         recipientes.value = [];
-        recipienteSelected.value = null
-        const filter = serviceSelected.value.recipientes.filter((item) => item.visita_id === visitSelected.value.id );
+        recipienteSelected.value = null;
+        
+        if(visitSelected.value != undefined){
+            const filter = serviceSelected.value.recipientes.filter((item) => item.visita_id === visitSelected.value.id );
 
-        recipientes.value = filter.map((item) => ({
-            value: item.id,
-            texto: item.name
-        }));
+            recipientes.value = filter.map((item) => ({
+                value: item.id,
+                texto: item.name
+            }));
+        }
     }
 
     return {

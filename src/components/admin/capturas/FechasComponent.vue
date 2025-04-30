@@ -87,7 +87,7 @@ import { useVisits } from 'src/composables/useVisits.js';
 // import ModalGuiaNom020 from "./ModalGuiaNom020.vue";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates,showActa, visitas, recipienteSelected, recipientes, tab, setContainer } = storeCapturas;
 
 const modalGuia20 = defineAsyncComponent(() => import('src/components/admin/capturas/ModalGuiaNom020.vue'))
 
@@ -107,12 +107,12 @@ const { addVisitInspector } = useVisits(offline, currentService.value.id, visitS
 watch(visitSelected, () => {
     console.log('cambia visita seleccionada?', visitSelected.value);
     // fechas_visita.value = []
-    if(currentService.value.product_id == 2){
-        setContainer();
-    } else {
-        props.changeVisit();
-        console.log('visitSelected', visitSelected.value);
-    }
+    // if(currentService.value.product_id == 2){
+    //     setContainer();
+    // } else {
+    //     props.changeVisit();
+    //     console.log('visitSelected', visitSelected.value);
+    // }
 });
 
 watch(recipienteSelected,() => {
@@ -409,15 +409,22 @@ const saveDate = async () => {
     await saveDates(props)
 }
 
-watch(currentService.value.fechas, async () => {
-    console.log('currentService', currentService.value);
-},{deep:true});
+// watch(currentService.value.fechas, async () => {
+//     if(currentService.value.product_id == 2){
+//         setContainer(); console.log('recipientes',recipientes.value);
+//     }
+// },{deep:true});
 
 onMounted(async() => {
     console.log('visitselected', visitSelected.value);
     console.log('visitas', visitas.value);
     visitSelected.value = visitas.value[0];
-    props.changeVisit();
+    if(currentService.value.product_id == 2){
+        setContainer(); console.log('recipientes',recipientes.value);
+    } else {
+        props.changeVisit();
+    }
+    
     // await setFechas();
 });
 
