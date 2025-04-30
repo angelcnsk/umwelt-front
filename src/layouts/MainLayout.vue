@@ -41,9 +41,7 @@
         <!-- <q-btn flat round dense icon="grid_view" /> -->
 
         <!-- Notificaciones con badge -->
-        <q-btn flat round dense icon="notifications" color="primary">
-          <q-badge color="red" floating>2</q-badge>
-        </q-btn>
+        <notifications-component />
 
         <!-- Avatar usuario -->
         <q-avatar size="32px">
@@ -63,7 +61,7 @@
     <my-sidebar v-model="drawerOpen" :menus="menus" />
 
     <!-- Contenido principal -->
-    <q-page-container>
+    <q-page-container class="q-mt-lg q-mb-md">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -74,8 +72,9 @@ import { useQuasar, Dark } from 'quasar'
 
 import { ref, onMounted, provide } from 'vue'
 import { useUsers } from 'src/composables/useUsers.js'
-import { getNotify } from 'src/composables/firebase/notificaciones';
+
 import MySidebar from 'components/MySidebar.vue';
+import NotificationsComponent from 'components/NotificationsComponent.vue';
 
 const drawerOpen = ref(false)
 const $q = useQuasar()
@@ -84,7 +83,7 @@ const {fetchUser, menus, AppActiveUser} = $store
 
 const incognit = ref("https://firebasestorage.googleapis.com/v0/b/umwelt-4afa1.appspot.com/o/assets%2Favatar-s-11.png?alt=media&token=1d9c1292-75e8-4f8e-a8b4-64e80ce42087&_gl=1*52kp9q*_ga*NzAyNDQwMzI5LjE2OTQ4MjY4Mzg.*_ga_CW55HF8NVT*MTY5NjQ3NDY0OC41MC4xLjE2OTY0NzYyMDUuMTYuMC4w")
 
-const notifications = ref([])
+
 const icon = ref('')
 const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
 const user = JSON.parse(localStorage.getItem('userInfo'))
@@ -100,10 +99,6 @@ function toggleDarkMode() {
   Dark.toggle();
   localStorage.setItem('darkMode', Dark.isActive ? 'true' : 'false')
 }
-
-// const viewNotify = async (item) => {
-//   setNotifyView(item)
-// }
 
 const online = ref(navigator.onLine) // con internet true sin internet false
 
@@ -129,14 +124,13 @@ onMounted(async() => {
   
   
   if(online.value){  
-    notifications.value = await getNotify(user)
     await fetchUser()    
   } else {
     //data sin conexión, se obtiene del localStorage
     AppActiveUser.value = user
     menus.value = AppActiveUser.value.menus
   }
-  console.log('AppActiveUser', menus.value)
+
 })
 
 

@@ -164,7 +164,7 @@
   import { useClientes } from 'src/composables/useClientes.js'
   import { useUsers } from 'src/composables/useUsers.js'
   import { useServicios } from 'src/composables/useServicios.js'
-  import { launchNotify } from 'src/composables/firebase/notificaciones'
+  import { addNotify } from 'src/composables/firebase/notificaciones'
   import { useQuasar, date } from "quasar";
   import { useRouter } from 'vue-router';
 
@@ -340,7 +340,7 @@ const saveService = async() => {
             service.value.owner_id = service.value.owner.value
             const initService = await newService(service.value)
             if(initService.status == 200){
-                await launchNotify(initService.data.info)
+                await addNotify(initService.data.info)
                 notify('Se creó un nuevo servicio','positive')
                 // service.value = { 
                 //     date_start:formattedString,

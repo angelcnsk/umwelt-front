@@ -1,90 +1,56 @@
-import {db, auth} from 'boot/firebase'
-import { getDatabase, ref as refb, onValue, push, update } from "firebase/database";
-import { onAuthStateChanged } from "firebase/auth";
+import { firestore} from 'boot/firebase'
+import { collection, addDoc,doc, onSnapshot, query, orderBy, updateDoc } from "firebase/firestore"; 
 import { ref } from "vue";
 
+export const mensajes = ref({});
 
-export const mensajes = ref({})
-
-export async function launchNotify(req) {
-    const db = getDatabase()
-    push(refb(db, 'notificaciones/user_id_'+req.user_id), {
-        'user_id': req.user_id,
-        'email' : req.email,
-        'service_id' : req.service_id,
-        'planta' : req.planta,
-        'created_at': new Date(),
-        'view': false,
-        'notify': `Hola, te han asignado un nuevo servicio`
-    })
-    return true
-}
-
-export async function getNotify (activeUser) {
-    return new Promise((resolve) => {
-        const db = getDatabase();
-        const notifications = refb(db, 'notificaciones/user_id_' + activeUser.id);
-        onAuthStateChanged(auth, (user) => {
-            if(user){
-                onValue(notifications, (snapshot) => {
-            
-                    const data = snapshot.val();
-                    if(data != null){
-                        const a_notify = Object.entries(data)
-                        const items = []
-                        let unread = 0
-                        a_notify.map((item) => {
-                            const uid = item[0]
-                            item[1].uid = uid
-                            if(!item[1].view) unread++
-                            items.push(item[1])
-                        })
-                        mensajes.value.unread = unread
-                        mensajes.value.items = items
-                    }
-                    
-                    
-                    resolve(mensajes.value)
-                });
-                
-            }
-        })
-        
-//         onAuthStateChanged(auth, (user) => {
-//             if(user){
-//                 const q = query(collection(db, 'notificaciones'), 
-//                     where ("email", "==", activeUser.email),
-//                     where ("view", "==", false))
-                
-//                 onSnapshot(q, (snapShot) => {
-//                     snapShot.docChanges().forEach((change) => {
-//                         const obj = change.doc.data()
-//                         obj.id = change.doc.id
-                        
-//                         if(change.type == 'added'){    
-//                             mensajes.value.push(obj)
-//                         }
-//                         if(change.type == 'removed'){
-//                             let index = mensajes.value.findIndex(objeto => objeto.id === obj.id);
-//                             mensajes.value.splice(index, 1);
-//                         }
-//                     });
-//                 })
-//             }
-//         })
-//         resolve(mensajes.value)
-    })
-}
-
-export async function setNotifyView (req) {
-    req.view = true
+export async function addNotify(req) {
     try {
-        // set(refb(db, 'notificaciones/user_id_'+req.user_id+'/'+req.uid), req)
-        const updates = {};
-        updates['notificaciones/user_id_'+req.user_id+'/'+req.uid] = req;
-        return update(refb(db), updates);
+        return await addDoc(collection(firestore, `notificaciones/1/items`), {
+            'from': req.from,
+            'email' : req.email,
+            'service_id' : req.service_id,
+            'planta' : req.planta,
+            'time': new Date().getTime(),
+            'created_at': new Date(),
+            'view': false,
+            'notify': `Hola, te han asignado un nuevo servicio`,
+            'avatar': req.avatar,
+        });
     } catch (error) {
         console.log(error)
-        return false
+        throw new Error("Error al agregar la notificación: " + error);
+    }
+}
+
+export const listenToNotifications = (userId, onUpdate
+  ) => {
+    const q = query(
+      collection(firestore, `notificaciones/${userId}/items`),
+      orderBy('time', 'desc') // opcional: ordena por fecha
+    );
+    const avatarDommie = "https://firebasestorage.googleapis.com/v0/b/umwelt-4afa1.appspot.com/o/assets%2Favatar-s-11.png?alt=media&token=1d9c1292-75e8-4f8e-a8b4-64e80ce42087&_gl=1*52kp9q*_ga*NzAyNDQwMzI5LjE2OTQ4MjY4Mzg.*_ga_CW55HF8NVT*MTY5NjQ3NDY0OC41MC4xLjE2OTY0NzYyMDUuMTYuMC4w";
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const data = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        avatar: doc.avatar = (doc.avatar == undefined || doc.avatar == null) ? avatarDommie : doc.avatar,        
+      }));
+      onUpdate(data);
+    });
+  
+    return unsubscribe; // <- úsalo para detener el listener
+  };
+
+export async function setNotifyView (req,userId) {
+    const {id:notificationId} = req;
+    console.log("ID de la notificación:", notificationId);
+    try {
+        const notificationRef = doc(firestore, `notificaciones/${userId}/items/${notificationId}`);
+        await updateDoc(notificationRef, {view: true});
+    } catch (error) {
+        console.error("Error al marcar la notificación como leída:", error);
+        throw new Error("No se pudo actualizar el estado de la notificación");
     }
 }
