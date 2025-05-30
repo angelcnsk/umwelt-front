@@ -17,7 +17,7 @@ export const useCapturas = () => {
 
     const { 
         getServiceList, saveCaptures, setDateCapture,
-        saveSectionFile, getCategoriesBackend, serviceAddVisit
+        saveSectionFile, getCategoriesBackend, serviceAddVisit, getContainers
     } = capturasStore;
 
     const { servicesList,currentService, categorias, fechas_visita, visitSelected, showActa, textoActa, serviceSelected, visitas, result,
@@ -535,6 +535,6 @@ export const useCapturas = () => {
     }
 
     return {
-        servicesList,currentService, categorias,fechas_visita, visitSelected,showActa,textoActa,serviceSelected, visitas,tab,recipienteSelected,recipientes,getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setSelectVisitas, setFechas, disableOptions, syncConceptResult, syncObservations, changeValue, saveObservaciones, configNom02, configNom020, setContainer, serviceAddVisit
+        servicesList,currentService, categorias,fechas_visita, visitSelected,showActa,textoActa,serviceSelected, visitas,tab,recipienteSelected,recipientes,getServiceList, saveCaptures,  setDateCapture, saveSectionFile, fetchCategories, fetchResult,saveLocalResults, fetchObservations, saveLocalObservations, saveActa, fetchActa, cleanDataService, saveDataCategories, saveDates, getDates, setSelectVisitas, setFechas, disableOptions, syncConceptResult, syncObservations, changeValue, saveObservaciones, configNom02, configNom020, setContainer, serviceAddVisit, getContainers
     }
 }
