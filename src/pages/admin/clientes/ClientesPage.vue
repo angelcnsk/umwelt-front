@@ -33,7 +33,7 @@
                             <template v-slot:body-cell-client_id="props">
                                 <q-td :props="props" class="text-center">
                                     <q-chip outline square color="primary" text-color="white" class="text-center">
-                                        {{props.row.active == null ?  'Principal' : 'Planta'}}
+                                        {{props.row.active == null ?  'Principal' : 'Sucursal'}}
                                     </q-chip>        
                                 </q-td>
                             </template>

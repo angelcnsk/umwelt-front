@@ -74,11 +74,11 @@
                 </div>
                 <q-separator class="q-ml-sm q-mr-sm q-mt-md separador" />
                 <span class="text-h6 q-ml-sm">
-                    Plantas
+                    Sucursales
                 </span>
                 <q-separator class="q-mb-lg q-mr-sm q-ml-sm separador" />
                 <div class="row q-mb-lg q-pa-sm">
-                    <q-btn color="primary" class="q-mr-sm" outline @click="infoPlanta('nuevo')" label="Agregar planta" />
+                    <q-btn color="primary" class="q-mr-sm" outline @click="infoPlanta('nuevo')" label="Agregar sucursal" />
                 </div>
                 
                 <div class="q-pa-sm q-mb-lg">
@@ -129,7 +129,7 @@
                     inline-label
                     class="bg-primary text-white shadow-2"
                 >
-                    <q-tab name="planta" icon="factory" label="Planta" />
+                    <q-tab name="planta" icon="factory" label="Sucursal" />
                     <q-tab name="admin" icon="folder_open" label="Administración" />
                     <!-- <q-tab name="movies" icon="movie" label="Movies" /> -->
                 </q-tabs>
@@ -141,7 +141,7 @@
                 <q-card-section>
                     <div class="row q-pa-sm">
                         <div class="col-xs-11 col-sm-12 col-md-3">
-                            <q-input v-model="address.alias" label="Planta" :rules="[
+                            <q-input v-model="address.alias" label="Sucursal" :rules="[
                                     val => !!val || '* Campo obligatorio',
                                 ]"
                             />
@@ -398,7 +398,7 @@
                                 :options="dataClient.plantas" 
                                 option-label="alias"
                                 v-model="contact.planta" 
-                                label="Planta" 
+                                label="Sucursal" 
                                 emit-value
                                 :rules="[
                                     val => !!val || '* Campo obligatorio',
@@ -502,7 +502,7 @@ const deletedEquipo = ref('')
 
 const addressColumn = [
     {name: 'id', label: 'Id',field: 'id', align:'center'},
-    {name: 'alias', label: 'Planta', field: 'alias', align:'center', sortable:true, sortOrder:'ad'},
+    {name: 'alias', label: 'Sucursal', field: 'alias', align:'center', sortable:true, sortOrder:'ad'},
     {name: 'domicilio', label: 'Domicilio', field: 'domicilio', align:'center'},
     {name:'acciones' ,label:'Acciones',  align:'left'}
 ]
@@ -510,7 +510,7 @@ const addressColumn = [
 const contactColumns = [
     {name: 'id', label: 'Id',field: 'contact_id', align:'center'},
     {name: 'name', label: 'Nombre', field: 'contact_name', align:'center', sortable:true, sortOrder:'ad'},
-    {name: 'location', label: 'Planta', field: 'planta', align:'center'},
+    {name: 'location', label: 'Sucursal', field: 'planta', align:'center'},
     {name: 'position', label: 'Cargo', field: 'contact_position', align:'center'},
     {name: 'phone', label: 'Teléfono', field: 'contact_phone', align:'center'},
     {name: 'extension', label: 'Extensión', field: 'contact_ext', align:'center'},

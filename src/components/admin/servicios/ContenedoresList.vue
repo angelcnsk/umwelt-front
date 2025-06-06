@@ -34,53 +34,35 @@
             </q-table>
         </div>    
     </div>
-
-    <q-dialog v-model="showDialog" transition-show="flip-down" transition-hide="flip-up" persistent>
-      <q-card style="min-width: 450px;">
-        <q-card-section>
-          <div class="col-xs-12 col-md-4">
-              <q-input class="q-pa-sm" v-model="addContainer.name" label="Nombre Recipiente" />
-          </div>
-        </q-card-section>
-        <q-card-section>
-          <div class="col-xs-12 col-md-4">
-              <q-input class="q-pa-sm" v-model="addContainer.serial" label="TAG" />
-          </div>
-        </q-card-section>
-        <q-card-section>
-          <div class="col-xs-12 col-md-3">
-            <q-select 
-              class="q-ma-sm" 
-              :options="visitas"
-              option-value="id"
-              option-label="label"
-              v-model="addContainer.visita_id"
-              emit-value
-              map-options
-              label="Visita"
-            />
-          </div>
-        </q-card-section>
-        <q-card-section class="row q-pa-lg justify-end ">
-          <q-btn label="Guardar" color="primary" @click="saveContainer"/>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <add-container
+      v-model="showDialog"
+      :service="service"
+      :visitas="visitas"
+      :hide="() => showDialog = false"
+    />
   </div>
 </template>
 
 <script setup>
-  import { ref, toRef, computed, onMounted } from "vue";
+  import { ref, toRef, computed, onMounted, watch } from "vue";
   import { useQuasar } from "quasar";
   import { useServicios } from 'src/composables/useServicios.js';
-  const {addContainers, getContainers, removeContainer, containers} = useServicios()
+  import addContainer from 'src/components/admin/servicios/AddContenedor.vue'
+
+  const {getContainers, removeContainer, containers} = useServicios();
   const props = defineProps({
     service: Object,
   })
   const $q = useQuasar();
   const service = toRef(props,'service')
   const showDialog = ref(false)
-  const addContainer = ref({})
+  
+  watch(showDialog, async () => {
+    if (service.value != undefined) {
+      await getContainers({service_id:service.value.id})
+    }
+  })
+
   const visitas = computed(() => {
     return service.value.fechas.map((item) => {
     return {id:item.id, label:`Visita ${item.visita}`}
@@ -127,44 +109,6 @@
     },    
   ])
     
-  const saveContainer = async () => {
-    $q.dialog({
-            title: '¿Deseas agregar un recipiente?',
-            message: '',
-            ok: {
-                push: true,
-                label:'Continuar'
-            },
-            cancel: {
-                push: true,
-                color: 'dark',
-                label:'Cancelar'
-            },
-            persistent: true
-    }).onOk(async () => {
-      addContainer.value.service_id = service.value.id;
-      addContainer.value.product_id = service.value.product_id;
-      
-      const newContainer = await addContainers(addContainer.value);   
-            
-      if(newContainer.status == 200){
-        $q.notify({
-          position:'top',
-          type:'positive',
-          message:'Se agregó un nuevo recipiente'
-        })
-        await getContainers({service_id:service.value.id});
-        showDialog.value = false;
-      } else {
-        $q.notify({
-          position:'top',
-          type:'negative',
-          message:'Ya existe un recipiente con ese identificador'
-        })
-      }
-    })  
-  }
-
   const remove = async (row) => {
     $q.dialog({
             title: '¿Deseas borrar este recipiente?',
