@@ -131,6 +131,7 @@ const notifications = ref([])
 const icon = ref('')
 const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
 const user = JSON.parse(localStorage.getItem('userInfo'))
+const gsToken = import.meta.env.VITE_GS_TOKEN;
 
 $q.dark.set(false)
 
@@ -163,6 +164,31 @@ provide('currentUser', AppActiveUser)
 provide('incognit', incognit)
 
 onMounted(async() => {
+
+  if (!gsToken) {
+    console.warn("GS token is not defined")
+    return
+  }
+
+  if (!document.getElementById('gosquared-script')) {
+    const script = document.createElement('script')
+    script.id = 'gosquared-script'
+    script.src = 'https://d1l6p2sc9645hc.cloudfront.net/gosquared.js'
+    script.async = true
+    script.onload = () => {
+      if (typeof _gs === 'function') {
+        window._gs && window._gs(gsToken)
+        window._gs && window._gs('set', 'anonymizeIP', true)
+        window._gs && window._gs('set', 'trackLocal', true)
+      }
+    }
+    document.head.appendChild(script)
+  } else if (typeof _gs === 'function') {
+    window._gs && window._gs(gsToken)
+    window._gs && window._gs('set', 'anonymizeIP', true)
+    window._gs && window._gs('set', 'trackLocal', true)
+  }
+
   window.addEventListener('offline',() => {
     online.value = navigator.onLine;
     console.log('desconectado')
