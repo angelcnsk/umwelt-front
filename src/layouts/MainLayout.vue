@@ -87,7 +87,8 @@ const incognit = ref("https://firebasestorage.googleapis.com/v0/b/umwelt-4afa1.a
 const icon = ref('')
 const darkMode = ref(JSON.parse(localStorage.getItem('darkMode')))
 const user = JSON.parse(localStorage.getItem('userInfo'))
-// const search = ref('')
+const gsToken = import.meta.env.VITE_GS_TOKEN;
+
 $q.dark.set(false)
 
 
@@ -107,9 +108,29 @@ provide('currentUser', AppActiveUser)
 provide('incognit', incognit)
 
 onMounted(async() => {
-  const savedDarkMode = localStorage.getItem('darkMode')
-  if (savedDarkMode !== null) {
-    Dark.set(savedDarkMode === 'true')
+
+  if (!gsToken) {
+    console.warn("GS token is not defined")
+    return
+  }
+
+  if (!document.getElementById('gosquared-script')) {
+    const script = document.createElement('script')
+    script.id = 'gosquared-script'
+    script.src = 'https://d1l6p2sc9645hc.cloudfront.net/gosquared.js'
+    script.async = true
+    script.onload = () => {
+      if (typeof _gs === 'function') {
+        window._gs && window._gs(gsToken)
+        window._gs && window._gs('set', 'anonymizeIP', true)
+        window._gs && window._gs('set', 'trackLocal', true)
+      }
+    }
+    document.head.appendChild(script)
+  } else if (typeof _gs === 'function') {
+    window._gs && window._gs(gsToken)
+    window._gs && window._gs('set', 'anonymizeIP', true)
+    window._gs && window._gs('set', 'trackLocal', true)
   }
 
   window.addEventListener('offline',() => {
