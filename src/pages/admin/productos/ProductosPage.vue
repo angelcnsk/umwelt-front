@@ -68,7 +68,7 @@
                                     option-label="alias"
                                     @filter="filterPlanta"
                                     emit-value
-                                    label="Planta"
+                                    label="Sucursal"
                                 >
                                     <template v-slot:no-option>
                                     <q-item>

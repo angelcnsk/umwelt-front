@@ -68,7 +68,7 @@
                                     option-label="alias"
                                     @filter="filterPlanta"
                                     emit-value
-                                    label="Planta"
+                                    label="Sucursal"
                                 >
                                     <template v-slot:no-option>
                                     <q-item>
@@ -223,7 +223,7 @@ const columns =  [
     align:'center'
 },
 {
-    label: 'Planta',
+    label: 'Sucursal',
     field: 'alias',
     align:'center'
 },

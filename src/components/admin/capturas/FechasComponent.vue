@@ -49,6 +49,12 @@
                             <q-item-label>Agregar visita</q-item-label>
                         </q-item-section>
                     </q-item>
+                    <q-item clickable v-close-popup @click="showAddContainer=true">
+                        <q-item-section>
+                            <q-item-label>Agregar recipiente</q-item-label>
+                        </q-item-section>
+
+                    </q-item>
                     <q-item clickable v-close-popup @click="asyncSaveData('manual')" :disable="disableSave">
                         <q-item-section>
                             <q-item-label>Guardar</q-item-label>
@@ -76,6 +82,12 @@
         </div>
     </div>
     <modalGuia20 :show="showGuia020" @closeModal="closeModalGuia020" :service="currentService" />
+    <add-container
+      v-model="showAddContainer"
+      :service="currentService"
+      :visitas="visitas"
+      :hide="() => showAddContainer = false"
+    />
 </template>
 
 <script setup> 
@@ -84,12 +96,16 @@ import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js';
 import { storeActa } from "src/composables/firebase/storage";
 import { useVisits } from 'src/composables/useVisits.js';
+
 // import ModalGuiaNom020 from "./ModalGuiaNom020.vue";
 const storeCapturas = useCapturas();
 const $q = useQuasar();
-const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates, setContainer,showActa, visitas, recipienteSelected, recipientes, tab } = storeCapturas;
+const { visitSelected, fechas_visita, currentService, cleanDataService, textoActa, saveCaptures, saveDates,showActa, visitas, recipienteSelected, recipientes, tab, setContainer, getContainers } = storeCapturas;
+
 
 const modalGuia20 = defineAsyncComponent(() => import('src/components/admin/capturas/ModalGuiaNom020.vue'))
+const addContainer = defineAsyncComponent(() => import('src/components/admin/servicios/AddContenedor.vue'))
+
 
 const props = defineProps({
     changeVisit: Function,
@@ -100,6 +116,7 @@ const offline = inject('statusOnLine');
 const disableSave = ref(false)
 
 const showGuia020 = ref(false);
+const showAddContainer = ref(false);
 const dataActa = ref({});
 
 const { addVisitInspector } = useVisits(offline, currentService.value.id, visitSelected);
@@ -107,12 +124,12 @@ const { addVisitInspector } = useVisits(offline, currentService.value.id, visitS
 watch(visitSelected, () => {
     console.log('cambia visita seleccionada?', visitSelected.value);
     // fechas_visita.value = []
-    if(currentService.value.product_id == 2){
-        setContainer();
-    } else {
-        props.changeVisit();
-        console.log('visitSelected', visitSelected.value);
-    }
+    // if(currentService.value.product_id == 2){
+    //     setContainer();
+    // } else {
+    //     props.changeVisit();
+    //     console.log('visitSelected', visitSelected.value);
+    // }
 });
 
 watch(recipienteSelected,() => {
@@ -129,6 +146,13 @@ watch(fechas_visita, async (valor) => {
         await saveDate();    
     }
 },{deep:true});
+
+watch(showAddContainer,async() => {
+    if(showAddContainer.value == false){
+        await getContainers({service_id:currentService.value.id, visit_id:visitSelected.value.id});
+        console.log('recipientes add',recipientes.value);
+    }    
+})
 
 const asyncSaveData = () => {
     const now = new Date();
@@ -409,15 +433,22 @@ const saveDate = async () => {
     await saveDates(props)
 }
 
-watch(currentService.value.fechas, async () => {
-    console.log('currentService', currentService.value);
-},{deep:true});
+// watch(currentService.value.fechas, async () => {
+//     if(currentService.value.product_id == 2){
+//         setContainer(); console.log('recipientes',recipientes.value);
+//     }
+// },{deep:true});
 
 onMounted(async() => {
     console.log('visitselected', visitSelected.value);
     console.log('visitas', visitas.value);
     visitSelected.value = visitas.value[0];
-    props.changeVisit();
+    if(currentService.value.product_id == 2){
+        setContainer(); console.log('recipientes init',recipientes.value);
+    } else {
+        props.changeVisit();
+    }
+    
     // await setFechas();
 });
 

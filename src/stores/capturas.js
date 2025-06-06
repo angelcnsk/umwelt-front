@@ -113,5 +113,23 @@ export const useCapturasStore = defineStore('capturas', {
             }).catch((error) => { reject(error) })
           })
         },
+        async getContainers(req){
+          const url = 'spa/getContainers'
+            const options = {
+              params:req
+            }
+            return new Promise((resolve, reject) => {
+              api.get(url, options).then((response) => {
+                this.recipientes = [];
+                const filter = response.data.filter((item) => item.visita_id === req.visit_id );
+
+                this.recipientes = filter.map((item) => ({
+                    value: item.id,
+                    texto: item.name
+                }));
+                resolve()
+              }).catch((error) => { reject(error) })
+            })
+        },
     }
 })

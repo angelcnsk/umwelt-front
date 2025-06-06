@@ -22,10 +22,10 @@
                     <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo1" label="Domicilio testigo 1" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo2" label="Domicilio testigo 2" />
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo2" label="Nombre testigo 2" />
                 </div>
                 <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo2" label="Cargo testigo 2" />
+                    <q-input class="q-pa-sm" v-model="dataActa.testigo_cargo2" label="Domicilio testigo 2" />
                 </div>
                 <div class="row q-pa-md justify-end">
                     <q-btn label="Descargar" color="primary" @click="imprimir('acta')"/>

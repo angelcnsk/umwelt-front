@@ -12,7 +12,7 @@
             <q-card-section>
                 <div class="col">
                     <span class="text-h6 q-ml-sm block"> Cliente: {{servicio.cliente}}</span>
-                    <span class="text-subtitle1 q-ml-sm block"> Planta: {{servicio.planta}}</span>
+                    <span class="text-subtitle1 q-ml-sm block"> Sucursal: {{servicio.planta}}</span>
                     <span class="text-subtitle1 q-ml-sm block"> Producto: {{servicio.producto}}</span>
                 </div>
                 <div class="row q-mt-md q-mb-md q-ma-sm">
