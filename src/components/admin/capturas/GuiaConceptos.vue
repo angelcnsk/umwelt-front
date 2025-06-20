@@ -222,7 +222,7 @@ const setService = () => {
 
 const saveObservaciones = async (categoria) => {
     //recibe los indices de cada uno y armamos el path
-    const path = `servicios/${service.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[categoria].id}`
+    // const path = `servicios/${service.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[categoria].id}`
 
     categorias.value[categoria].status = !navigator.onLine ? 'pending' : 'completed';
     
@@ -236,7 +236,7 @@ const saveObservaciones = async (categoria) => {
     //guardar status local de categorías
     await saveDataCategories({service_id:service.value.id,visita:visitSelected.value.valor, data:categorias.value, product_id:service.value.product_id});
     //se guarda en firebase
-    await updateData(path,{texto:categorias.value[categoria].observaciones});
+    // await updateData(path,{texto:categorias.value[categoria].observaciones});
     
 }
 

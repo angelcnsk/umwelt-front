@@ -121,19 +121,11 @@ const dataActa = ref({});
 
 const { addVisitInspector } = useVisits(offline, currentService.value.id, visitSelected);
 
-watch(visitSelected, () => {
-    console.log('cambia visita seleccionada?', visitSelected.value);
-    // fechas_visita.value = []
-    // if(currentService.value.product_id == 2){
-    //     setContainer();
-    // } else {
-    //     props.changeVisit();
-    //     console.log('visitSelected', visitSelected.value);
-    // }
-});
-
 watch(recipienteSelected,() => {
-    console.log('visitSelected', visitSelected.value);
+    props.changeVisit();
+})
+
+watch(visitSelected,() => {
     props.changeVisit();
 })
 
@@ -148,9 +140,9 @@ watch(fechas_visita, async (valor) => {
 },{deep:true});
 
 watch(showAddContainer,async() => {
+    // Cuando se cierra el modal de agregar contenedor, actualiza la lista de contenedores
     if(showAddContainer.value == false){
         await getContainers({service_id:currentService.value.id, visit_id:visitSelected.value.id});
-        console.log('recipientes add',recipientes.value);
     }    
 })
 

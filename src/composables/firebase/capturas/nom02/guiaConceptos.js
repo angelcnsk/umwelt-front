@@ -1,26 +1,26 @@
-import { getData, readData, saveData } from '../../firebaseService';
+import { readData, saveData } from '../../firebaseService';
 
-export async function getCategories(params) {
-    try {
-        let path = params.path;
-        if(params.visita && params.visita>1) path = `servicios/${path}`;
+// export async function getCategories(params) {
+//     try {
+//         let path = params.path;
+//         if(params.visita && params.visita>1) path = `servicios/${path}`;
 
-        const categorias = await getData(path);
-        if(categorias){
-            categorias.forEach((cat) => {
-                if(cat.conceptos){
-                    cat.conceptos.forEach((concept) => {
-                        concept.value = concept.value == 1 ? [] : concept.value;
-                    })
-                }
-            })
-        }
+//         const categorias = await getData(path);
+//         if(categorias){
+//             categorias.forEach((cat) => {
+//                 if(cat.conceptos){
+//                     cat.conceptos.forEach((concept) => {
+//                         concept.value = concept.value == 1 ? [] : concept.value;
+//                     })
+//                 }
+//             })
+//         }
         
-        return categorias
-    } catch (error) {
-        console.log('error al obtener categorías', error)
-    }
-}
+//         return categorias
+//     } catch (error) {
+//         console.log('error al obtener categorías', error)
+//     }
+// }
 
 export async function getResult(params) {
     try {

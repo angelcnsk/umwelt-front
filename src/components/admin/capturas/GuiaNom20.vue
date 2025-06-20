@@ -37,7 +37,8 @@
                                 max-height="3rem"
                                 :toolbar="[
                                     ['bold', 'italic', 'underline'],
-                                    ['subscript', 'superscript'] // Puedes agregarlo directamente
+                                    ['subscript', 'superscript'], // Puedes agregarlo directamente
+                                    ['removeFormat'],
                                 ]"
                             />
                         </div>
