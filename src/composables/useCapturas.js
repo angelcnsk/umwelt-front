@@ -57,24 +57,38 @@ export const useCapturas = () => {
             if(params.product_id === 2 && saveDataLocal){
                 data = tab.value == 'guia22' ? Object.values(data.cat_guia_22) : Object.values(data.cat_guia_25);
             }
-
-            // console.log('data despues de object.values', data);
+            
+            
             if(data && data.length > 0) {
                 if ((result.value.length === 0 && saveDataLocal) && (data && data.length > 0)) {
 
                     const a_conceptos = [];
                     data.map((cat) => {
-                        console.log('map categoria', cat)
                         if(cat.conceptos){
                             const items = cat.conceptos.map((item) => {
+                                // Parseo seguro de value
+                                let parsedValue = [];
+                                if (item.value !== 1 && item.value !== undefined) {
+                                    if (Array.isArray(item.value)) {
+                                        parsedValue = item.value;
+                                    } else {
+                                        try {
+                                            parsedValue = JSON.parse(item.value);
+                                        } catch (e) {
+                                            console.error('Error parsing value:', e);
+                                            parsedValue = [];
+                                        }
+                                    }
+                                }
                                 return {
-                                observaciones: item.observaciones ? item.observaciones : '',
-                                concepto_id:item.concepto_id ? item.concepto_id : item.id,
-                                service_id:currentService.value.id, 
-                                value:(item.value == 1 || item.value == undefined) ? [] : JSON.parse(item.value),
-                                visita_id:visitSelected.value.id,
-                                no_cumple:(item.no_cumple && item.no_cumple == 1) ? 1 : 0,
-                                user_id:AppActiveUser.value.id}
+                                    observaciones: item.observaciones ? item.observaciones : '',
+                                    concepto_id:item.concepto_id ? item.concepto_id : item.id,
+                                    service_id:currentService.value.id, 
+                                    visita_id:visitSelected.value.id,
+                                    no_cumple:(item.no_cumple && item.no_cumple == 1) ? 1 : 0,
+                                    user_id:AppActiveUser.value.id,
+                                    value:parsedValue,
+                                }
                             });
                             a_conceptos.push(...items);
                         }
@@ -86,7 +100,6 @@ export const useCapturas = () => {
                     result.value = uniqueArray;
                     
                     if(saveDataLocal){
-                        console.log('result valores', result.value);
                         await saveLocalResults({service_id:currentService.value.id, data:result.value, path:pathByProduct});
                     }
                     
@@ -94,13 +107,22 @@ export const useCapturas = () => {
                     //si ya existen respuestas en idb las carga
                     result.value = await fetchResult({path:pathByProduct});
                     result.value.map((item) => {
-                        if(item.value && typeof item.value === 'string') {
-                            // Convertir el string JSON a un objeto
-                            item.value = JSON.parse(item.value);
+                        let parsedValue = [];
+                        if (item.value !== 1 && item.value !== undefined) {
+                            if (Array.isArray(item.value)) {
+                                parsedValue = item.value;
+                            } else {
+                                try {
+                                    parsedValue = JSON.parse(item.value);
+                                } catch (e) {
+                                    console.error('Error parsing value:', e);
+                                    parsedValue = [];
+                                }
+                            }
                         }
+                        item.value = parsedValue;
                     })
                     // result.value.value = JSON.parse(result.value.value);
-                    console.log('result valores idb', result.value);
                 }
         
                 if(params.product_id == 1){
@@ -415,6 +437,10 @@ export const useCapturas = () => {
                     if(cat.conceptos){
                         cat.conceptos.map((item) => {
                             if(result.value){
+                                if(item.value){
+                                    item.value = Array.isArray(item.value) ? item.value : [];
+                                } else item.value = [];
+
                                 const match = result.value.find((element) => element.concepto_id == item.id);
                                 
                                 if(match){
@@ -449,49 +475,25 @@ export const useCapturas = () => {
                 //recupera categorías desde el catálogo
                 categorias.value = await fetchDataService({service_id:currentService.value.id,product_id:currentService.value.product_id, visita:visitSelected.value.valor, container_id:recipienteSelected.value.value});
 
-                console.log('categorias nom020', categorias.value)
+                //si no existen categorías las filtra para evitar errores
                 categorias.value = categorias.value.filter(cat => cat.conceptos && cat.conceptos.length>0);
                 
-                // //si no existen respuestas previamente guardadas las crea en firebase
-                // if(result.value === undefined || result.value === null && (categorias.value && categorias.value.length>0)) {
-                //     const a_conceptos = [];
-                //     categorias.value.map((cat) => {
-                //         if(cat.conceptos){
-                //             const items = cat.conceptos.map((item) => {
-                //                 return {concepto_id:item.id,service_id:currentService.value.id, value:1,visita_id:visitSelected.value.id,no_cumple:0,user_id:AppActiveUser.value.id,
-                //                 observaciones:''    
-                //                 }
-                //             });
-                //             a_conceptos.push(...items);
-                //         }
-                //     });
-                //     //filtra listado de conceptos para evitar duplicados por conceptos compartidos
-                //     const uniqueArray = a_conceptos.filter((item, index, self) =>
-                //         index === self.findIndex((obj) => obj.concepto_id === item.concepto_id)
-                //     );
-                    
-                //     result.value = uniqueArray
-                //     //guarda en firebase respuestas vacías
-                //     await setConceptsValues({
-                //         path:`servicios/${localPath}/result`,
-                //         data:uniqueArray, 
-                //     });
-                // }
-        
-                // //ejecuta sync de conceptos y observaciones
-                // if(result.value != null && result.value.length && categorias.value.length){
-                //     await syncConceptResult();
-                // }
-        
                 //se relacionan las respuestas con los conceptos correspondientes
                 categorias.value.map((cat) => {
                     if(cat.conceptos){
                         cat.conceptos.map((item) => {
                             if(result.value){
-                                item.value = item.value ? JSON.parse(item.value) : [];
-
-                                const match = result.value.find((element) => element.concepto_id == item.concepto_id);
-                                
+                    
+                                // if(item.value){
+                                //     item.value = Array.isArray(item.value) ? item.value : [];
+                                // } else item.value = [];
+                                let match;
+                                if(tab.value == 'guia22'){
+                                    match = result.value.find((element) => element.concepto_id == item.id);
+                                } else {
+                                    match = result.value.find((element) => element.concepto_id == item.concepto_id);
+                                }
+                                  
                                 if(match){
                                     Object.assign(item, match);
                                 }
@@ -502,7 +504,7 @@ export const useCapturas = () => {
                 $q.loading.hide();
             } catch (error) {
                 $q.loading.hide();
-                console.log('Error al cargar servicio en configNom02:', error.message, error.stack);
+                console.log('Error al cargar servicio en configNom020:', error.message, error.stack);
             }
         }
     }
