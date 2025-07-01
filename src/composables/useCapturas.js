@@ -69,9 +69,9 @@ export const useCapturas = () => {
                             const items = cat.conceptos.map((item) => {
                                 return {
                                 observaciones: item.observaciones ? item.observaciones : '',
-                                concepto_id:item.concepto_id,
+                                concepto_id:item.concepto_id ? item.concepto_id : item.id,
                                 service_id:currentService.value.id, 
-                                value:(item.value == 1 || item.value == undefined) ? [] : item.value,
+                                value:(item.value == 1 || item.value == undefined) ? [] : JSON.parse(item.value),
                                 visita_id:visitSelected.value.id,
                                 no_cumple:(item.no_cumple && item.no_cumple == 1) ? 1 : 0,
                                 user_id:AppActiveUser.value.id}
