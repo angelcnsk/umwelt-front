@@ -51,9 +51,8 @@ register(process.env.SERVICE_WORKER_FILE, {
                   window.location.reload()
                 }
               })
-
               // Forzar que el nuevo SW se active
-              waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' })
+              waitingServiceWorker.waiting.postMessage({ type: 'SKIP_WAITING' })
             }
           },
           {

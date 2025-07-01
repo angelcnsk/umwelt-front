@@ -52,13 +52,13 @@ export const useCapturas = () => {
                 saveDataLocal = true;
             }
             
-            console.log('data antes de object.values', data);
+            // console.log('data antes de object.values', data);
 
             if(params.product_id === 2 && saveDataLocal){
                 data = tab.value == 'guia22' ? Object.values(data.cat_guia_22) : Object.values(data.cat_guia_25);
             }
 
-            console.log('data despues de object.values', data);
+            // console.log('data despues de object.values', data);
             if(data && data.length > 0) {
                 if ((result.value.length === 0 && saveDataLocal) && (data && data.length > 0)) {
 
@@ -93,7 +93,7 @@ export const useCapturas = () => {
                 } else {
                     //si ya existen respuestas en idb las carga
                     result.value = await fetchResult({path:pathByProduct});
-                    result.value.value = JSON.parse(result.value.value);
+                    // result.value.value = JSON.parse(result.value.value);
                     console.log('result valores idb', result.value);
                 }
         
