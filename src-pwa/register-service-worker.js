@@ -32,8 +32,6 @@ register(process.env.SERVICE_WORKER_FILE, {
   updated (registration) {
     // console.log('New content is available; please refresh.')
     console.log('✅ Nueva versión lista para ser usada')
-    waitingServiceWorker = registration
-
     // Forzar activación inmediata del nuevo SW
     if (registration.waiting) {
       Notify.create({
