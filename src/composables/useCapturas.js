@@ -93,6 +93,7 @@ export const useCapturas = () => {
                 } else {
                     //si ya existen respuestas en idb las carga
                     result.value = await fetchResult({path:pathByProduct});
+                    result.value.value = JSON.parse(JSON.stringify(result.value.value));
                     console.log('result valores idb', result.value);
                 }
         
