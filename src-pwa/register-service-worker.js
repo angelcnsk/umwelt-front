@@ -35,7 +35,7 @@ register(process.env.SERVICE_WORKER_FILE, {
     waitingServiceWorker = registration
 
     // Forzar activación inmediata del nuevo SW
-    if (waitingServiceWorker.waiting) {
+    if (registration.waiting) {
       Notify.create({
         message: 'Hay una nueva versión disponible.',
         color: 'primary',
@@ -45,14 +45,15 @@ register(process.env.SERVICE_WORKER_FILE, {
             label: 'Actualizar',
             color: 'white',
             handler: () => {
-              // Esperar a que se active el nuevo SW y luego recargar
-              waitingServiceWorker.addEventListener('statechange', (event) => {
-                if (event.target.state === 'activated') {
-                  window.location.reload()
-                }
-              })
-              // Forzar que el nuevo SW se active
-              waitingServiceWorker.waiting.postMessage({ type: 'SKIP_WAITING' })
+              const waitingSW = registration.waiting
+              if (waitingSW) {
+                waitingSW.addEventListener('statechange', (event) => {
+                  if (event.target.state === 'activated') {
+                    window.location.reload()
+                  }
+                })
+                waitingSW.postMessage({ type: 'SKIP_WAITING' })
+              }
             }
           },
           {
