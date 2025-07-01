@@ -93,6 +93,12 @@ export const useCapturas = () => {
                 } else {
                     //si ya existen respuestas en idb las carga
                     result.value = await fetchResult({path:pathByProduct});
+                    result.value.map((item) => {
+                        if(item.value && typeof item.value === 'string') {
+                            // Convertir el string JSON a un objeto
+                            item.value = JSON.parse(item.value);
+                        }
+                    })
                     // result.value.value = JSON.parse(result.value.value);
                     console.log('result valores idb', result.value);
                 }
