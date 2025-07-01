@@ -489,7 +489,7 @@ export const useCapturas = () => {
                         cat.conceptos.map((item) => {
                             if(result.value){
                                 const match = result.value.find((element) => element.concepto_id == item.concepto_id);
-                                
+                                match.value = match.value ? JSON.parse(match.value) : [];
                                 if(match){
                                     Object.assign(item, match);
                                 }
