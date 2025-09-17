@@ -66,7 +66,7 @@
                     color="primary" 
                     class="q-mr-md" 
                     :disable="!validateVisit"
-                    @click="showActa=!showActa"
+                    @click="showPrintActa"
                 >
                     <q-tooltip max-width="200px" self="top middle" :offset="[20, 10]">
                         <span v-if="validateVisit">Descarga acta</span>
@@ -192,7 +192,7 @@
             </q-card-section>
         </q-card>
     </q-dialog>
-    <modal-acta :show="showActa" @closeModal="getActa" />
+    <modal-acta :show="showActa" :service="service" @closeModal="getActa" />
     <modalDocuments02 :show="showDocs20" @closeModal="closeModalDoc20" :service="service" />
 </div>
 </template>
@@ -223,7 +223,7 @@ const { addVisit, toggleNuevaVisita, showAddVisit, setServiceDates, newVisitObj 
 const storeServicios = useServicios();
 const storeCapturas = useCapturas();
 const { getStaff, staff, closeServiceStatus } = storeServicios;
-const { visitas } = storeCapturas;
+const { visitas, visitSelected:visitaSelected } = storeCapturas;
 
 const owners = ref([])
 const status = ref(false)
@@ -274,6 +274,11 @@ const filterStaff = (val, update) => {
         const needle = val.toLowerCase()
         owners.value = staff.value.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
     })
+}
+
+const showPrintActa = () => {
+    visitaSelected.value = visitSelected.value
+    showActa.value = true
 }
 
 const getActa = (data) => {

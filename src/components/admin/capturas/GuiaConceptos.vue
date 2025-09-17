@@ -1,114 +1,92 @@
 <template>
-    <q-card>
-        <q-card-section>
-            <fechas-component :visitas="visitas" :changeVisit="configService" :categorias="categorias" />
-        </q-card-section>
-        <q-card-section>
-            
-            <q-list bordered class="rounded-borders" v-if="service.id != undefined && categorias.length > 0">
-                <q-expansion-item
-                    group="somegroup"
-                    expand-separator
-                    icon="ads_click"
-                    header-class="text-primary"
-                    :label="`${categoria.texto}`" v-for="(categoria,index) in categorias" 
-                    :key="index"
-                    style="border: .2px solid gray"
-                    :model-value="openIndex === index"
-                    @click="toggleExpansion(index)"
-                >
-                <q-separator />
-                <div v-if="categoria.conceptos && categoria.conceptos.length > 0" style="height: 150px; overflow-y: scroll; border:1px solid">
-                    <div class="q-pa-md" v-for="(concepto,i) in categoria.conceptos" :key="i">
-                        <div class="row wrap q-pa-sm">
-                            <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
-                        </div>
-                        <div class="row q-pa-sm" v-if="concepto.value">
-                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="si" label="Si" color="orange" :disable="disableOptions('si',index,i)" />
-                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="no" label="No" color="orange" :disable="disableOptions('no',index,i)" />
-                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="cumple" label="Cumple" color="orange" :disable="disableOptions('cumple',index,i)" />
-                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="no_cumple" label="No cumple" color="orange" :disable="disableOptions('no_cumple',index,i)" />
-                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="na" label="N.A." color="orange" />
-                            <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="et" label="E.T." color="orange" />
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <q-editor
-                        class="q-editor-mb"
-                        v-model="categoria.observaciones"
-                        :dense="$q.screen.lt.md"
-                        :toolbar="toolbar"
-                        :fonts="fonts"
-                        filled
-                        clearable
-                        min-height="10rem"
-                        dmax-height="20rem"
-                        color="red-12"
-                        @blur="saveObservaciones(index)"
-                    />
-                </div>
-                </q-expansion-item>
-                
-                <contentActa :service="service" :categorias="categorias" />
-            </q-list>
-            <div class="q-pa-md" v-else>
-                <q-item style="max-width: 300px">
-                <q-item-section avatar>
-                    <q-skeleton type="QAvatar" />
-                </q-item-section>
+    <q-card flat class="rounded-borders shadow-sm">
+    <q-card-section>
+      <fechas-component :visitas="visitas" :changeVisit="configService" :categorias="categorias" />
+    </q-card-section>
 
-                <q-item-section>
-                    <q-item-label>
-                    <q-skeleton type="text" />
-                    </q-item-label>
-                    <q-item-label caption>
-                    <q-skeleton type="text" width="65%" />
-                    </q-item-label>
-                </q-item-section>
-                </q-item>
+    <q-separator />
 
-                <q-item style="max-width: 300px">
-                <q-item-section avatar>
-                    <q-skeleton type="QAvatar" />
-                </q-item-section>
+    <q-card-section v-if="service.id && categorias.length > 0">
+      <q-list separator>
+        <q-expansion-item
+          v-for="(categoria, index) in categorias"
+          :key="categoria.id || index"
+          group="categorias"
+          expand-separator
+          icon="category"
+          :label="categoria.texto"
+          :caption="`${categoria.conceptos?.length || 0} preguntas`"
+          class="bg-grey-1 rounded-borders q-mb-sm"
+          :default-opened="index === 0"
+        >
+          <!-- Preguntas -->
+          <div class="q-pa-md q-gutter-y-md">
+            <div
+              v-for="(concepto, i) in categoria.conceptos"
+              :key="concepto.id || i"
+              class="bg-white rounded-borders shadow-sm q-pa-md border-left"
+              style="border-left: 4px solid #f48fb1;"
+            >
+              <!-- Pregunta -->
+              <div class="text-subtitle2 text-weight-medium text-grey-8 q-mb-sm">
+                {{ concepto.global }}) {{ concepto.texto }}
+              </div>
 
-                <q-item-section>
-                    <q-item-label>
-                    <q-skeleton type="text" />
-                    </q-item-label>
-                    <q-item-label caption>
-                    <q-skeleton type="text" width="90%" />
-                    </q-item-label>
-                </q-item-section>
-                </q-item>
+              <!-- Opciones de respuesta (Radio Group) -->
+              <q-option-group
+                v-model="concepto.value"
+                :options="opcionesRespuesta"
+                type="radio"
+                dense
+                inline
+                color="pink"
+                @update:model-value="() => changeValue(index, i)"
+                class="q-mt-sm"
+              />
 
-                <q-item style="max-width: 300px">
-                <q-item-section avatar>
-                    <q-skeleton type="QAvatar" />
-                </q-item-section>
-
-                <q-item-section>
-                    <q-item-label>
-                    <q-skeleton type="text" width="35%" />
-                    </q-item-label>
-                    <q-item-label caption>
-                    <q-skeleton type="text" />
-                    </q-item-label>
-                </q-item-section>
-                </q-item>
+              <!-- Ayuda contextual opcional -->
+              <div v-if="concepto.ayuda" class="text-caption text-italic text-grey q-mt-sm">
+                {{ concepto.ayuda }}
+              </div>
             </div>
-            
-        </q-card-section>
+          </div>
+
+          <!-- Observaciones de categoría -->
+          <q-separator />
+          <q-card-section>
+            <q-editor
+              v-model="categoria.observaciones"
+              label="Observaciones de la categoría"
+              :toolbar="toolbar"
+              :fonts="fonts"
+              placeholder="Agrega observaciones adicionales..."
+              min-height="6rem"
+              class="bg-grey-2 rounded-borders"
+              @blur="saveObservaciones(index)"
+            />
+          </q-card-section>
+        </q-expansion-item>
+      </q-list>
+
+      <!-- Componente final -->
+      <content-acta :service="service" :categorias="categorias" />
+    </q-card-section>
+
+    <!-- Skeleton loading -->
+    <q-card-section v-else>
+      <q-skeleton type="rect" height="60px" class="q-mb-md rounded-borders" />
+      <q-skeleton type="rect" height="120px" class="q-mb-md rounded-borders" />
+      <q-skeleton type="rect" height="120px" class="q-mb-md rounded-borders" />
+    </q-card-section>
         
     </q-card>
     
-    <modal-acta :show="showActa" @closeModal="getActa" />
+    <modal-acta :show="showActa" :servicio="service" @closeModal="getActa" />
 
 </template>
 
 <script setup>
-import {ref, computed, onMounted, toRef, inject, provide, defineAsyncComponent, nextTick} from 'vue';
+import {ref, onMounted, toRef, inject, provide, defineAsyncComponent} from 'vue';
 import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js'
 import { setConceptsValues } from 'src/composables/firebase/capturas/nom02/guiaConceptos.js'
@@ -133,7 +111,7 @@ const currentUser = inject('currentUser')
 const categorias = ref([])
 const service = toRef(props,'service')
 
-const openIndex = ref(null)
+// const openIndex = ref(null)
 
 const visitas = ref([])
 const observaciones = ref([])
@@ -143,15 +121,15 @@ const pendingObs = ref([])
 
 provide('currentVisit', visitSelected);
 
-const toggleExpansion = async (index) => {
-  if (openIndex.value === index) {
-    openIndex.value = null; // Cierra el actual si se hace clic en él
-  } else {
-    openIndex.value = null; // Cierra cualquier otro abierto primero
-    await nextTick(); // Espera a que Vue actualice el DOM antes de abrir el nuevo
-    openIndex.value = index; // Ahora abre el nuevo
-  }
-};
+// const toggleExpansion = async (index) => {
+//   if (openIndex.value === index) {
+//     openIndex.value = null; // Cierra el actual si se hace clic en él
+//   } else {
+//     openIndex.value = null; // Cierra cualquier otro abierto primero
+//     await nextTick(); // Espera a que Vue actualice el DOM antes de abrir el nuevo
+//     openIndex.value = index; // Ahora abre el nuevo
+//   }
+// };
 
 const setNoCumple = () => {
     for (const categoria of categorias.value) {
@@ -398,22 +376,22 @@ const syncObservations = async () => {
 
 
 
-const disableOptions = computed(() => {
-    return (opcion,categoria,concepto) => {
-        if (opcion === 'si') {
-          return categorias.value[categoria].conceptos[concepto].value.includes('no')
-            // || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
-        } else if (opcion === 'no') {
-          return categorias.value[categoria].conceptos[concepto].value.includes('si') || categorias.value[categoria].conceptos[concepto].value.includes('cumple');
-        } else if (opcion === 'cumple') {
-          return categorias.value[categoria].conceptos[concepto].value.includes('no') 
-        //   || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
-        } else if (opcion === 'no_cumple') {
-          return categorias.value[categoria].conceptos[concepto].value.includes('cumple') 
-        //   || categorias.value[categoria].conceptos[concepto].value.includes('si');
-        }
-    }
-})
+// const disableOptions = computed(() => {
+//     return (opcion,categoria,concepto) => {
+//         if (opcion === 'si') {
+//           return categorias.value[categoria].conceptos[concepto].value.includes('no')
+//             // || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
+//         } else if (opcion === 'no') {
+//           return categorias.value[categoria].conceptos[concepto].value.includes('si') || categorias.value[categoria].conceptos[concepto].value.includes('cumple');
+//         } else if (opcion === 'cumple') {
+//           return categorias.value[categoria].conceptos[concepto].value.includes('no') 
+//         //   || categorias.value[categoria].conceptos[concepto].value.includes('no_cumple');
+//         } else if (opcion === 'no_cumple') {
+//           return categorias.value[categoria].conceptos[concepto].value.includes('cumple') 
+//         //   || categorias.value[categoria].conceptos[concepto].value.includes('si');
+//         }
+//     }
+// })
 
 const toolbar = ref([
     [
@@ -443,6 +421,15 @@ const fonts = ref({
 const getActa = () => {
     showActa.value = false    
 }
+
+const opcionesRespuesta = [
+  { label: 'Sí', value: 'si', color: 'green' },
+  { label: 'No', value: 'no', color: 'red' },
+  { label: 'Cumple', value: 'cumple', color: 'teal' },
+  { label: 'No cumple', value: 'no_cumple', color: 'orange' },
+  { label: 'N.A.', value: 'na', color: 'grey' },
+  { label: 'E.T.', value: 'et', color: 'purple' }
+];
 
 onMounted( async () => {
     setService('load')

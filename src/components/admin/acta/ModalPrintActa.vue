@@ -40,16 +40,27 @@ import {ref, watch, toRef} from 'vue';
 import { useQuasar } from "quasar";
 import { useCapturas } from 'src/composables/useCapturas.js';
 const storeCapturas = useCapturas();
-const { currentService, visitSelected } = storeCapturas;
+const { visitSelected } = storeCapturas;
 
 const $q = useQuasar();
+const props = defineProps({
+    service: Object,
+    show: Boolean,
+});
+
+const service = toRef(props,'service')
+const mostrar = toRef(props, 'show')
+const ver = ref(mostrar.value == true)
+
+const dataActa = ref({})
+
+const emits = defineEmits(['closeModal']);
 
 const imprimir = (doc) => {
-    
     let url = import.meta.env.VITE_api_host
     switch (doc) {
         case 'guia inspeccion':
-            url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
+            url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=3&visita_id=${visitSelected.value.id}`
             break;
 
         case 'acta':{
@@ -75,7 +86,7 @@ const imprimir = (doc) => {
             .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(dataActa.value[key]))
             .join('&');
             
-            url = `${url}reportes/getreport?service_id=${currentService.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
+            url = `${url}reportes/getreport?service_id=${service.value.id}&reporte=2&${queryString}&visita_id=${visitSelected.value.id}`
             
             dataActa.value = {}
             submitClose();
@@ -86,16 +97,6 @@ const imprimir = (doc) => {
     window.open(url,'_blank')
 }
 
-
-const props = defineProps({
-    show: Boolean,
-})
-const mostrar = toRef(props, 'show')
-const ver = ref(mostrar.value == true)
-
-const dataActa = ref({})
-
-const emits = defineEmits(['closeModal']);
 
 // const submitData = () => {
 //     // emits('closeModal',dataActa)

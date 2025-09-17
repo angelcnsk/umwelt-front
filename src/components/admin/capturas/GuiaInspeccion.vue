@@ -1,24 +1,30 @@
 <template>
-    <q-card>
+    <q-card flat class="rounded-borders overflow-hidden">
         <q-card-section>
             <fechas-component :changeVisit="configNom02" :categorias="categorias" />
         </q-card-section>
         <q-card-section>
             
-            <q-list bordered class="rounded-borders" v-if="service.id != undefined && categorias.length > 0">
+            <q-list separator class="rounded-borders" v-if="service.id != undefined && categorias.length > 0">
                 <q-expansion-item
-                    group="somegroup"
+                    group="categorias"
                     expand-separator
-                    icon="ads_click"
+                    icon="category"
                     header-class="text-primary"
-                    :label="`${categoria.texto}`" v-for="(categoria,index) in categorias" :key="index"
-                    style="border: .2px solid gray"
+                    :label="`${categoria.texto}`" 
+                    v-for="(categoria,index) in categorias" 
+                    :key="categoria.id || index"
+                    :caption="`${categoria.conceptos?.length || 0} ítems`"
+                    class="bg-grey-2 rounded-borders q-mb-sm text-blue-grey-10"
+                    :default-opened="index === 0"
                 >
                 <q-separator />
-                <div v-if="categoria.conceptos && categoria.conceptos.length > 0" style="height: 250px; overflow-y: scroll; border:1px solid">
-                    <div class="q-pa-md" v-for="(concepto,i) in categoria.conceptos" :key="i">
-                        <div class="row wrap q-pa-sm">
-                            <span class="text-justify"><span class="text-caption">{{ `${concepto.global})`  }}</span> {{concepto.texto  }}</span>
+                <div v-if="categoria.conceptos && categoria.conceptos.length > 0" class="q-pa-md q-gutter-y-lg">
+                    <div class="bg-white rounded-borders shadow-sm q-pa-md" v-for="(concepto,i) in categoria.conceptos" :key="i">
+                        <!-- Pregunta -->
+                        <div class="text-body1 text-weight-medium text-grey-9 q-mb-md">
+                            <span class="text-pink-6">{{ concepto.global }})</span>
+                            {{ concepto.texto }}
                         </div>
                         <div class="row q-pa-sm" v-if="concepto.value">
                             <q-checkbox v-model="concepto.value" @click="changeValue(index, i)" val="si" label="Si" color="orange" :disable="disableOptions('si',index,i)" />
@@ -30,7 +36,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-12">
+                <q-separator />
+                <q-card-section class="bg-blue-grey-1">
                     <q-editor
                         class="q-editor-mb"
                         v-model="categoria.observaciones"
@@ -44,7 +51,7 @@
                         color="red-12"
                         @blur="saveObservaciones(index)"
                     />
-                </div>
+                </q-card-section>
                 </q-expansion-item>
                 
                 <contentActa :service="service" :categorias="categorias" v-if="service.product_id == 1" />
@@ -53,7 +60,7 @@
         
     </q-card>
     
-    <modal-acta :show="showActa" @closeModal="getActa" />
+    <modal-acta :show="showActa" :service="service" @closeModal="getActa" />
 
 </template>
 
