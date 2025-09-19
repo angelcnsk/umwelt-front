@@ -56,6 +56,10 @@ const dataActa = ref({})
 
 const emits = defineEmits(['closeModal']);
 
+const validateField = (field) => {
+    return field != undefined && field != ''
+}
+
 const imprimir = (doc) => {
     let url = import.meta.env.VITE_api_host
     switch (doc) {
@@ -64,16 +68,9 @@ const imprimir = (doc) => {
             break;
 
         case 'acta':{
-            if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
-                || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
-                // || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
-                // || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
-                // || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
-                // || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
-                // || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
-                // || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
-                
-            ){
+            if(!validateField(dataActa.value.persona1) || 
+            !validateField(dataActa.value.cargo1) ||
+            !validateField(dataActa.value.cargo2)) {
                 $q.notify({
                     position:'top',
                     type:'negative',
@@ -96,12 +93,6 @@ const imprimir = (doc) => {
 
     window.open(url,'_blank')
 }
-
-
-// const submitData = () => {
-//     // emits('closeModal',dataActa)
-//     imprimir(showActa.value)
-// }
 
 const submitClose = () => {
     ver.value = false

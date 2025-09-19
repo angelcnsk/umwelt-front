@@ -154,35 +154,32 @@
         </q-card>
     </q-dialog>
     <q-dialog v-model="showDictamen" ref="dictamenData">
-        <q-card style="min-width: 800px;">
+        <q-card style="max-width: 550px; min-width: 300px; width: 450px;">
             <q-card-section>
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-xs-12">
                         <q-input class="q-mt-md q-pa-sm" v-model="dataDictamen.fecha" filled type="date" label="Fecha emisión" />
                     </div>
                 </div>
                 <div class="row">
-                    <span class="q-pa-sm text-subtitle2 q-mt-md">Visitas realizadas:</span>
+                    <div class="col-xs-12">
+                        <q-select :options="visitasList" 
+                            option-label="name"
+                            class="q-pa-sm" 
+                            v-model="dataDictamen.visita_id" 
+                            label="Fechas de servicio"
+                        />
+                    </div>
                 </div>
-                <div class="q-pa-sm">
-                    <div class="row bg-blue-4 q-pa-sm q-mt-sm text-body1 text-bold text-white" v-for="(text, index) in visitasText" :key="index">{{ text }}</div>
-                </div>
-            
                 <div class="row">
-                    <span class="q-pa-sm text-subtitle2 q-mt-md">Texto de fechas de visita:</span>
-                    <span class="q-pa-sm">{{ dataDictamen.textoDictamen + dataDictamen.textoFechas + dataDictamen.textoDictamentResult + ' Cumple'}}</span>
-                </div>
-                <div class="row q-pa-sm q-mt-md justify-between">
-                    <div class="col-xs-12 col-md-6">
-                        <q-input v-model="dataDictamen.textoFechas" style="max-width: 95%;" filled label="Fecha de visitas"/>
+                    <div class="col-xs-12">
+                        <q-select :options="service.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite_id" label="Persona que emite dictamen"  />
                     </div>
-                </div>
-                <div class="row justify-between">
-                    <div class="col-xs-12 col-md-6">
-                        <q-select style="max-width: 95%;" :options="service.emisores_dictamen"   option-label="name" class="q-pa-sm" v-model="dataDictamen.emite" label="Persona que emite dictamen"  />
+                    <div class="col-xs-12">
+                        <q-select :options="service.representante_legal"   option-label="name" class="q-pa-sm" v-model="dataDictamen.legal_id" label="Representante legal Umwelt"  />
                     </div>
-                    <div class="col-xs-12 col-md-6">
-                        <q-input class="q-pa-sm" style="max-width: 95%;" v-model="dataDictamen.representante" label="Representante legal empresa" />
+                    <div class="col-xs-12">
+                        <q-input class="q-pa-sm" v-model="dataDictamen.representante" label="Representante legal empresa" />
                     </div>
                 </div>
                 
@@ -228,17 +225,13 @@ const { visitas, visitSelected:visitaSelected } = storeCapturas;
 const owners = ref([])
 const status = ref(false)
 const showDictamen = ref(false)
-const dataDictamen = ref({
-    textoDictamen:"La inspección del cumplimiento de la norma NOM-002-STPS-2010, Condiciones de Seguridad Prevención y Protección contra incendios en los centros de trabajo fue realizada ",
-    textoDictamentResult:" con el siguiente resultado:",
-    textoFechas:"",
-})
+const dataDictamen = ref({})
 
 const showActa = ref(false)
 const showDocs20 = ref(false)
 const dataActa = ref({})
 const service = inject('servicio')
-const visitasText = ref([])
+const visitasList = ref([])
 
 const notify = (msg, type) => {
     $q.notify({
@@ -252,14 +245,18 @@ const signatory = computed(() =>{
     return props.signatory
 })
 
-// const listFechas = computed(() => visitasText.value.join('<br>'))
-
 const signatario = ref({elabora:'', revisa:''})
 
 watch(signatory, (value) => {
     if(value != null){
         signatario.value = JSON.parse(value)
     }
+})
+
+watch(showDictamen,(newValue) =>{
+    if(newValue){
+        dataDictamen.value.visita_id = visitasList.value.find((date) => date.id === visitSelected.value.id);
+    } else dataDictamen.value.fechaVisit = null;
 })
 
 const filterStaff = (val, update) => {
@@ -320,11 +317,11 @@ const getDocument = (type) => {
     
     let url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${servicio_id.value}&reporte=${req}&visita_id=${visitSelected.value.id}`
     if(req==4){
-        if(dataDictamen.value.fecha == undefined || dataDictamen.value.fecha == ''
-            || dataDictamen.value.emite == undefined || dataDictamen.value.emite == ''
-            || dataDictamen.value.representante == undefined || dataDictamen.value.representante == ''
-            || dataDictamen.value.textoFechas == undefined || dataDictamen.value.textoFechas == ''
-        ){
+        if(!validateField(dataDictamen.value.fecha) || 
+        !validateField(dataDictamen.value.emite_id) || 
+        !validateField(dataDictamen.value.legal_id) ||
+        !validateField(dataDictamen.value.visita_id) ||
+        !validateField(dataDictamen.value.representante)){
             notify('Todos los campos son requeridos', 'negative')
             return false
         }
@@ -348,16 +345,9 @@ const getDocument = (type) => {
     }
 
     if(req==2){
-        if(dataActa.value.persona1 == undefined || dataActa.value.persona1 == ''
-            || dataActa.value.cargo1 == undefined || dataActa.value.cargo2 == ''
-            // || dataActa.value.persona2 == undefined || dataActa.value.persona2 == ''
-            // || dataActa.value.cargo2 == undefined || dataActa.value.cargo2 == ''
-            // || dataActa.value.testigo1 == undefined || dataActa.value.testigo1 == ''
-            // || dataActa.value.testigo_cargo1 == undefined || dataActa.value.testigo_cargo1 == ''
-            // || dataActa.value.testigo2 == undefined || dataActa.value.testigo2 == ''
-            // || dataActa.value.testigo_cargo2 == undefined || dataActa.value.testigo_cargo2 == ''
-            
-        ){
+        if(!validateField(dataActa.value.persona1) || 
+        !validateField(dataActa.value.cargo1) ||
+        !validateField(dataActa.value.cargo2)){
             notify('Para continuar agrega al menos un nombre y cargo de quien atiende la visita', 'negative')
             return false
         }
@@ -371,6 +361,10 @@ const getDocument = (type) => {
     }
 
     window.open(url,'_blank')
+}
+
+const validateField = (field) => {
+    return field != undefined && field != ''
 }
 
 const changeStatus = async() => {
@@ -391,7 +385,7 @@ const setDataService = () => {
     status.value = service.value.status == 'abierto'
     dataDictamen.value.representante = service.value.representante
     
-    visitasText.value = service.value.fechas != undefined ? service.value.fechas.map(fecha => {
+    visitasList.value = service.value.fechas != undefined ? service.value.fechas.map(fecha => {
         // Función para convertir fecha de 'aaaa/mm/dd' a 'dd/mm/aaaa'
         const formatFecha = (fechaStr) => {
             console.log(fechaStr)
@@ -403,7 +397,10 @@ const setDataService = () => {
         const fechaInicio = formatFecha(fecha.fecha_inicio);
         const fechaFin = formatFecha(fecha.fecha_fin);
 
-        return `Visita ${fecha.visita}: Inicio:${fechaInicio} - Fin:${fechaFin} \n`;
+        return {
+            id: fecha.id,
+            name: `${fechaInicio} - ${fechaFin}`
+        };
     }) : []
 }
 
