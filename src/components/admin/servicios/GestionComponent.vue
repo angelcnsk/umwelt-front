@@ -225,7 +225,7 @@ const { visitas, visitSelected:visitaSelected } = storeCapturas;
 const owners = ref([])
 const status = ref(false)
 const showDictamen = ref(false)
-const dataDictamen = ref({})
+const dataDictamen = ref({fecha:new Date().toLocaleDateString("sv-SE", { timeZone: "America/Mexico_City" })})
 
 const showActa = ref(false)
 const showDocs20 = ref(false)
@@ -316,6 +316,7 @@ const getDocument = (type) => {
     }
     
     let url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${servicio_id.value}&reporte=${req}&visita_id=${visitSelected.value.id}`
+    //si es dictamen se validan campos
     if(req==4){
         if(!validateField(dataDictamen.value.fecha) || 
         !validateField(dataDictamen.value.emite_id) || 
@@ -340,7 +341,7 @@ const getDocument = (type) => {
 
         url = `${import.meta.env.VITE_api_host}reportes/getreport?service_id=${servicio_id.value}&reporte=${req}&${queryString}&visita_id=${visitSelected.value.id}`
         showDictamen.value = false
-        dataDictamen.value = {}
+        dataDictamen.value = {fecha:new Date().toLocaleDateString("sv-SE", { timeZone: "America/Mexico_City" })}
         dataDictamen.value.representante = service.value.representante
     }
 

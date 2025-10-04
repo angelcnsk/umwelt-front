@@ -126,8 +126,10 @@ export const useCapturas = () => {
                 }
         
                 if(params.product_id == 1){
-                    //si no existen observaciones para las categorías
-                    if(observaciones.value.length === 0 && (data && data.length>0)){
+                   //si ya existen observaciones en idb las carga
+                    observaciones.value = await fetchObservations({service_id:currentService.value.id, product_id:params.product_id, visita:visitSelected.value.valor});
+
+                    if(!observaciones.value && (data && data.length>0)){
                         const a_observations = data.reduce((acumulador, categoria) => {
                             acumulador[`categoria_id_${categoria.id}`] = { texto: categoria.observaciones };
                             return acumulador;
@@ -137,9 +139,6 @@ export const useCapturas = () => {
                             await saveLocalObservations({service_id:currentService.value.id, visita:visitSelected.value.valor, data:a_observations});
                         }
                         observaciones.value = a_observations;
-                    } else {
-                        //si ya existen observaciones en idb las carga
-                        observaciones.value = await fetchObservations({service_id:currentService.value.id, product_id:params.product_id, visita:visitSelected.value.valor});
                     }
                 }
                 
@@ -351,7 +350,6 @@ export const useCapturas = () => {
             if(categoria.conceptos){
                 categoria.conceptos.forEach((concepto) => {
                     if((concept.concepto_id && concepto.conepto_id && concept.concepto_id == concepto.concepto_id) || (concepto.id && concept.id && concepto.id == concept.id)){
-                        console.log('concepto observaciones', concepto, concept)
                         concepto.value = concept.value;
                         concepto.observaciones = concept.observaciones;
                         concepto.no_cumple = concept.value.includes('no_cumple') ? 1:0;
@@ -395,7 +393,7 @@ export const useCapturas = () => {
     
     const saveObservaciones = async (categoria) => {
         //recibe los indices de cada uno y armamos el path
-        const path = `servicios/${currentService.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[categoria].id}`
+        // const path = `servicios/${currentService.value.id}/visita_${visitSelected.value.valor}/observaciones/categoria_id_${categorias.value[categoria].id}` //ese path se usaba para firebase
     
         categorias.value[categoria].status = !navigator.onLine ? 'pending' : 'completed';
         
@@ -409,7 +407,7 @@ export const useCapturas = () => {
         //guardar status local de categorías
         await saveDataCategories({service_id:currentService.value.id,visita:visitSelected.value.valor, data:categorias.value, product_id:currentService.value.product_id});
         //se guarda en firebase
-        await updateData(path,{texto:categorias.value[categoria].observaciones});
+        // await updateData(path,{texto:categorias.value[categoria].observaciones});
     }
     
     const configNom02 = async () => {

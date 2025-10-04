@@ -9,12 +9,7 @@
                 <div class="col-xs-12 col-md-4">
                     <q-input class="q-pa-sm" v-model="dataActa.cargo1" label="Cargo atiende la visita" />
                 </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.persona2" label="Nombre atiende la visita 2" />
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <q-input class="q-pa-sm" v-model="dataActa.cargo2" label="Cargo atiende la visita 2" />
-                </div>
+                
                 <div class="col-xs-12 col-md-4">
                     <q-input class="q-pa-sm" v-model="dataActa.testigo1" label="Nombre testigo 1" />
                 </div>
@@ -69,8 +64,7 @@ const imprimir = (doc) => {
 
         case 'acta':{
             if(!validateField(dataActa.value.persona1) || 
-            !validateField(dataActa.value.cargo1) ||
-            !validateField(dataActa.value.cargo2)) {
+            !validateField(dataActa.value.cargo1)) {
                 $q.notify({
                     position:'top',
                     type:'negative',
